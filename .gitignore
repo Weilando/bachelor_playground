@@ -1,0 +1,10 @@
+# Caches
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
+
+# Experiment files
+NewFeatureExperiments.ipynb
+
+# Datasets
+/data/
