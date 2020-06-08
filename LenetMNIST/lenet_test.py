@@ -1,12 +1,19 @@
-import unittest
+import time
 import torch
 import torch.nn as nn
 import torch.nn.utils.prune as prune
-from Lenet import Lenet
+import unittest
+
+from lenet import Lenet
 
 class Lenet_test(unittest.TestCase):
     """ Tests for the Lenet class.
     Call with 'python3 Lenet_test.py'. """
+    def test_forward_pass(self):
+        ''' The neural network should perform a forward pass without exceptions. '''
+        net = Lenet()
+        input_sample = torch.rand(28, 28)
+        net(input_sample)
 
     def test_sparsity_report_initial_weights(self):
         ''' The neural network should be fully connected right after initialization. '''
