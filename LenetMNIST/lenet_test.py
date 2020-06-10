@@ -14,22 +14,20 @@ class Lenet_test(unittest.TestCase):
         net = Lenet()
         input_sample = torch.rand(28, 28)
         net(input_sample)
+        self.assertEqual(266200, net.init_weight_count_net)
+
+    def test_forward_pass_different_acrhitecture(self):
+        ''' The neural network should perform a forward pass for  without exceptions. '''
+        net = Lenet(fc_plan=[5, 10])
+        input_sample = torch.rand(28, 28)
+        net(input_sample)
+        self.assertEqual(4070, net.init_weight_count_net)
 
     def test_sparsity_report_initial_weights(self):
         ''' The neural network should be fully connected right after initialization. '''
         net = Lenet()
         sparsity_report = net.sparsity_report()
         self.assertTrue(([1.0, 1.0, 1.0, 1.0] == sparsity_report).all())
-
-    def test_correct_initial_weight_counts(self):
-        ''' Initial weight counts should store correct dimensions. '''
-        net = Lenet()
-        self.assertEqual(28*28*300, int(net.layer1.weight.nonzero().numel()/2))
-        self.assertEqual(300*100, int(net.layer2.weight.nonzero().numel()/2))
-        self.assertEqual(100*10, int(net.layer3.weight.nonzero().numel()/2))
-        self.assertEqual(28*28*300, net.init_weight_count1)
-        self.assertEqual(300*100, net.init_weight_count2)
-        self.assertEqual(100*10, net.init_weight_count3)
 
     def test_prune_mask_for_toy_layer_correcly_once(self):
         """ Prune the mask for an unpruned linear layer in one step.
@@ -41,7 +39,7 @@ class Lenet_test(unittest.TestCase):
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
         test_net = Lenet() # Internal layers are not used
-        test_mask_pruned = test_net.prune_mask(layer=test_layer, initial_weight_count=10, prune_rate=0.2)
+        test_mask_pruned = test_net.prune_mask(layer=test_layer, prune_rate=0.2)
 
         expected_mask = torch.tensor([[0.,1.,1.,1.,1.], [1.,1.,1.,0.,1.]])
         self.assertTrue(test_mask_pruned.equal(expected_mask))
@@ -57,7 +55,7 @@ class Lenet_test(unittest.TestCase):
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=initial_mask)
 
         test_net = Lenet() # Internal layers are not used
-        test_mask_pruned = test_net.prune_mask(layer=test_layer, initial_weight_count=10, prune_rate=0.2)
+        test_mask_pruned = test_net.prune_mask(layer=test_layer, prune_rate=0.2)
 
         expected_mask = torch.tensor([[0.,1.,1.,0.,1.], [0.,1.,1.,0.,1.]])
         self.assertTrue(test_mask_pruned.equal(expected_mask))

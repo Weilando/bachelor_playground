@@ -6,48 +6,58 @@ import math
 
 class Lenet(nn.Module):
     """
-    Lenet with FC layers 300, 100, 10 for the MNIST dataset with input 28*28.
+    Lenet with FC layers for the MNIST dataset with input 28*28.
+    Layer sizes can be set via argument fc_plan.
+    Create Lenet 300-100 if no plan is specified.
     The neural network is prunable using iterative magnitude pruning (IMP).
     Initial weights for each layer are stored in the dict "init_weights" after applying the weight initialization with Gaussian Glorot.
     """
-    def __init__(self):
+    def __init__(self, fc_plan=[300, 100]):
         super(Lenet, self).__init__()
-        self.init_weight_count1 = 28*28*300
-        self.init_weight_count2 = 300*100
-        self.init_weight_count3 = 100*10
-        self.init_weight_count_all_layers = self.init_weight_count1 + self.init_weight_count2 + self.init_weight_count3
+        # statistics
+        self.init_weight_count_net = 0
         self.init_weights = dict()
 
-        # initialize the layers with Gaussian Glorot
-        self.layer1 = nn.Linear(28*28, 300) # input layer
-        self.layer2 = nn.Linear(300, 100) # hidden layer
-        self.layer3 = nn.Linear(100, 10) # output layer
-        torch.nn.init.xavier_normal_(self.layer1.weight)
-        torch.nn.init.xavier_normal_(self.layer2.weight)
-        torch.nn.init.xavier_normal_(self.layer3.weight)
+        # create and initialize layers with Gaussian Glorot
+        fc_layers = []
+        input = 784 # 28*28=784, dimension of samples in MNIST
+
+        for spec in fc_plan:
+            fc_layers.append(nn.Linear(input, spec))
+            fc_layers.append(nn.Tanh())
+            self.init_weight_count_net += input * spec
+            input = spec
+
+        self.fc = nn.Sequential(*fc_layers)
+        self.out = nn.Linear(input, 10)
+        self.init_weight_count_net += input * 10
+
+        self.apply(gaussian_glorot)
         self.store_initial_weights()
 
         # setup masks for pruning (all ones in the beginning)
-        self.layer1 = prune.custom_from_mask(self.layer1, name='weight', mask=torch.ones_like(self.layer1.weight))
-        self.layer2 = prune.custom_from_mask(self.layer2, name='weight', mask=torch.ones_like(self.layer2.weight))
-        self.layer3 = prune.custom_from_mask(self.layer3, name='weight', mask=torch.ones_like(self.layer3.weight))
+        for layer in self.fc:
+            if isinstance(layer, torch.nn.Linear):
+                layer = prune.custom_from_mask(layer, name='weight', mask=torch.ones_like(layer.weight))
+        self.out = prune.custom_from_mask(self.out, name='weight', mask=torch.ones_like(self.out.weight))
 
     def store_initial_weights(self):
-        self.init_weights[self.layer1] = self.layer1.weight.clone()
-        self.init_weights[self.layer2] = self.layer2.weight.clone()
-        self.init_weights[self.layer3] = self.layer3.weight.clone()
+        for layer in self.fc:
+            if isinstance(layer, torch.nn.Linear):
+                self.init_weights[layer] = layer.weight.clone()
+        self.init_weights[self.out] = self.out.weight.clone()
 
     def forward(self, x):
         """ Calculate forward pass for tensor x. """
-        x = x.view(-1, 28*28)
-        x = torch.tanh(self.layer1(x))
-        x = torch.tanh(self.layer2(x))
-        x = self.layer3(x)
+        x = x.view(-1, 784) # 28*28=784, dimension of samples in MNIST
+        x = self.fc(x)
+        x = self.out(x)
         return x
 
-    def prune_mask(self, layer, initial_weight_count, prune_rate):
+    def prune_mask(self, layer, prune_rate):
         """ Prune mask for given layer, i.e. set its entries to zero for weights with smallest magnitudes.
         The amount of pruning is the product of the pruning rate and the number of the layer's unpruned weights. """
+        initial_weight_count = layer.in_features * layer.out_features
         unpruned_weight_count = int(layer.weight_mask.flatten().sum())
         pruned_weight_count = int(initial_weight_count - unpruned_weight_count)
         prune_amount = math.ceil(unpruned_weight_count * prune_rate)
@@ -61,35 +71,51 @@ class Lenet(nn.Module):
     def prune_net(self, prune_rate):
         """ Prune all layers with the given prune rate (use half of it for the output layer).
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
-        pruned_mask_layer1 = self.prune_mask(self.layer1, self.init_weight_count1, prune_rate)
-        pruned_mask_layer2 = self.prune_mask(self.layer2, self.init_weight_count2, prune_rate)
+        layer_count = 0
+        for layer in self.fc:
+            if isinstance(layer, torch.nn.Linear):
+                pruned_mask = self.prune_mask(layer, prune_rate)
+
+                prune.remove(layer, name='weight') # temporarily remove pruning
+                layer.weight = nn.Parameter(self.init_weights.get(layer)) # set weights to initial weights
+
+                layer = prune.custom_from_mask(layer, name='weight',  mask=pruned_mask) # apply pruned mask
+
+                layer_count += 1
+
         # prune output-layer with half of the pruning rate
-        pruned_mask_layer3 = self.prune_mask(self.layer3, self.init_weight_count3, prune_rate/2)
+        pruned_mask = self.prune_mask(self.out, prune_rate/2)
+        prune.remove(self.out, name='weight')
+        self.out.weight = nn.Parameter(self.init_weights.get(self.out))
+        self.out = prune.custom_from_mask(self.out, name='weight',  mask=pruned_mask)
 
-        # temporarily remove pruning
-        prune.remove(self.layer1, name='weight')
-        prune.remove(self.layer2, name='weight')
-        prune.remove(self.layer3, name='weight')
+    def sparsity_layer(self, layer):
+        """ Calculates sparsity and counts unpruned weights for given layer. """
+        unpr_weight_count = int(layer.weight.nonzero().numel()/2)
+        init_weight_count = layer.in_features * layer.out_features
 
-        # set weights to initial weights
-        self.layer1.weight = nn.Parameter(self.init_weights.get(self.layer1))
-        self.layer2.weight = nn.Parameter(self.init_weights.get(self.layer2))
-        self.layer3.weight = nn.Parameter(self.init_weights.get(self.layer3))
-
-        # apply pruned masks
-        self.layer1 = prune.custom_from_mask(self.layer1, name='weight',  mask=pruned_mask_layer1)
-        self.layer2 = prune.custom_from_mask(self.layer2, name='weight',  mask=pruned_mask_layer2)
-        self.layer3 = prune.custom_from_mask(self.layer3, name='weight',  mask=pruned_mask_layer3)
+        sparsity = unpr_weight_count / init_weight_count
+        return (sparsity, unpr_weight_count)
 
     def sparsity_report(self):
         """ Generate a list with sparsities for the whole network and per layer. """
-        unpruned_weights_layer1 = int(self.layer1.weight.nonzero().numel()/2)
-        unpruned_weights_layer2 = int(self.layer2.weight.nonzero().numel()/2)
-        unpruned_weights_layer3 = int(self.layer3.weight.nonzero().numel()/2)
+        unpr_weight_counts = 0
+        sparsities = []
+        for layer in self.fc:
+             if isinstance(layer, torch.nn.Linear):
+                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
-        sparsity_layer1 = unpruned_weights_layer1 / self.init_weight_count1
-        sparsity_layer2 = unpruned_weights_layer2 / self.init_weight_count2
-        sparsity_layer3 = unpruned_weights_layer3 / self.init_weight_count3
-        sparsity = (unpruned_weights_layer1 + unpruned_weights_layer2 + unpruned_weights_layer3) / self.init_weight_count_all_layers
+                 sparsities.append(curr_sparsity)
+                 unpr_weight_counts += curr_unpr_weight_count
 
-        return np.round([sparsity, sparsity_layer1, sparsity_layer2, sparsity_layer3], 4)
+        out_sparsity, out_unpr_weight_count = self.sparsity_layer(self.out)
+        sparsities.append(out_sparsity)
+        unpr_weight_counts += out_unpr_weight_count
+
+        sparsity_net = unpr_weight_counts / self.init_weight_count_net
+        sparsities.insert(0, sparsity_net)
+        return np.round(sparsities, 4)
+
+def gaussian_glorot(layer):
+    if isinstance(layer, torch.nn.Linear) or isinstance(layer, torch.nn.Conv2d):
+        torch.nn.init.xavier_normal_(layer.weight)
