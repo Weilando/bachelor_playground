@@ -2,7 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.prune as prune
 import numpy as np
-import math
+
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from nets.weight_init import gaussian_glorot
+from pruning.magnitude_pruning import prune_layer, setup_masks
 
 class Lenet(nn.Module):
     """
@@ -34,12 +39,7 @@ class Lenet(nn.Module):
 
         self.apply(gaussian_glorot)
         self.store_initial_weights()
-
-        # setup masks for pruning (all ones in the beginning)
-        for layer in self.fc:
-            if isinstance(layer, torch.nn.Linear):
-                layer = prune.custom_from_mask(layer, name='weight', mask=torch.ones_like(layer.weight))
-        self.out = prune.custom_from_mask(self.out, name='weight', mask=torch.ones_like(self.out.weight))
+        self.apply(setup_masks)
 
     def store_initial_weights(self):
         for layer in self.fc:
@@ -54,40 +54,13 @@ class Lenet(nn.Module):
         x = self.out(x)
         return x
 
-    def prune_mask(self, layer, prune_rate):
-        """ Prune mask for given layer, i.e. set its entries to zero for weights with smallest magnitudes.
-        The amount of pruning is the product of the pruning rate and the number of the layer's unpruned weights. """
-        initial_weight_count = layer.in_features * layer.out_features
-        unpruned_weight_count = int(layer.weight_mask.flatten().sum())
-        pruned_weight_count = int(initial_weight_count - unpruned_weight_count)
-        prune_amount = math.ceil(unpruned_weight_count * prune_rate)
-
-        sorted_weight_indices = layer.weight.flatten().abs().argsort()
-
-        new_mask = layer.weight_mask.clone()
-        new_mask.flatten()[sorted_weight_indices[pruned_weight_count:(pruned_weight_count+prune_amount)]] = 0
-        return new_mask
-
     def prune_net(self, prune_rate):
         """ Prune all layers with the given prune rate (use half of it for the output layer).
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
-        layer_count = 0
         for layer in self.fc:
-            if isinstance(layer, torch.nn.Linear):
-                pruned_mask = self.prune_mask(layer, prune_rate)
-
-                prune.remove(layer, name='weight') # temporarily remove pruning
-                layer.weight = nn.Parameter(self.init_weights.get(layer)) # set weights to initial weights
-
-                layer = prune.custom_from_mask(layer, name='weight',  mask=pruned_mask) # apply pruned mask
-
-                layer_count += 1
-
+            prune_layer(layer, prune_rate, self.init_weights.get(layer))
         # prune output-layer with half of the pruning rate
-        pruned_mask = self.prune_mask(self.out, prune_rate/2)
-        prune.remove(self.out, name='weight')
-        self.out.weight = nn.Parameter(self.init_weights.get(self.out))
-        self.out = prune.custom_from_mask(self.out, name='weight',  mask=pruned_mask)
+        prune_layer(self.out, prune_rate/2, self.init_weights.get(self.out))
 
     def sparsity_layer(self, layer):
         """ Calculates sparsity and counts unpruned weights for given layer. """
@@ -114,8 +87,4 @@ class Lenet(nn.Module):
 
         sparsity_net = unpr_weight_counts / self.init_weight_count_net
         sparsities.insert(0, sparsity_net)
-        return np.round(sparsities, 4)
-
-def gaussian_glorot(layer):
-    if isinstance(layer, torch.nn.Linear) or isinstance(layer, torch.nn.Conv2d):
-        torch.nn.init.xavier_normal_(layer.weight)
+        return np.round(sparsities, decimals=4)

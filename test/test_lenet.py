@@ -20,7 +20,7 @@ class Lenet_test(unittest.TestCase):
         net(input_sample)
         self.assertEqual(266200, net.init_weight_count_net)
 
-    def test_forward_pass_different_acrhitecture(self):
+    def test_forward_pass_simple_architecture(self):
         ''' The neural network should perform a forward pass for  without exceptions. '''
         net = Lenet(fc_plan=[5, 10])
         input_sample = torch.rand(28, 28)
@@ -32,37 +32,6 @@ class Lenet_test(unittest.TestCase):
         net = Lenet()
         sparsity_report = net.sparsity_report()
         self.assertTrue(([1.0, 1.0, 1.0, 1.0] == sparsity_report).all())
-
-    def test_prune_mask_for_toy_layer_correcly_once(self):
-        """ Prune the mask for an unpruned linear layer in one step.
-        The two weights with the lowest magnitude should be zeroed out. """
-        # Initialize linear layer with 10 given weights and unpruned mask
-        initial_weights = torch.tensor([[1., -2., 3., -1.5, -3.], [-1., 2., -4., 0.5, 1.5]])
-        test_layer = nn.Linear(2, 5)
-        test_layer.weight = nn.Parameter(initial_weights.clone())
-        test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
-
-        test_net = Lenet() # Internal layers are not used
-        test_mask_pruned = test_net.prune_mask(layer=test_layer, prune_rate=0.2)
-
-        expected_mask = torch.tensor([[0.,1.,1.,1.,1.], [1.,1.,1.,0.,1.]])
-        self.assertTrue(test_mask_pruned.equal(expected_mask))
-
-    def test_prune_mask_for_toy_layer_correcly_twice(self):
-        """ Prune the mask for a pruned linear layer in one step.
-        The two weights (as ceil(8*0.2)) with the lowest magnitude should be zeroed out. """
-        # Initialize linear layer with 10 given weights and pruned mask
-        initial_weights = torch.tensor([[1., -2., 3., -1.5, -3.], [-1., 2., -4., 0.5, 1.5]])
-        initial_mask = torch.tensor([[0.,1.,1.,1.,1.], [1.,1.,1.,0.,1.]])
-        test_layer = nn.Linear(2, 5)
-        test_layer.weight = nn.Parameter(initial_weights.clone())
-        test_layer = prune.custom_from_mask(test_layer, name='weight', mask=initial_mask)
-
-        test_net = Lenet() # Internal layers are not used
-        test_mask_pruned = test_net.prune_mask(layer=test_layer, prune_rate=0.2)
-
-        expected_mask = torch.tensor([[0.,1.,1.,0.,1.], [0.,1.,1.,0.,1.]])
-        self.assertTrue(test_mask_pruned.equal(expected_mask))
 
     def test_sparsity_report_after_single_prune(self):
         ''' Each layer should be pruned with the given pruning rate, except for the last layer.
