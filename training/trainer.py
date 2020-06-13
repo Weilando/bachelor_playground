@@ -22,7 +22,7 @@ class TrainerAdam(object):
         self.val_loader = val_loader
         self.test_loader = test_loader
 
-    def train_net(self, net, epoch_count=3, loss_plot_step=100):
+    def train_net(self, net, epoch_count=3, loss_plot_step=100, verbose=False):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save the loss every 'loss_plot_step' iterations. """
         # initialize histories
@@ -36,7 +36,8 @@ class TrainerAdam(object):
         opt = optim.Adam(net.parameters(), lr=self.learning_rate) # instantiate optimizer
 
         for e in range(0, epoch_count):
-            print(f"epoch: {(e+1):2} (", end="") # progress
+            if verbose:
+                print(f"epoch: {(e+1):2} (", end="")
             tic = time.time()
 
             for j,(inputs, labels) in enumerate(self.train_loader):
@@ -58,21 +59,27 @@ class TrainerAdam(object):
                 loss = train_loss + 0.00005*reg_loss
                 if (j % loss_plot_step) == 0:
                     loss_history[e*loss_history_epoch_length + int(j/100)] = loss.item()
-                    print(f"-", end="") # progress
+                    if verbose:
+                        print(f"-", end="")
 
                 # backward pass
                 loss.backward()
                 opt.step()
 
-            print(f")", end="") # progress
+            if verbose:
+                print(f")", end="")
             # accuracies are evaluated after each epoch to increase training speed
             val_acc_history[e] = self.compute_accuracy(net, test=False)
-            print(f"v", end="") # progress
+            if verbose:
+                print(f"v", end="")
             test_acc_history[e] = self.compute_accuracy(net, test=True)
 
             # print progress
             toc = time.time()
-            print(f"t val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
+            if verbose:
+                print(f"t val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
+            else:
+                print(f"epoch: {(e+1):2}, val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
         return net, loss_history, val_acc_history,  test_acc_history
 
     def compute_accuracy(self, net, test=True):

@@ -5,6 +5,7 @@ __pycache__/
 
 # Experiment files
 NewFeatureExperiments.ipynb
+/experiments/results/
 
 # Datasets
 /data/datasets/

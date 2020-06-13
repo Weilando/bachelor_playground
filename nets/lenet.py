@@ -20,6 +20,7 @@ class Lenet(nn.Module):
     def __init__(self, fc_plan=[300, 100]):
         super(Lenet, self).__init__()
         # statistics
+        self.fc_plan = fc_plan # stored for result-json
         self.init_weight_count_net = 0
         self.init_weights = dict()
 

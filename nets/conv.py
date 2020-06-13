@@ -21,6 +21,8 @@ class Conv(nn.Module):
     def __init__(self, conv_plan=[64, 64, 'M'], fc_plan=[256, 256]):
         super(Conv, self).__init__()
         # statistics
+        self.conv_plan = conv_plan # stored for result-json
+        self.fc_plan = fc_plan # stored for result-json
         self.init_weight_count_net = dict([('conv', 0), ('fc', 0)])
         self.init_weights = dict()
 
