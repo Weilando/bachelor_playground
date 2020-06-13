@@ -8,6 +8,12 @@ def get_means_and_y_errors(arr):
     arr_pos_yerr = np.max(arr, axis=0) - arr_mean
     return arr_mean, arr_neg_yerr, arr_pos_yerr
 
+def format_time(time):
+    if time >= 60:
+        minutes, seconds = divmod((time), 60)
+        return f"{round(minutes)}:{round(seconds):02d}min"
+    return f"{time:.4f}sec"
+
 def gen_plot_average_acc_on_ax(ax, acc_histories, sparsity_history):
     """ Generate plots of means and error-bars for given accuracies (per epoch) on ax. """
     net_count, prune_count, epoch_count = acc_histories.shape

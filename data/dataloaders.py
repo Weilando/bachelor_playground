@@ -1,5 +1,5 @@
-import torch.utils.data
-import torchvision
+import torch.utils.data as d_utils
+import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 import os
@@ -14,16 +14,16 @@ def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='..
 
     tr = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
-    training_data = torchvision.datasets.MNIST(root=path, train=True, download=True, transform=tr)
-    training_data, validation_data = torch.utils.data.random_split(training_data, [train_len, val_len])
-    training_loader = torch.utils.data.DataLoader(training_data, batch_size=batch_size, shuffle=True, num_workers=2)
-    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=batch_size, shuffle=True, num_workers=1)
+    train_data = datasets.MNIST(root=path, train=True, download=True, transform=tr)
+    train_data, val_data = d_utils.random_split(train_data, [train_len, val_len])
+    train_loader = d_utils.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader = d_utils.DataLoader(val_data, batch_size=batch_size, shuffle=True, num_workers=2)
 
-    test_data = torchvision.datasets.MNIST(root=path, train=False, download=True, transform=tr)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=1)
+    test_data = datasets.MNIST(root=path, train=False, download=True, transform=tr)
+    test_loader = d_utils.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=2)
 
-    print(len(training_data), len(training_loader), len(validation_data), len(validation_loader), len(test_data), len(test_loader))
-    return training_loader, validation_loader, test_loader
+    print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
+    return train_loader, val_loader, test_loader
 
 def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='../data/datasets'):
     """ Load the CIFAR-10-dataset and provide DataLoaders with given properties.
@@ -33,13 +33,13 @@ def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='
 
     tr = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    training_data = torchvision.datasets.CIFAR10(root=path, train=True, download=True, transform=tr)
-    training_data, validation_data = torch.utils.data.random_split(training_data, [45000, 5000])
-    training_loader = torch.utils.data.DataLoader(training_data, batch_size=60, shuffle=True, num_workers=4)
-    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=60, shuffle=True, num_workers=2)
+    train_data = datasets.CIFAR10(root=path, train=True, download=True, transform=tr)
+    train_data, val_data = d_utils.random_split(train_data, [45000, 5000])
+    train_loader = d_utils.DataLoader(train_data, batch_size=60, shuffle=True, num_workers=4)
+    val_loader = d_utils.DataLoader(val_data, batch_size=60, shuffle=True, num_workers=2)
 
-    test_data = torchvision.datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=60, shuffle=True, num_workers=2)
+    test_data = datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
+    test_loader = d_utils.DataLoader(test_data, batch_size=60, shuffle=True, num_workers=2)
 
-    print(len(training_data), len(training_loader), len(validation_data), len(validation_loader), len(test_data), len(test_loader))
-    return training_loader, validation_loader, test_loader
+    print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
+    return train_loader, val_loader, test_loader

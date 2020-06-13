@@ -1,7 +1,4 @@
-import time
 import torch
-import torch.nn as nn
-import torch.nn.utils.prune as prune
 import unittest
 
 import os
@@ -9,10 +6,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.lenet import Lenet
 
-class Lenet_test(unittest.TestCase):
+class Test_Lenet(unittest.TestCase):
     """ Tests for the Lenet class.
-    Call with 'python -m test.lenet_test' from project root '~'.
-    Call with 'python -m lenet_test' from inside '~/test'. """
+    Call with 'python -m test.test_lenet' from project root '~'.
+    Call with 'python -m test_lenet' from inside '~/test'. """
     def test_forward_pass(self):
         ''' The neural network should perform a forward pass without exceptions. '''
         net = Lenet()

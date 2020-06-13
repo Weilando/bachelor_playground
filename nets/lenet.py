@@ -36,6 +36,7 @@ class Lenet(nn.Module):
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(input, 10)
         self.init_weight_count_net += input * 10
+        self.crit = nn.CrossEntropyLoss()
 
         self.apply(gaussian_glorot)
         self.store_initial_weights()

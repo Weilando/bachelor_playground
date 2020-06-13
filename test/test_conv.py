@@ -1,7 +1,4 @@
-import time
 import torch
-import torch.nn as nn
-import torch.nn.utils.prune as prune
 import unittest
 import numpy as np
 
@@ -10,10 +7,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.conv import Conv
 
-class Conv_test(unittest.TestCase):
+class Test_Conv(unittest.TestCase):
     """ Tests for the Conv class.
-    Call with 'python -m test.conv_test' from project root '~'.
-    Call with 'python -m conv_test' from inside '~/test'.
+    Call with 'python -m test.test_conv' from project root '~'.
+    Call with 'python -m test_conv' from inside '~/test'.
     Inputs are of size [60, 3, 32, 32] (for batch-size 60) """
     def test_forward_pass_conv2(self):
         ''' The neural network with architecture Conv-2 should perform a forward pass without exceptions. '''

@@ -1,4 +1,3 @@
-import time
 import torch
 import torch.nn as nn
 import torch.nn.utils.prune as prune
@@ -9,10 +8,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pruning.magnitude_pruning as mp
 
-class Pruning_test(unittest.TestCase):
+class Test_pruning(unittest.TestCase):
     """ Tests for the pruning logic.
-    Call with 'python -m test.pruning_test' from project root '~'.
-    Call with 'python -m pruning_test' from inside '~/test'. """
+    Call with 'python -m test.test_pruning' from project root '~'.
+    Call with 'python -m test_pruning' from inside '~/test'. """
     def test_setup_mask_correctly(self):
         """ Create weight-masks for all sublayers recursively. """
         test_net = nn.Sequential(

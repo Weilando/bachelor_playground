@@ -55,6 +55,7 @@ class Conv(nn.Module):
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(filters, 10)
         self.init_weight_count_net['fc'] += filters * 10
+        self.crit = nn.CrossEntropyLoss()
 
         self.apply(gaussian_glorot)
         self.store_initial_weights()
