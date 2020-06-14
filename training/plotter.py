@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def get_means_and_y_errors(arr):
-    """ Calculate means and error bars for given array of arrays. """
+    """ Calculate means and error bars for given array of arrays.
+    The array is supposed to be of shape (net_count, prune_count+1, data_length).
+    In this case this function squashes the net-dimension, so one gets mean, max and min with shape (prune_count+1, data_length). """
     arr_mean = np.mean(arr, axis=0)
     arr_neg_yerr = arr_mean - np.min(arr, axis=0)
     arr_pos_yerr = np.max(arr, axis=0) - arr_mean

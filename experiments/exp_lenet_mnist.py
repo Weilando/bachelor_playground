@@ -27,6 +27,7 @@ class Exp_Lenet_MNIST(object):
         self.loss_plot_step = args['loss_plot_step']
 
     def setup_experiment(self):
+        """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
         # load dataset
         train_loader, val_loader, test_loader = get_mnist_dataloaders()
 
@@ -47,6 +48,8 @@ class Exp_Lenet_MNIST(object):
         print(self.nets[0])
 
     def run_experiment(self):
+        """ Run experiment, i.e. perform iterative magnitude pruning and save accuracy- and loss-histories after each training.
+        Retrain in the end to check the last nets' accuracies. """
         experiment_start = time.time() # start clock for experiment duration
 
         self.setup_experiment()
@@ -76,6 +79,7 @@ class Exp_Lenet_MNIST(object):
         experiment_stop = time.time()
         duration = plotter.format_time(experiment_stop-experiment_start)
         print(f"Experiment duration: {duration}")
+        self.args['duration'] = duration
 
         self.save_results()
 
@@ -86,15 +90,13 @@ class Exp_Lenet_MNIST(object):
             os.mkdir(results_path)
         return results_path
 
-    def save_specs(self, results_path, save_time):
+    def generate_file_prefix(self, save_time):
+        return f"{save_time}-{self.args['net']}-{self.args['dataset']}"
+
+    def save_specs(self, results_path, file_prefix):
         """ Save experiment's specs in json-file. """
         # create path to json-file
-        json_path = os.path.join(results_path, save_time + "lenet-mnist-specs.json")
-
-        # add more information to dict 'args'
-        self.args['net'] = 'lenet'
-        self.args['dataset'] = 'mnist'
-        self.args['fc_plan'] = self.nets[0].fc_plan
+        json_path = os.path.join(results_path, f"{file_prefix}-specs.json")
 
         # write dict 'args' to json-file
         description_json = json.dumps(self.args)
@@ -102,27 +104,28 @@ class Exp_Lenet_MNIST(object):
         f.write(description_json)
         f.close()
 
-    def save_nets(self, results_path, save_time):
+    def save_nets(self, results_path, file_prefix):
         """ Save trained networks in pth-files. """
         for num, net in enumerate(self.nets):
-            net_path = histories_path = os.path.join(results_path, save_time + f"lenet-mnist-net{num}.pth")
+            net_path = histories_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
             torch.save(net, net_path)
 
-    def save_histories(self, results_path, save_time):
+    def save_histories(self, results_path, file_prefix):
         """ Save loss-, validation- and test-histories in npz-file.
         The np-arrays can be restored via 'np.load'. """
-        histories_path = os.path.join(results_path, save_time + "lenet-mnist-histories")
+        histories_path = os.path.join(results_path, f"{file_prefix}-histories") # suffix is added by np.savez
         np.savez(histories_path, loss_histories=self.loss_histories, val_acc_histories=self.val_acc_histories, test_acc_histories=self.test_acc_histories)
 
     def save_results(self):
         """ Save experiment's specs and results on disk.
         Filenames are 'YYYY_MM_DD-hh_mm_ss-lenet-mnist' + specs/histories/net. """
         save_time = time.strftime("%Y_%m_%d-%H_%M_%S-", time.localtime())
+        file_prefix = self.generate_file_prefix(save_time)
 
         results_path = self.setup_results_path()
-        self.save_specs(results_path, save_time)
-        self.save_histories(results_path, save_time)
-        self.save_nets(results_path, save_time)
+        self.save_specs(results_path, file_prefix)
+        self.save_histories(results_path, file_prefix)
+        self.save_nets(results_path, file_prefix)
         print("Successfully wrote results on disk.")
 
 
@@ -133,6 +136,10 @@ if __name__=='__main__':
     experiment_settings['learning_rate'] = 1.2e-3 # page 3, figure 2
     experiment_settings['prune_rate'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 1
+    experiment_settings['prune_method'] = 'imp'
     experiment_settings['loss_plot_step'] = 100
+    experiment_settings['net'] = 'lenet'
+    experiment_settings['dataset'] = 'mnist'
+
     experiment = Exp_Lenet_MNIST(experiment_settings)
     experiment.run_experiment()
