@@ -12,17 +12,15 @@ from pruning.magnitude_pruning import prune_layer, setup_masks
 class Conv(nn.Module):
     """
     Convolutional network with convolutional layers in the beginning and fully-connected layers afterwards.
-    Its acrhitecture can be specified via sizes in conv_plan and fc_plan.
-    'M' and 'A' have special roles in conv_plan, as they generate Max- and Average-Pooling layers.
+    Its acrhitecture can be specified via sizes in plan_conv and plan_fc.
+    'M' and 'A' have special roles in plan_conv, as they generate Max- and Average-Pooling layers.
     If no architecture is specified, a Conv2-architecture is generated.
     Works for the CIFAR-10 dataset with input 32*32*3.
     Initial weights for each layer are stored in the dict "init_weights" after applying the weight initialization with Gaussian Glorot.
     """
-    def __init__(self, conv_plan=[64, 64, 'M'], fc_plan=[256, 256]):
+    def __init__(self, plan_conv=[64, 64, 'M'], plan_fc=[256, 256]):
         super(Conv, self).__init__()
         # statistics
-        self.conv_plan = conv_plan # stored for result-json
-        self.fc_plan = fc_plan # stored for result-json
         self.init_weight_count_net = dict([('conv', 0), ('fc', 0)])
         self.init_weights = dict()
 
@@ -32,7 +30,7 @@ class Conv(nn.Module):
         filters = 3
         pooling_count = 0
 
-        for spec in conv_plan:
+        for spec in plan_conv:
             if spec == 'M':
                 conv_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
                 pooling_count += 1
@@ -47,7 +45,7 @@ class Conv(nn.Module):
 
         # Each Pooling-layer quarters the input size (32*32=1024)
         filters = filters * round(1024 / (4**pooling_count))
-        for spec in fc_plan:
+        for spec in plan_fc:
             fc_layers.append(nn.Linear(filters, spec))
             fc_layers.append(nn.Tanh())
             self.init_weight_count_net['fc'] += filters * spec

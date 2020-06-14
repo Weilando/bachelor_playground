@@ -12,15 +12,14 @@ from pruning.magnitude_pruning import prune_layer, setup_masks
 class Lenet(nn.Module):
     """
     Lenet with FC layers for the MNIST dataset with input 28*28.
-    Layer sizes can be set via argument fc_plan.
+    Layer sizes can be set via argument plan_fc.
     Create Lenet 300-100 if no plan is specified.
     The neural network is prunable using iterative magnitude pruning (IMP).
     Initial weights for each layer are stored in the dict "init_weights" after applying the weight initialization with Gaussian Glorot.
     """
-    def __init__(self, fc_plan=[300, 100]):
+    def __init__(self, plan_fc=[300, 100]):
         super(Lenet, self).__init__()
         # statistics
-        self.fc_plan = fc_plan # stored for result-json
         self.init_weight_count_net = 0
         self.init_weights = dict()
 
@@ -28,7 +27,7 @@ class Lenet(nn.Module):
         fc_layers = []
         input = 784 # 28*28=784, dimension of samples in MNIST
 
-        for spec in fc_plan:
+        for spec in plan_fc:
             fc_layers.append(nn.Linear(input, spec))
             fc_layers.append(nn.Tanh())
             self.init_weight_count_net += input * spec

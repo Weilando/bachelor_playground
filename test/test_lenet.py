@@ -19,7 +19,7 @@ class Test_Lenet(unittest.TestCase):
 
     def test_forward_pass_simple_architecture(self):
         ''' The neural network should perform a forward pass for  without exceptions. '''
-        net = Lenet(fc_plan=[5, 10])
+        net = Lenet(plan_fc=[5, 10])
         input_sample = torch.rand(28, 28)
         net(input_sample)
         self.assertEqual(4070, net.init_weight_count_net)

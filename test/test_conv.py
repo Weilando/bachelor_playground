@@ -20,13 +20,13 @@ class Test_Conv(unittest.TestCase):
 
     def test_forward_pass_conv4(self):
         ''' The neural network with architecture Conv-4 should perform a forward pass without exceptions. '''
-        net = Conv(conv_plan=[64, 64, 'M', 128, 128, 'M'], fc_plan=[256, 256])
+        net = Conv(plan_conv=[64, 64, 'M', 128, 128, 'M'], plan_fc=[256, 256])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 
     def test_forward_pass_conv6(self):
         ''' The neural network with architecture Conv-6 should perform a forward pass without exceptions. '''
-        net = Conv(conv_plan=[64, 64, 'M', 128, 128, 'M', 256, 256, 'M'], fc_plan=[256, 256])
+        net = Conv(plan_conv=[64, 64, 'M', 128, 128, 'M', 256, 256, 'M'], plan_fc=[256, 256])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 
