@@ -1,12 +1,10 @@
-import time
 import json
 import numpy as np
-import math
-import matplotlib.pyplot as plt
+import time
+import torch
 
 import os
 import sys
-import torch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from training import plotter
@@ -63,9 +61,8 @@ class Experiment(object):
 
         # write dict 'args' to json-file
         description_json = json.dumps(self.args)
-        f = open(json_path, "w")
-        f.write(description_json)
-        f.close()
+        with open(json_path, "w") as f:
+            f.write(description_json)
 
     def save_nets(self, results_path, file_prefix):
         """ Save trained networks in pth-files. """
@@ -74,14 +71,17 @@ class Experiment(object):
             torch.save(net, net_path)
 
     def save_histories(self, results_path, file_prefix):
-        """ Save loss-, validation- and test-histories in npz-file.
-        The np-arrays can be restored via 'np.load'. """
+        """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
         histories_path = os.path.join(results_path, f"{file_prefix}-histories") # suffix is added by np.savez
-        np.savez(histories_path, loss_histories=self.loss_histories, val_acc_histories=self.val_acc_histories, test_acc_histories=self.test_acc_histories)
+        np.savez(histories_path,
+                loss_histories=self.loss_histories,
+                val_acc_histories=self.val_acc_histories,
+                test_acc_histories=self.test_acc_histories,
+                sparsity_history=self.sparsity_history)
 
     def save_results(self):
         """ Save experiment's specs, histories and models on disk. """
-        save_time = time.strftime("%Y_%m_%d-%H_%M_%S-", time.localtime())
+        save_time = time.strftime("%Y_%m_%d-%H_%M_%S", time.localtime())
         file_prefix = self.generate_file_prefix(save_time)
 
         results_path = self.setup_results_path()
