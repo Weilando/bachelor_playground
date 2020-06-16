@@ -9,18 +9,20 @@ Currently implemented experiments:
 ## Workflow
 ### Run experiments
 One can find implemented experiments in the module `experiments`.
-The experiments are subclasses of `Experiment` and can be called with `python -m <module-name> <settings>`.
-`settings` specifies the settings to use.
+The experiments are subclasses of `Experiment` and can be executed by calling `python -m bachelor_playground <experiment>`, where `experiment` specifies the experiment to run.
 At the moment they differ in the used architectures (for details have a look at `experiment_settings.py`).
 
 The following settings are available:
 
-Experiment | Architecture | Argument
+Experiment | Architecture | Dataset
 --- | --- | ---
-`experiment_lenet_mnist` | fc: 300-100-10 | None
-`experiment_conv_cifar10` | conv: 64-64-M, fc: 256-256-10 | 2
-`experiment_conv_cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | 4
-`experiment_conv_cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | 6
+`lenet-mnist` | fc: 300-100-10 | MNIST
+`conv2_cifar10` | conv: 64-64-M, fc: 256-256-10 | CIFAR-10
+`conv4_cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | CIFAR-10
+`conv6_cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | CIFAR-10
+
+The `-fast` flag uses a faster version, as less epochs are performed.
+One can specify the number of networks and epochs by using the optional arguments `--nets` and `--epochs`.
 
 Experiments write their results into files in the subdirectory `/results`.
 The file-names start with the timestamp when the experiment finished, followed by the architecture and dataset.

@@ -70,9 +70,3 @@ class Experiment_Lenet_MNIST(experiment.Experiment):
 
                 print(f"Final test-accuracy: {(self.test_acc_histories[n][p][-1]):1.4}")
             print()
-
-
-if __name__=='__main__':
-    experiment_settings = experiment_settings.get_settings_lenet_mnist()
-    experiment = Experiment_Lenet_MNIST(experiment_settings)
-    experiment.run_experiment()

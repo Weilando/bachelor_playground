@@ -71,16 +71,3 @@ class Experiment_Conv_CIFAR10(experiment.Experiment):
 
                 print(f"Final test-accuracy: {(self.test_acc_histories[n][p][-1]):1.4}")
             print()
-
-
-if __name__=='__main__':
-    experiment_settings = experiment_settings.get_settings_conv2_cifar10()
-    if len(sys.argv) > 1:
-        if sys.argv[1] in [2,4,6]:
-            if sys.argv[1]==2:
-                experiment_settings = experiment_settings.get_settings_conv4_cifar10()
-            else:
-                experiment_settings = experiment_settings.get_settings_conv6_cifar10()
-
-    experiment = Experiment_Conv_CIFAR10(experiment_settings)
-    experiment.run_experiment()
