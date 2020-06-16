@@ -81,6 +81,7 @@ class Conv(nn.Module):
     def prune_net(self, prune_rate_conv, prune_rate_fc):
         """ Prune all layers with the given prune rate (use half of it for the output layer).
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
+        self.to(torch.device("cpu")) # push net back to cpu to perform pruning
         for layer in self.conv:
             prune_layer(layer, prune_rate_conv, self.init_weights.get(layer))
         for layer in self.fc:

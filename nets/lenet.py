@@ -58,6 +58,7 @@ class Lenet(nn.Module):
     def prune_net(self, prune_rate):
         """ Prune all layers with the given prune rate (use half of it for the output layer).
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
+        self.to(torch.device("cpu")) # push net back to cpu to perform pruning
         for layer in self.fc:
             prune_layer(layer, prune_rate, self.init_weights.get(layer))
         # prune output-layer with half of the pruning rate

@@ -68,6 +68,8 @@ class Experiment(object):
         """ Save trained networks in pth-files. """
         for num, net in enumerate(self.nets):
             net_path = histories_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
+            net.train(True)
+            net.to(torch.device("cpu"))
             torch.save(net, net_path)
 
     def save_histories(self, results_path, file_prefix):
@@ -89,10 +91,3 @@ class Experiment(object):
         self.save_histories(results_path, file_prefix)
         self.save_nets(results_path, file_prefix)
         print("Successfully wrote results on disk.")
-
-
-# if __name__=='__main__':
-#     experiment_settings =
-#
-#     experiment = Exp_Lenet_MNIST(experiment_settings)
-#     experiment.run_experiment()

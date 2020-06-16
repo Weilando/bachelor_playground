@@ -33,5 +33,5 @@ def get_models_from_file(experiment_prefix):
     """ Read models from their model-files (.pth) specified by the given experiment_prefix and return them as array of nets. """
     nets = []
     for model_file in sorted(glob.glob(f"{experiment_prefix}-net[0-9]*.pth")):
-        nets.append(torch.load(model_file))
+        nets.append(torch.load(model_file, map_location=torch.device("cpu")))
     return nets
