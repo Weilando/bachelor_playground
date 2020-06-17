@@ -6,23 +6,23 @@ import numpy as np
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from nets.weight_init import gaussian_glorot
+from nets.weight_initializer import gaussian_glorot
+from nets.net import Net
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
-class Conv(nn.Module):
+class Conv(Net):
     """
     Convolutional network with convolutional layers in the beginning and fully-connected layers afterwards.
-    Its acrhitecture can be specified via sizes in plan_conv and plan_fc.
+    Its architecture can be specified via sizes in plan_conv and plan_fc.
     'M' and 'A' have special roles in plan_conv, as they generate Max- and Average-Pooling layers.
     If no architecture is specified, a Conv2-architecture is generated.
     Works for the CIFAR-10 dataset with input 32*32*3.
-    Initial weights for each layer are stored in the dict "init_weights" after applying the weight initialization with Gaussian Glorot.
+    Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
     """
     def __init__(self, plan_conv=[64, 64, 'M'], plan_fc=[256, 256]):
         super(Conv, self).__init__()
         # statistics
         self.init_weight_count_net = dict([('conv', 0), ('fc', 0)])
-        self.init_weights = dict()
 
         # create and initialize layers with Gaussian Glorot
         conv_layers = []
@@ -63,12 +63,12 @@ class Conv(nn.Module):
 
     def store_initial_weights(self):
         for layer in self.conv:
-            if isinstance(layer, torch.nn.Conv2d):
-                self.init_weights[layer] = layer.weight.clone()
+            if isinstance(layer, nn.Conv2d):
+                layer.register_buffer('weight_init', layer.weight.clone())
         for layer in self.fc:
-            if isinstance(layer, torch.nn.Linear):
-                self.init_weights[layer] = layer.weight.clone()
-        self.init_weights[self.out] = self.out.weight.clone()
+            if isinstance(layer, nn.Linear):
+                layer.register_buffer('weight_init', layer.weight.clone())
+        self.out.register_buffer('weight_init', self.out.weight.clone())
 
     def forward(self, x):
         """ Calculate forward pass for tensor x. """
@@ -81,20 +81,19 @@ class Conv(nn.Module):
     def prune_net(self, prune_rate_conv, prune_rate_fc):
         """ Prune all layers with the given prune rate (use half of it for the output layer).
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
-        self.to(torch.device("cpu")) # push net back to cpu to perform pruning
         for layer in self.conv:
-            prune_layer(layer, prune_rate_conv, self.init_weights.get(layer))
+            prune_layer(layer, prune_rate_conv)
         for layer in self.fc:
-            prune_layer(layer, prune_rate_fc, self.init_weights.get(layer))
+            prune_layer(layer, prune_rate_fc)
         # prune output-layer with half of the fc pruning rate
-        prune_layer(self.out, prune_rate_fc/2, self.init_weights.get(self.out))
+        prune_layer(self.out, prune_rate_fc/2)
 
     def sparsity_layer(self, layer):
         """ Calculates sparsity and counts unpruned weights for given layer. """
-        if isinstance(layer, torch.nn.Linear):
+        if isinstance(layer, nn.Linear):
             unpr_weight_count = int(layer.weight.nonzero().numel()/2)
             init_weight_count = layer.in_features * layer.out_features
-        elif isinstance(layer, torch.nn.Conv2d):
+        elif isinstance(layer, nn.Conv2d):
             unpr_weight_count = int(layer.weight.nonzero().numel()/4)
             init_weight_count = layer.in_channels * layer.out_channels * layer.kernel_size[0] * layer.kernel_size[1]
 
@@ -107,13 +106,13 @@ class Conv(nn.Module):
         sparsities = []
 
         for layer in self.conv:
-             if isinstance(layer, torch.nn.Conv2d):
+             if isinstance(layer, nn.Conv2d):
                  curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
                  sparsities.append(curr_sparsity)
                  unpr_weight_counts += curr_unpr_weight_count
         for layer in self.fc:
-             if isinstance(layer, torch.nn.Linear):
+             if isinstance(layer, nn.Linear):
                  curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
                  sparsities.append(curr_sparsity)

@@ -6,22 +6,22 @@ import numpy as np
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from nets.weight_init import gaussian_glorot
+from nets.weight_initializer import gaussian_glorot
+from nets.net import Net
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
-class Lenet(nn.Module):
+class Lenet(Net):
     """
     Lenet with FC layers for the MNIST dataset with input 28*28.
     Layer sizes can be set via argument plan_fc.
     Create Lenet 300-100 if no plan is specified.
     The neural network is prunable using iterative magnitude pruning (IMP).
-    Initial weights for each layer are stored in the dict "init_weights" after applying the weight initialization with Gaussian Glorot.
+    Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
     """
     def __init__(self, plan_fc=[300, 100]):
         super(Lenet, self).__init__()
         # statistics
         self.init_weight_count_net = 0
-        self.init_weights = dict()
 
         # create and initialize layers with Gaussian Glorot
         fc_layers = []
@@ -43,10 +43,11 @@ class Lenet(nn.Module):
         self.apply(setup_masks)
 
     def store_initial_weights(self):
+        """ Store initial weights as buffer in each layer. """
         for layer in self.fc:
-            if isinstance(layer, torch.nn.Linear):
-                self.init_weights[layer] = layer.weight.clone()
-        self.init_weights[self.out] = self.out.weight.clone()
+            if isinstance(layer, nn.Linear):
+                layer.register_buffer('weight_init', layer.weight.clone())
+        self.out.register_buffer('weight_init', self.out.weight.clone())
 
     def forward(self, x):
         """ Calculate forward pass for tensor x. """
@@ -58,11 +59,10 @@ class Lenet(nn.Module):
     def prune_net(self, prune_rate):
         """ Prune all layers with the given prune rate (use half of it for the output layer).
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
-        self.to(torch.device("cpu")) # push net back to cpu to perform pruning
         for layer in self.fc:
-            prune_layer(layer, prune_rate, self.init_weights.get(layer))
+            prune_layer(layer, prune_rate)
         # prune output-layer with half of the pruning rate
-        prune_layer(self.out, prune_rate/2, self.init_weights.get(self.out))
+        prune_layer(self.out, prune_rate/2)
 
     def sparsity_layer(self, layer):
         """ Calculates sparsity and counts unpruned weights for given layer. """
@@ -77,7 +77,7 @@ class Lenet(nn.Module):
         unpr_weight_counts = 0
         sparsities = []
         for layer in self.fc:
-             if isinstance(layer, torch.nn.Linear):
+             if isinstance(layer, nn.Linear):
                  curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
                  sparsities.append(curr_sparsity)

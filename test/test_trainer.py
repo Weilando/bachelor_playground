@@ -17,7 +17,7 @@ class Test_Trainer(unittest.TestCase):
         The fake-net with one linear layer classifies half of the fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. '''
         # setup net
-        net = torch.nn.Linear(4,2)
+        net = nn.Linear(4,2)
         net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
         net.bias = nn.Parameter(torch.zeros(2))
 
@@ -35,7 +35,7 @@ class Test_Trainer(unittest.TestCase):
         The fake-net with one linear layer classifies all fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. '''
         # setup net
-        net = torch.nn.Linear(4,2)
+        net = nn.Linear(4,2)
         net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
         net.bias = nn.Parameter(torch.zeros(2))
 

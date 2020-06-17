@@ -46,9 +46,10 @@ class Test_pruning(unittest.TestCase):
         initial_weights = torch.tensor([[1., -2., 3., -1.5, -3.], [-1., 2., -4., 0.5, 1.5]])
         test_layer = nn.Linear(2, 5)
         test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
-        mp.prune_layer(layer=test_layer, prune_rate=0.2, init_weights=initial_weights)
+        mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([[0., -2., 3., -1.5, -3.], [-1., 2., -4., 0., 1.5]])
         self.assertTrue(test_layer.weight.equal(expected_weights))
@@ -61,9 +62,10 @@ class Test_pruning(unittest.TestCase):
         initial_mask = torch.tensor([[0.,1.,1.,1.,1.], [1.,1.,1.,0.,1.]])
         test_layer = nn.Linear(2, 5)
         test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=initial_mask)
 
-        mp.prune_layer(layer=test_layer, prune_rate=0.2, init_weights=initial_weights)
+        mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([[0., -2., 3., -0., -3.], [-0., 2., -4., 0., 1.5]])
         self.assertTrue(test_layer.weight.equal(expected_weights))
@@ -75,6 +77,7 @@ class Test_pruning(unittest.TestCase):
         initial_weights = torch.tensor([1.2, -0.1, 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0.2, 0.4, 1.4, 2.2, -0.8, 0.4, 0.9]).view(2,2,2,2)
         test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
         test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
         test_mask_pruned = mp.prune_mask(layer=test_layer, prune_rate=0.2)
@@ -89,9 +92,10 @@ class Test_pruning(unittest.TestCase):
         initial_weights = torch.tensor([1.2, -0.1, 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0.2, 0.4, 1.4, 2.2, -0.8, 0.4, 0.9]).view(2,2,2,2)
         test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
         test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
-        mp.prune_layer(layer=test_layer, prune_rate=0.2, init_weights=initial_weights)
+        mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([1.2, -0., 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0., 0., 1.4, 2.2, -0.8, 0., 0.9]).view(2,2,2,2)
         self.assertTrue(test_layer.weight.equal(expected_weights))
@@ -104,9 +108,10 @@ class Test_pruning(unittest.TestCase):
         initial_mask = torch.tensor([1., 0., 1., 1., 1., 1., 1., 1., 1., 0., 0., 1., 1., 1., 0., 1.]).view(2,2,2,2)
         test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
         test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=initial_mask)
 
-        mp.prune_layer(layer=test_layer, prune_rate=0.2, init_weights=initial_weights)
+        mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([1.2, -0., 1.2, 4.3, -2.1, -1.1, -0., 1.2, 0., 0., 0., 1.4, 2.2, -0., 0., 0.9]).view(2,2,2,2)
         self.assertTrue((test_layer.weight==expected_weights).all())
@@ -118,12 +123,13 @@ class Test_pruning(unittest.TestCase):
         initial_weights = torch.tensor([[1., -2., 3.], [-4., 5., -6.]])
         test_layer = nn.Linear(2, 3)
         test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
         # Fake training, i.e. modify weights
         test_layer.weight *= 2.
         # Apply pruning
-        mp.prune_layer(layer=test_layer, prune_rate=0.2, init_weights=initial_weights)
+        mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([[0., -0., 3.], [-4., 5., -6.]])
         self.assertTrue(test_layer.weight.equal(expected_weights))

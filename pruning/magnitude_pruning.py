@@ -26,7 +26,7 @@ def prune_mask(layer, prune_rate):
     new_mask.flatten()[sorted_weight_indices[pruned_weight_count:(pruned_weight_count+prune_amount)]] = 0.
     return new_mask
 
-def prune_layer(layer, prune_rate, init_weights):
+def prune_layer(layer, prune_rate):
     """ Prune given layer with certain prune_rate and reset surviving weights to their initial values. """
     if isinstance(layer, torch.nn.Linear) or isinstance(layer, torch.nn.Conv2d):
         pruned_mask = prune_mask(layer, prune_rate)
@@ -34,7 +34,7 @@ def prune_layer(layer, prune_rate, init_weights):
         # temporarily remove pruning
         prune.remove(layer, name='weight')
         # set weights to initial weights
-        layer.weight = nn.Parameter(init_weights.clone())
+        layer.weight = nn.Parameter(layer.weight_init.clone())
 
         # apply pruned mask
         layer = prune.custom_from_mask(layer, name='weight',  mask=pruned_mask)

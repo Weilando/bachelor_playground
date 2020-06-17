@@ -65,12 +65,12 @@ class Experiment(object):
             f.write(description_json)
 
     def save_nets(self, results_path, file_prefix):
-        """ Save trained networks in pth-files. """
+        """ Save state_dicts from trained networks in single pth-files. """
         for num, net in enumerate(self.nets):
-            net_path = histories_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
             net.train(True)
             net.to(torch.device("cpu"))
-            torch.save(net, net_path)
+            net_path = histories_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
+            torch.save(net.state_dict(), net_path)
 
     def save_histories(self, results_path, file_prefix):
         """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
