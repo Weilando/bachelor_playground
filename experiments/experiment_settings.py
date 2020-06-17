@@ -37,7 +37,7 @@ def get_settings_conv4_cifar10():
     experiment_settings['plan_conv'] = [64, 64, 'M', 128, 128, 'M']
     experiment_settings['plan_fc'] = [256, 256]
     experiment_settings['epoch_count'] = 34 # 25000 iterations / 750 batches ~ 33.3 epochs
-    experiment_settings['learning_rate'] = 2e-4 # page 3, figure 2
+    experiment_settings['learning_rate'] = 3e-4 # page 3, figure 2
     experiment_settings['prune_rate_conv'] = 0.1 # page 3, figure 2
     experiment_settings['prune_rate_fc'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 3
@@ -54,8 +54,8 @@ def get_settings_conv6_cifar10():
     experiment_settings['plan_conv'] = [64, 64, 'M', 128, 128, 'M', 256, 256, 'M']
     experiment_settings['plan_fc'] = [256, 256]
     experiment_settings['epoch_count'] = 40 # 30000 iterations / 750 batches = 40 epochs
-    experiment_settings['learning_rate'] = 2e-4 # page 3, figure 2
-    experiment_settings['prune_rate_conv'] = 0.1 # page 3, figure 2
+    experiment_settings['learning_rate'] = 3e-4 # page 3, figure 2
+    experiment_settings['prune_rate_conv'] = 0.15 # page 3, figure 2
     experiment_settings['prune_rate_fc'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 3
     experiment_settings['prune_method'] = 'imp'

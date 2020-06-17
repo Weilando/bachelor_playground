@@ -84,7 +84,7 @@ class Test_pruning(unittest.TestCase):
 
     def test_prune_conv_layer_correcly_once(self):
         """ Prune an unpruned convolutional layer in one step.
-        The four weights with the lowest magnitude should be zeroed out. """
+        The four weights (as ceil(16*0.2)=4) with the lowest magnitude should be zeroed out. """
         # Initialize conv layer with 16 given weights and unpruned mask
         initial_weights = torch.tensor([1.2, -0.1, 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0.2, 0.4, 1.4, 2.2, -0.8, 0.4, 0.9]).view(2,2,2,2)
         test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
@@ -96,11 +96,11 @@ class Test_pruning(unittest.TestCase):
         expected_weights = torch.tensor([1.2, -0., 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0., 0., 1.4, 2.2, -0.8, 0., 0.9]).view(2,2,2,2)
         self.assertTrue(test_layer.weight.equal(expected_weights))
 
-    def test_prune_linear_layer_correcly_twice(self):
-        """ Prune the mask for a pruned linear layer in one step.
+    def test_prune_conv_layer_correcly_twice(self):
+        """ Prune the mask for a pruned convolutional layer in one step.
         The three weights (as ceil(12*0.2)=3) with the lowest magnitude should be zeroed out. """
-        # Initialize conv layer with 16 given weights and unpruned mask
-        initial_weights = torch.tensor([1.2, -0., 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0., 0., 1.4, 2.2, -0.8, 0., 0.9]).view(2,2,2,2)
+        # Initialize conv layer with 16 given weights and pruned mask
+        initial_weights = torch.tensor([1.2, -0.1, 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0.2, 0.4, 1.4, 2.2, -0.8, 0.4, 0.9]).view(2,2,2,2)
         initial_mask = torch.tensor([1., 0., 1., 1., 1., 1., 1., 1., 1., 0., 0., 1., 1., 1., 0., 1.]).view(2,2,2,2)
         test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
         test_layer.weight = nn.Parameter(initial_weights.clone())
@@ -110,6 +110,23 @@ class Test_pruning(unittest.TestCase):
 
         expected_weights = torch.tensor([1.2, -0., 1.2, 4.3, -2.1, -1.1, -0., 1.2, 0., 0., 0., 1.4, 2.2, -0., 0., 0.9]).view(2,2,2,2)
         self.assertTrue((test_layer.weight==expected_weights).all())
+
+    def test_apply_init_weight_after_pruning_linear_layer(self):
+        """ Generate, modify and prune an unpruned linear layer.
+        Its weights should be equal to the initial values.. """
+        # Initialize linear layer with 6 given weights and unpruned mask
+        initial_weights = torch.tensor([[1., -2., 3.], [-4., 5., -6.]])
+        test_layer = nn.Linear(2, 3)
+        test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
+
+        # Fake training, i.e. modify weights
+        test_layer.weight *= 2.
+        # Apply pruning
+        mp.prune_layer(layer=test_layer, prune_rate=0.2, init_weights=initial_weights)
+
+        expected_weights = torch.tensor([[0., -0., 3.], [-4., 5., -6.]])
+        self.assertTrue(test_layer.weight.equal(expected_weights))
 
 
 if __name__ == '__main__':

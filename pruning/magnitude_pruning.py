@@ -34,7 +34,7 @@ def prune_layer(layer, prune_rate, init_weights):
         # temporarily remove pruning
         prune.remove(layer, name='weight')
         # set weights to initial weights
-        layer.weight = nn.Parameter(init_weights)
+        layer.weight = nn.Parameter(init_weights.clone())
 
         # apply pruned mask
         layer = prune.custom_from_mask(layer, name='weight',  mask=pruned_mask)

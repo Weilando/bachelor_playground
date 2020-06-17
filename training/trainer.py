@@ -88,7 +88,7 @@ class TrainerAdam(object):
                 print(f"t val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
             else:
                 print(f"epoch: {(e+1):2}, val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
-        return net, loss_history, val_acc_history,  test_acc_history
+        return net, loss_history, val_acc_history, test_acc_history
 
     def compute_accuracy(self, net, test=True):
         """ Compute the given net's accuracy.
