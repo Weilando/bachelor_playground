@@ -1,32 +1,21 @@
-import time
-import json
-import numpy as np
 import math
-import matplotlib.pyplot as plt
+import numpy as np
 
 import os
 import sys
-import torch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from experiments import experiment_settings, experiment
 from nets.conv import Conv
 from data.dataloaders import get_cifar10_dataloaders
-from training import plotter
 from training.trainer import TrainerAdam
 
 class Experiment_Conv_CIFAR10(experiment.Experiment):
     def __init__(self, args):
-        super(experiment.Experiment, self).__init__()
-        self.args = args
-
-        self.net_count = args['net_count']
-        self.epoch_count = args['epoch_count']
-        self.learning_rate = args['learning_rate']
+        super(Experiment_Conv_CIFAR10, self).__init__(args)
         self.prune_rate_conv = args['prune_rate_conv']
         self.prune_rate_fc = args['prune_rate_fc']
         self.prune_count = args['prune_count']
-        self.loss_plot_step = args['loss_plot_step']
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """

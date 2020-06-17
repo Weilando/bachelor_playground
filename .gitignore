@@ -5,7 +5,9 @@ __pycache__/
 
 # Experiment files
 NewFeatureExperiments.ipynb
-/experiments/results/
+/data/results/
+*/results/ # should not exist
 
 # Datasets
 /data/datasets/
+*/datasets/ # should not exist

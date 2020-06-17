@@ -1,4 +1,4 @@
-import time # for "stop watch"
+import time
 import math
 import numpy as np
 

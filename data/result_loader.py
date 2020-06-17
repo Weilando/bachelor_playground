@@ -34,12 +34,16 @@ def get_models_from_file(experiment_prefix, specs):
     """ Read models' state_dicts from files (.pth) specified by the given experiment_prefix and return an array of nets with the loaded states. """
     nets = []
     for model_file in sorted(glob.glob(f"{experiment_prefix}-net[0-9]*.pth")):
+        checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
+
         if specs['net'] == 'lenet':
             net = lenet.Lenet(specs['plan_fc'])
+            net.load_state_dict(checkpoint)
+            net.prune_net(0.) # apply pruned masks, but do not modify the masks
         else:
             net = conv.Conv(specs['plan_conv'], specs['plan_fc'])
-        checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
-        net.load_state_dict(checkpoint)
-        net.prune_net(0.) # apply pruned masks, but do not modify the masks
+            net.load_state_dict(checkpoint)
+            net.prune_net(0., 0.) # apply pruned masks, but do not modify the masks
+
         nets.append(net)
     return nets
