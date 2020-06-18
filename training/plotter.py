@@ -16,7 +16,7 @@ def format_time(time):
         return f"{round(minutes)}:{round(seconds):02d}min"
     return f"{time:.4f}sec"
 
-def gen_plot_average_acc_on_ax(ax, acc_histories, sparsity_history):
+def gen_plot_average_acc_on_ax(ax, acc_histories, sparsity_history, force_one=False):
     """ Generate plots of means and error-bars for given accuracies (per epoch) on ax. """
     net_count, prune_count, epoch_count = acc_histories.shape
     prune_count -= 1
@@ -32,7 +32,8 @@ def gen_plot_average_acc_on_ax(ax, acc_histories, sparsity_history):
 
     # setup grids
     ax.grid('major')
-    ax.set_ylim(top=1)
+    if force_one:
+        ax.set_ylim(top=1)
 
 def gen_plot_average_loss_on_ax(ax, loss_histories, sparsity_history, loss_plot_step):
     """ Generate plots of means and error-bars for given losses on ax. """

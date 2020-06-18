@@ -1,4 +1,5 @@
 import time
+import torch
 
 import os
 import sys
@@ -16,6 +17,8 @@ class Experiment(object):
         self.epoch_count = args['epoch_count']
         self.learning_rate = args['learning_rate']
         self.loss_plot_step = args['loss_plot_step']
+        self.device = torch.device(args['device'])
+        print(args)
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """

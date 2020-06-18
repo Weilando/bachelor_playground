@@ -9,7 +9,7 @@ Currently implemented experiments:
 ## Workflow
 ### Run experiments
 One can find implemented experiments in the module `experiments`.
-The experiments are subclasses of `Experiment` and can be executed by calling `python -m bachelor_playground <experiment>`, where `experiment` specifies the experiment to run.
+The experiments are subclasses of `Experiment` and can be executed by calling the main module via `python -m playground <experiment>` from the root-directory, where `experiment` specifies the experiment to run.
 At the moment they differ in the used architectures (for details have a look at `experiment_settings.py`).
 
 The following settings are available:
@@ -21,10 +21,9 @@ Experiment | Architecture | Dataset
 `conv4_cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | CIFAR-10
 `conv6_cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | CIFAR-10
 
-The `-fast` flag uses a faster version, as less epochs are performed.
-One can specify the number of networks and epochs by using the optional arguments `--nets` and `--epochs`.
+Please use the flag `-h` to get more information on further flags and options.
 
-Experiments write their results into files in the subdirectory `/results`.
+Experiments write their results into files in the subdirectory `/data/results`, whereas datasets are cached in `/data/datasets`.
 The file-names start with the timestamp when the experiment finished, followed by the architecture and dataset.
 The following suffixes specify the contents:
 

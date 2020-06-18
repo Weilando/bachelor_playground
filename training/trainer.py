@@ -14,21 +14,18 @@ class TrainerAdam(object):
     """ Class for training a neural network 'net' with the adam-optimizer.
     The network is trained on batches from 'train_loader'.
     They are evaluated with batches from val_loader or test_loader. """
-    def __init__(self, learning_rate, train_loader, val_loader, test_loader):
+    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu')):
         super(TrainerAdam, self).__init__()
         self.learning_rate = learning_rate
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
-
-        # Enable CUDA
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        print(self.device)
+        self.device = device
 
     def train_net(self, net, epoch_count=3, loss_plot_step=100, verbose=False):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save the loss every 'loss_plot_step' iterations. """
-        net.to(self.device) # push model to GPU
+        net.to(self.device) # push model to device
 
         # initialize histories
         loss_history_epoch_length = math.ceil(len(self.train_loader) / loss_plot_step)
@@ -46,7 +43,7 @@ class TrainerAdam(object):
             tic = time.time()
 
             for j, data in enumerate(self.train_loader):
-                # Push inputs and targets to GPU
+                # Push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
                 # zero the parameter gradients
@@ -99,7 +96,7 @@ class TrainerAdam(object):
         total = 0
         with torch.no_grad():
             for data in (self.test_loader if test else self.val_loader):
-                # Push inputs and targets to GPU
+                # Push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
                 outputs = net(inputs)
                 _, predicted = torch.max(outputs.data, 1)

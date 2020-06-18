@@ -20,10 +20,10 @@ class Experiment_Conv_CIFAR10(experiment.Experiment):
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
         # load dataset
-        train_loader, val_loader, test_loader = get_cifar10_dataloaders()
+        train_loader, val_loader, test_loader = get_cifar10_dataloaders(self.args['device'])
 
         # initialize trainer
-        self.trainer = TrainerAdam(self.learning_rate, train_loader, val_loader, test_loader)
+        self.trainer = TrainerAdam(self.learning_rate, train_loader, val_loader, test_loader, self.device)
 
         # create histories
         loss_history_epoch_length = math.ceil(len(train_loader) / self.loss_plot_step)
