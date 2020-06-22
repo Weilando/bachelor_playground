@@ -17,10 +17,10 @@ def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='..
     train_data = datasets.MNIST(root=path, train=True, download=True, transform=tr)
     train_data, val_data = d_utils.random_split(train_data, [train_len, val_len])
     train_loader = d_utils.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=(device!='cpu'))
-    val_loader = d_utils.DataLoader(val_data, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=(device!='cpu'))
+    val_loader = d_utils.DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=(device!='cpu'))
 
     test_data = datasets.MNIST(root=path, train=False, download=True, transform=tr)
-    test_loader = d_utils.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=(device!='cpu'))
+    test_loader = d_utils.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=(device!='cpu'))
 
     print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
     return train_loader, val_loader, test_loader
@@ -31,15 +31,15 @@ def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='
     The test-set contains 10000 samples. """
     assert (train_len+val_len) == 50000, f"Can not apply split into training- and validation-set, as {train_len}+{val_len}!=50000."
 
-    tr = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    tr = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
     train_data = datasets.CIFAR10(root=path, train=True, download=True, transform=tr)
     train_data, val_data = d_utils.random_split(train_data, [45000, 5000])
     train_loader = d_utils.DataLoader(train_data, batch_size=60, shuffle=True, num_workers=4, pin_memory=(device!='cpu'))
-    val_loader = d_utils.DataLoader(val_data, batch_size=60, shuffle=True, num_workers=2, pin_memory=(device!='cpu'))
+    val_loader = d_utils.DataLoader(val_data, batch_size=60, shuffle=False, num_workers=2, pin_memory=(device!='cpu'))
 
     test_data = datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
-    test_loader = d_utils.DataLoader(test_data, batch_size=60, shuffle=True, num_workers=2, pin_memory=(device!='cpu'))
+    test_loader = d_utils.DataLoader(test_data, batch_size=60, shuffle=False, num_workers=2, pin_memory=(device!='cpu'))
 
     print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
     return train_loader, val_loader, test_loader
