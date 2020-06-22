@@ -39,6 +39,7 @@ class Conv(Net):
             else:
                 conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
                 conv_layers.append(nn.BatchNorm2d(spec))
+                conv_layers.append(nn.ReLU())
                 self.init_weight_count_net['conv'] += filters * spec * 9
                 filters = spec
 
