@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.conv import Conv
 
-class Test_Conv(unittest.TestCase):
+class Test_conv(unittest.TestCase):
     """ Tests for the Conv class.
     Call with 'python -m test.test_conv' from project root '~'.
     Call with 'python -m test_conv' from inside '~/test'.

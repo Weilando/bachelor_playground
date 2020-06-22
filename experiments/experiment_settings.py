@@ -8,7 +8,7 @@ def get_settings_lenet_mnist():
     experiment_settings['prune_rate_fc'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 3
     experiment_settings['prune_method'] = 'imp'
-    experiment_settings['loss_plot_step'] = 100
+    experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'lenet'
     experiment_settings['dataset'] = 'mnist'
     return experiment_settings
@@ -25,7 +25,7 @@ def get_settings_conv2_cifar10():
     experiment_settings['prune_rate_fc'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 3
     experiment_settings['prune_method'] = 'imp'
-    experiment_settings['loss_plot_step'] = 100
+    experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
     return experiment_settings
@@ -42,7 +42,7 @@ def get_settings_conv4_cifar10():
     experiment_settings['prune_rate_fc'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 3
     experiment_settings['prune_method'] = 'imp'
-    experiment_settings['loss_plot_step'] = 100
+    experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
     return experiment_settings
@@ -59,7 +59,7 @@ def get_settings_conv6_cifar10():
     experiment_settings['prune_rate_fc'] = 0.2 # page 3, figure 2
     experiment_settings['prune_count'] = 3
     experiment_settings['prune_method'] = 'imp'
-    experiment_settings['loss_plot_step'] = 100
+    experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
     return experiment_settings

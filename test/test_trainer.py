@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from training.trainer import TrainerAdam
 
-class Test_Trainer(unittest.TestCase):
+class Test_trainer(unittest.TestCase):
     """ Tests for the trainer module.
     Call with 'python -m test.test_trainer' from project root '~'.
     Call with 'python -m test_trainer' from inside '~/test'. """
@@ -28,7 +28,7 @@ class Test_Trainer(unittest.TestCase):
         test_loader = [[samples, labels_batch1], [samples, labels_batch2]]
         trainer = TrainerAdam(0., None, None, test_loader=test_loader)
 
-        self.assertEqual(0.5, trainer.compute_accuracy(net, test=True))
+        self.assertEqual(0.5, trainer.compute_acc(net, test=True))
 
     def test_calculate_correct_val_acc(self):
         ''' The correct validation-accuracy should be calculated.
@@ -45,7 +45,7 @@ class Test_Trainer(unittest.TestCase):
         val_loader = [[samples, labels]]
         trainer = TrainerAdam(0., None, val_loader, test_loader=None)
 
-        self.assertEqual(1., trainer.compute_accuracy(net, test=False))
+        self.assertEqual(1., trainer.compute_acc(net, test=False))
 
 if __name__ == '__main__':
     unittest.main()

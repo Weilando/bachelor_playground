@@ -22,28 +22,33 @@ class TrainerAdam(object):
         self.test_loader = test_loader
         self.device = device
 
-    def train_net(self, net, epoch_count=3, loss_plot_step=100, verbose=False):
+    def train_net(self, net, epoch_count=3, plot_step=100, verbose=False, reg_factor=0.):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
-        Save the loss every 'loss_plot_step' iterations. """
+        Save accuracies and loss every 'plot_step' iterations and after each epoch.
+        If 'verbose'=True a dash is printed at each plot_step to show progress.
+        'reg_factor' adds L1-regularization. """
         net.to(self.device) # push model to device
 
         # initialize histories
-        loss_history_epoch_length = math.ceil(len(self.train_loader) / loss_plot_step)
-        loss_history = np.zeros((loss_history_epoch_length * epoch_count), dtype=float)
-        val_acc_history = np.zeros((epoch_count), dtype=float)
-        test_acc_history = np.zeros((epoch_count), dtype=float)
+        hist_length = math.ceil((len(self.train_loader) * epoch_count) / plot_step) + 1
+        loss_hist = np.zeros((hist_length), dtype=float) # save each plot_step iterations
+        val_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
+        test_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
+        val_acc_hist_epoch = np.zeros((epoch_count), dtype=float) # save per epoch
+        test_acc_hist_epoch = np.zeros_like(val_acc_hist_epoch, dtype=float) # save per epoch
 
         # setup training
-        net.train(True) # set model to training mode (important for batchnorm/dropout)
         opt = optim.Adam(net.parameters(), lr=self.learning_rate) # instantiate optimizer
+        hist_count = 0
 
         for e in range(0, epoch_count):
-            if verbose:
-                print(f"epoch: {(e+1):2} (", end="")
+            print(f"epoch: {(e+1):2} ", end="")
             tic = time.time()
 
             for j, data in enumerate(self.train_loader):
-                # Push inputs and targets to device
+                # set model to training mode (important for batchnorm/dropout)
+                net.train(True)
+                # push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
                 # zero the parameter gradients
@@ -61,9 +66,14 @@ class TrainerAdam(object):
                 train_loss = net.crit(outputs, labels)
 
                 # calculate total loss
-                loss = train_loss + 0.00005*reg_loss
-                if (j % loss_plot_step) == 0:
-                    loss_history[e*loss_history_epoch_length + int(j/100)] = loss.item()
+                loss = train_loss + reg_factor*reg_loss
+
+                # evaluluate accuracies, save accuracies and loss
+                if (j % plot_step) == 0:
+                    loss_hist[hist_count] = loss.item()
+                    val_acc_hist[hist_count] = self.compute_acc(net, test=False)
+                    test_acc_hist[hist_count] = self.compute_acc(net, test=True)
+                    hist_count += 1
                     if verbose:
                         print(f"-", end="")
 
@@ -71,23 +81,16 @@ class TrainerAdam(object):
                 loss.backward()
                 opt.step()
 
-            if verbose:
-                print(f")", end="")
-            # accuracies are evaluated after each epoch to increase training speed
-            val_acc_history[e] = self.compute_accuracy(net, test=False)
-            if verbose:
-                print(f"v", end="")
-            test_acc_history[e] = self.compute_accuracy(net, test=True)
+            # evaluate and save accuracies after each epoch
+            val_acc_hist_epoch[e] = self.compute_acc(net, test=False)
+            test_acc_hist_epoch[e] = self.compute_acc(net, test=True)
 
             # print progress
             toc = time.time()
-            if verbose:
-                print(f"t val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
-            else:
-                print(f"epoch: {(e+1):2}, val-acc: {(val_acc_history[e]):1.4} (took {plotter.format_time(toc-tic)})")
-        return net, loss_history, val_acc_history, test_acc_history
+            print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc-tic)})")
+        return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch
 
-    def compute_accuracy(self, net, test=True):
+    def compute_acc(self, net, test=True):
         """ Compute the given net's accuracy.
         'test' indicates wheter the test- or validation-accuracy should be calculated. """
         net.train(False) # set model to evaluation mode (important for batchnorm/dropout)

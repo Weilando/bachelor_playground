@@ -39,7 +39,9 @@ def save_histories(experiment, results_path, file_prefix):
     """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
     histories_path = os.path.join(results_path, f"{file_prefix}-histories") # suffix is added by np.savez
     np.savez(histories_path,
-            loss_histories=experiment.loss_histories,
-            val_acc_histories=experiment.val_acc_histories,
-            test_acc_histories=experiment.test_acc_histories,
-            sparsity_history=experiment.sparsity_history)
+            loss_hists=experiment.loss_hists,
+            val_acc_hists=experiment.val_acc_hists,
+            test_acc_hists=experiment.test_acc_hists,
+            val_acc_hists_epoch=experiment.val_acc_hists_epoch,
+            test_acc_hists_epoch=experiment.test_acc_hists_epoch,
+            sparsity_hist=experiment.sparsity_hist)

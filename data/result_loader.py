@@ -28,7 +28,12 @@ def get_histories_from_file(experiment_prefix):
     """ Read histories from the histories-file (.npz) specified by the given experiment_prefix and return them as np.arrays. """
     histories_path = os.path.join(os.getcwd(), f"{experiment_prefix}-histories.npz")
     histories_file = np.load(histories_path)
-    return histories_file['loss_histories'], histories_file['val_acc_histories'], histories_file['test_acc_histories'], histories_file['sparsity_history']
+    return histories_file['loss_hists'], \
+         histories_file['val_acc_hists'], \
+         histories_file['test_acc_hists'], \
+         histories_file['val_acc_hists_epoch'], \
+         histories_file['test_acc_hists_epoch'], \
+         histories_file['sparsity_hist']
 
 def get_models_from_file(experiment_prefix, specs):
     """ Read models' state_dicts from files (.pth) specified by the given experiment_prefix and return an array of nets with the loaded states. """

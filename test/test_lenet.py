@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.lenet import Lenet
 
-class Test_Lenet(unittest.TestCase):
+class Test_lenet(unittest.TestCase):
     """ Tests for the Lenet class.
     Call with 'python -m test.test_lenet' from project root '~'.
     Call with 'python -m test_lenet' from inside '~/test'. """
