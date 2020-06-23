@@ -69,13 +69,14 @@ class TrainerAdam(object):
                 loss = train_loss + reg_factor*reg_loss
 
                 # evaluluate accuracies, save accuracies and loss
-                if (j % plot_step) == 0:
+                if ((e*len(self.train_loader) + j) % plot_step) == 0:
                     loss_hist[hist_count] = loss.item()
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
                     hist_count += 1
                     if verbose:
                         print(f"-", end="")
+                    net.train(True)
 
                 # backward pass
                 loss.backward()
