@@ -50,5 +50,5 @@ class Experiment_Lenet_MNIST(experiment.Experiment):
                 print(" Train network.")
                 self.nets[n], self.loss_hists[n,p], self.val_acc_hists[n,p], self.test_acc_hists[n,p], self.val_acc_hists_epoch[n,p], self.test_acc_hists_epoch[n,p] = self.trainer.train_net(self.nets[n], self.epoch_count, self.plot_step)
 
-                print(f"Final test-accuracy: {(self.test_acc_hists[n,p,-1]):1.4}")
+                print(f"Final test-accuracy: {(self.test_acc_hists_epoch[n,p,-1]):1.4}")
             print()
