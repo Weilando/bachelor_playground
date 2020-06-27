@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from training import plotter
 from data import result_saver as rs
+from training.trainer import calc_hist_length
 
 class Experiment(object):
     def __init__(self, args):
@@ -40,7 +41,7 @@ class Experiment(object):
         Loss and accuracies are saved at each plot_step iteration.
         Accuracies and the nets' sparsity are saved after each epoch. """
         # calculate amount of iterations to save at
-        history_length = math.ceil((self.epoch_length * self.epoch_count) / self.plot_step) + 1
+        history_length = calc_hist_length(self.epoch_length, self.epoch_count, self.plot_step)
         self.loss_hists = np.zeros((self.net_count, self.prune_count+1, history_length), dtype=float)
         self.val_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
         self.test_acc_hists = np.zeros_like(self.loss_hists, dtype=float)

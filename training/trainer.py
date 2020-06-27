@@ -10,6 +10,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from training import plotter
 
+def calc_hist_length(batch_count, epoch_count, plot_step):
+    """ Calculate length of history arrays based on batch_count, epoch_count and plot_step. """
+    return math.ceil((batch_count * epoch_count) / plot_step)
+
 class TrainerAdam(object):
     """ Class for training a neural network 'net' with the adam-optimizer.
     The network is trained on batches from 'train_loader'.
@@ -30,7 +34,7 @@ class TrainerAdam(object):
         net.to(self.device) # push model to device
 
         # initialize histories
-        hist_length = math.ceil((len(self.train_loader) * epoch_count) / plot_step) + 1
+        hist_length = calc_hist_length(len(self.train_loader), epoch_count, plot_step)
         loss_hist = np.zeros((hist_length), dtype=float) # save each plot_step iterations
         val_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
         test_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
@@ -44,6 +48,7 @@ class TrainerAdam(object):
         for e in range(0, epoch_count):
             print(f"epoch: {(e+1):2} ", end="")
             tic = time.time()
+            epoch_base = e * len(self.train_loader)
 
             for j, data in enumerate(self.train_loader):
                 # set model to training mode (important for batchnorm/dropout)
@@ -69,7 +74,7 @@ class TrainerAdam(object):
                 loss = train_loss + reg_factor*reg_loss
 
                 # evaluluate accuracies, save accuracies and loss
-                if ((e*len(self.train_loader) + j) % plot_step) == 0:
+                if ((epoch_base + j) % plot_step) == 0:
                     loss_hist[hist_count] = loss.item()
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
