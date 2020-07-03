@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.weight_initializer import gaussian_glorot
 from nets.net import Net
+from nets.plan_check import is_numerical_spec
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
 class Lenet(Net):
@@ -27,6 +28,7 @@ class Lenet(Net):
         input = 784 # 28*28=784, dimension of samples in MNIST
 
         for spec in plan_fc:
+            assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
             fc_layers.append(nn.Linear(input, spec))
             fc_layers.append(nn.Tanh())
             self.init_weight_count_net += input * spec

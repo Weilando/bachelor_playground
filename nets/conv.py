@@ -7,13 +7,15 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.weight_initializer import gaussian_glorot
 from nets.net import Net
+from nets.plan_check import is_numerical_spec, is_batchnorm_spec
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
 class Conv(Net):
     """
     Convolutional network with convolutional layers in the beginning and fully-connected layers afterwards.
-    Its architecture can be specified via sizes in plan_conv and plan_fc.
-    'M' and 'A' have special roles in plan_conv, as they generate Max- and Average-Pooling layers.
+    Its architecture can be specified via sizes (positive integers) in plan_conv and plan_fc.
+    'A' and and 'M' have special roles in plan_conv, as they generate Average- and Max-Pooling layers.
+    It is possible append 'B' to any size in plan_conv to add a batch-norm layer directly behind the convolutional layer.
     If no architecture is specified, a Conv2-architecture is generated.
     Works for the CIFAR-10 dataset with input 32*32*3.
     Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
@@ -30,22 +32,30 @@ class Conv(Net):
         pooling_count = 0
 
         for spec in plan_conv:
-            if spec == 'M':
-                conv_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-                pooling_count += 1
-            elif spec == 'A':
+            if spec == 'A':
                 conv_layers.append(nn.AvgPool2d(2))
                 pooling_count += 1
-            else:
+            elif spec == 'M':
+                conv_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+                pooling_count += 1
+            elif is_batchnorm_spec(spec):
                 conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
                 conv_layers.append(nn.BatchNorm2d(spec))
                 conv_layers.append(nn.ReLU())
                 self.init_weight_count_net['conv'] += filters * spec * 9
                 filters = spec
+            elif is_numerical_spec(spec):
+                conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
+                conv_layers.append(nn.ReLU())
+                self.init_weight_count_net['conv'] += filters * spec * 9
+                filters = spec
+            else:
+                raise AssertionError(f"{spec} from plan_conv is not a numerical spec.")
 
         # Each Pooling-layer quarters the input size (32*32=1024)
         filters = filters * round(1024 / (4**pooling_count))
         for spec in plan_fc:
+            assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
             fc_layers.append(nn.Linear(filters, spec))
             fc_layers.append(nn.Tanh())
             self.init_weight_count_net['fc'] += filters * spec
