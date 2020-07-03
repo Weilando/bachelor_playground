@@ -12,21 +12,9 @@ class Test_conv(unittest.TestCase):
     Call with 'python -m test.test_conv' from project root '~'.
     Call with 'python -m test_conv' from inside '~/test'.
     Inputs are of size [60, 3, 32, 32] (for batch-size 60) """
-    def test_forward_pass_conv2(self):
+    def test_forward_pass_simple_conv(self):
         ''' The neural network with architecture Conv-2 should perform a forward pass without exceptions. '''
-        net = Conv()
-        input_sample = torch.rand(1, 3, 32, 32)
-        net(input_sample)
-
-    def test_forward_pass_conv4(self):
-        ''' The neural network with architecture Conv-4 should perform a forward pass without exceptions. '''
-        net = Conv(plan_conv=[64, 64, 'M', 128, 128, 'M'], plan_fc=[256, 256])
-        input_sample = torch.rand(1, 3, 32, 32)
-        net(input_sample)
-
-    def test_forward_pass_conv6(self):
-        ''' The neural network with architecture Conv-6 should perform a forward pass without exceptions. '''
-        net = Conv(plan_conv=[64, 64, 'M', 128, 128, 'M', 256, 256, 'M'], plan_fc=[256, 256])
+        net = Conv(plan_conv=[8, 'M', 16, 'A'], plan_fc=[32, 16])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 
@@ -38,9 +26,9 @@ class Test_conv(unittest.TestCase):
         expected = dict([('conv', 38592), ('fc', 4262400)])
         self.assertEqual(expected, net.init_weight_count_net)
 
-    def test_sparsity_report_initial_weights(self):
-        ''' The neural network should be fully connected right after initialization. '''
-        net = Conv()
+    def test_sparsity_report_initial_weights_simple_conv(self):
+        ''' The convolutional neural network should be fully connected right after initialization. '''
+        net = Conv(plan_conv=[8, 'M', 16, 'A'], plan_fc=[32, 16])
         sparsity_report = net.sparsity_report()
         self.assertTrue(([1.0, 1.0, 1.0, 1.0, 1.0, 1.0] == sparsity_report).all())
 

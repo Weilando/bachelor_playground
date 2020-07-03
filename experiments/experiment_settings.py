@@ -63,28 +63,3 @@ def get_settings_conv6_cifar10():
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
     return experiment_settings
-
-def get_settings_lenet_mnist_f():
-    """ Faster version of experiment with Lenet 300-100 on MNIST. """
-    experiment_settings = get_settings_lenet_mnist()
-    experiment_settings['epoch_count'] = 12
-    return experiment_settings
-
-def get_settings_conv2_cifar10_f():
-    """ Faster version of experiment with Conv-2 on CIFAR-10. """
-    experiment_settings = get_settings_conv2_cifar10()
-    experiment_settings['epoch_count'] = 12
-    return experiment_settings
-
-def get_settings_conv4_cifar10_f():
-    """ Faster version of experiment with Conv-4 on CIFAR-10. """
-    experiment_settings = get_settings_conv4_cifar10()
-    experiment_settings['epoch_count'] = 14
-    experiment_settings['prune_count'] = 3
-    return experiment_settings
-
-def get_settings_conv6_cifar10_f():
-    """ Faster version of experiment with Conv-6 on CIFAR-10. """
-    experiment_settings = get_settings_conv6_cifar10()
-    experiment_settings['epoch_count'] = 16
-    return experiment_settings

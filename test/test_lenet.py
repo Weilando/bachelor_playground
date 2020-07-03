@@ -10,18 +10,16 @@ class Test_lenet(unittest.TestCase):
     """ Tests for the Lenet class.
     Call with 'python -m test.test_lenet' from project root '~'.
     Call with 'python -m test_lenet' from inside '~/test'. """
-    def test_forward_pass(self):
-        ''' The neural network should perform a forward pass without exceptions. '''
-        net = Lenet()
-        input_sample = torch.rand(28, 28)
-        net(input_sample)
-        self.assertEqual(266200, net.init_weight_count_net)
-
     def test_forward_pass_simple_architecture(self):
-        ''' The neural network should perform a forward pass for  without exceptions. '''
+        ''' The neural network with one hidden layer should perform a forward pass for  without exceptions. '''
         net = Lenet(plan_fc=[5, 10])
         input_sample = torch.rand(28, 28)
         net(input_sample)
+
+    def test_weight_count_simple_architecture(self):
+        ''' The neural network with one hidden layer should return the correct weight count.
+        It holds weight_count = 28*28*5 + 5*10 + 10*10 = 4070. '''
+        net = Lenet(plan_fc=[5, 10])
         self.assertEqual(4070, net.init_weight_count_net)
 
     def test_sparsity_report_initial_weights(self):

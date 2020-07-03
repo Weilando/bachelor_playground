@@ -1,5 +1,5 @@
-import argparse
-import torch
+from argparse import ArgumentParser
+import torch.cuda as cuda
 
 import os
 import sys
@@ -10,35 +10,26 @@ from experiments.experiment_lenet_mnist import Experiment_Lenet_MNIST
 from experiments.experiment_conv_cifar10 import Experiment_Conv_CIFAR10
 os.chdir(os.path.join(current_path, 'experiments'))
 
-def main(experiment, epochs, nets, prunes, cuda, fast):
+def load_settings(experiment):
+    """ Load dict 'settings' from module 'experiment_settings'. """
+    if experiment=='lenet-mnist':
+        settings = experiment_settings.get_settings_lenet_mnist()
+    elif experiment=='conv2-cifar10':
+        settings = experiment_settings.get_settings_conv2_cifar10()
+    elif experiment=='conv4-cifar10':
+        settings = experiment_settings.get_settings_conv4_cifar10()
+    else:
+        settings = experiment_settings.get_settings_conv6_cifar10()
+
+def main(experiment, epochs, nets, prunes, cuda, verbose):
     print("Welcome to bachelor_playground.")
 
-    # load settings
-    if experiment=='lenet-mnist':
-        if fast:
-            settings = experiment_settings.get_settings_lenet_mnist_f()
-        else:
-            settings = experiment_settings.get_settings_lenet_mnist()
-    elif experiment=='conv2-cifar10':
-        if fast:
-            settings = experiment_settings.get_settings_conv2_cifar10_f()
-        else:
-            settings = experiment_settings.get_settings_conv2_cifar10()
-    elif experiment=='conv4-cifar10':
-        if fast:
-            settings = experiment_settings.get_settings_conv4_cifar10_f()
-        else:
-            settings = experiment_settings.get_settings_conv4_cifar10()
-    else:
-        if fast:
-            settings = experiment_settings.get_settings_conv6_cifar10_f()
-        else:
-            settings = experiment_settings.get_settings_conv6_cifar10()
+    settings = load_settings(experiment)
 
     # enable CUDA
-    use_cuda = cuda and torch.cuda.is_available()
+    use_cuda = cuda and cuda.is_available()
     settings['device'] = "cuda:0" if use_cuda else "cpu"
-    settings['device_name'] = torch.cuda.get_device_name(0) if use_cuda else "cpu"
+    settings['device_name'] = cuda.get_device_name(0) if use_cuda else "cpu"
     print(settings['device_name'])
 
     if epochs != None:
@@ -55,11 +46,10 @@ def main(experiment, epochs, nets, prunes, cuda, fast):
     experiment.run_experiment()
 
 if __name__=='__main__':
-    p = argparse.ArgumentParser(description='bachelor_playground - Framework for pruning-experiments.')
+    p = ArgumentParser(description='bachelor_playground - Framework for pruning-experiments.')
 
     p.add_argument('experiment', choices=['lenet-mnist', 'conv2-cifar10', 'conv4-cifar10', 'conv6-cifar10'], help='choose experiment')
     p.add_argument('-c', '--cuda', action='store_true', default=False, help='use cuda, if available')
-    p.add_argument('-f', '--fast', action='store_true', default=False, help='use fast version, i.e. less epochs')
     p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help='specify number of epochs')
     p.add_argument('-n', '--nets', type=int, default=None, metavar='N', help='specify number of trained networks')
     p.add_argument('-p', '--prunes', type=int, default=None, metavar='P', help='specify number of pruning steps')
