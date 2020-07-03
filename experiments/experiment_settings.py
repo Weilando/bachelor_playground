@@ -1,3 +1,15 @@
+from enum import IntEnum
+
+class VerbosityLevel(IntEnum):
+    """ Enum to define the level of verbosity.
+    'silent' gives no output at all.
+    'important' gives status messages.
+    'detailed' gives more status and progress messages. """
+    silent = 0
+    important = 1
+    detailed = 2
+
+
 def get_settings_lenet_mnist():
     """ Original experiment with Lenet 300-100 on MNIST. """
     experiment_settings = dict()
@@ -11,6 +23,7 @@ def get_settings_lenet_mnist():
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'lenet'
     experiment_settings['dataset'] = 'mnist'
+    experiment_settings['verbosity'] = VerbosityLevel.silent
     return experiment_settings
 
 def get_settings_conv2_cifar10():
@@ -28,6 +41,7 @@ def get_settings_conv2_cifar10():
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
+    experiment_settings['verbosity'] = VerbosityLevel.silent
     return experiment_settings
 
 def get_settings_conv4_cifar10():
@@ -45,6 +59,7 @@ def get_settings_conv4_cifar10():
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
+    experiment_settings['verbosity'] = VerbosityLevel.silent
     return experiment_settings
 
 def get_settings_conv6_cifar10():
@@ -62,4 +77,5 @@ def get_settings_conv6_cifar10():
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
     experiment_settings['dataset'] = 'cifar'
+    experiment_settings['verbosity'] = VerbosityLevel.silent
     return experiment_settings

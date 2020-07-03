@@ -9,6 +9,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from training import plotter
+from experiments.experiment_settings import VerbosityLevel
 
 def calc_hist_length(batch_count, epoch_count, plot_step):
     """ Calculate length of history arrays based on batch_count, epoch_count and plot_step. """
@@ -18,18 +19,18 @@ class TrainerAdam(object):
     """ Class for training a neural network 'net' with the adam-optimizer.
     The network is trained on batches from 'train_loader'.
     They are evaluated with batches from val_loader or test_loader. """
-    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu')):
+    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu'), verbosity=VerbosityLevel.silent):
         super(TrainerAdam, self).__init__()
         self.learning_rate = learning_rate
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
         self.device = device
+        self.verbosity = verbosity
 
-    def train_net(self, net, epoch_count=3, plot_step=100, verbose=False, reg_factor=0.):
+    def train_net(self, net, epoch_count=3, plot_step=100, reg_factor=0.):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save accuracies and loss every 'plot_step' iterations and after each epoch.
-        If 'verbose'=True a dash is printed at each plot_step to show progress.
         'reg_factor' adds L1-regularization. """
         net.to(self.device) # push model to device
 
@@ -46,8 +47,9 @@ class TrainerAdam(object):
         hist_count = 0
 
         for e in range(0, epoch_count):
-            print(f"epoch: {(e+1):2} ", end="")
-            tic = time.time()
+            if self.verbosity != VerbosityLevel.silent:
+                print(f"epoch: {(e+1):2} ", end="")
+                tic = time.time()
             epoch_base = e * len(self.train_loader)
 
             for j, data in enumerate(self.train_loader):
@@ -79,7 +81,7 @@ class TrainerAdam(object):
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
                     hist_count += 1
-                    if verbose:
+                    if self.verbosity == VerbosityLevel.detailed:
                         print(f"-", end="")
                     net.train(True)
 
@@ -92,8 +94,9 @@ class TrainerAdam(object):
             test_acc_hist_epoch[e] = self.compute_acc(net, test=True)
 
             # print progress
-            toc = time.time()
-            print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc-tic)})")
+            if self.verbosity != VerbosityLevel.silent:
+                toc = time.time()
+                print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc-tic)})")
         return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch
 
     def compute_acc(self, net, test=True):

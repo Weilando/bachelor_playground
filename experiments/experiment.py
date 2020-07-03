@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from training import plotter
 from data import result_saver as rs
 from training.trainer import calc_hist_length
+from experiments.experiment_settings import VerbosityLevel
 
 class Experiment(object):
     def __init__(self, args):
@@ -21,7 +22,9 @@ class Experiment(object):
         self.learning_rate = args['learning_rate']
         self.plot_step = args['plot_step']
         self.device = torch.device(args['device'])
-        print(args)
+        self.verbosity = args['verbosity']
+        if self.verbosity != VerbosityLevel.silent:
+            print(args)
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
@@ -68,7 +71,8 @@ class Experiment(object):
 
         experiment_stop = time.time() # stop clock for experiment duration
         duration = plotter.format_time(experiment_stop-experiment_start)
-        print(f"Experiment duration: {duration}")
+        if self.verbosity != VerbosityLevel.silent:
+            print(f"Experiment duration: {duration}")
         self.args['duration'] = duration
 
         self.save_results()
@@ -82,4 +86,5 @@ class Experiment(object):
         rs.save_specs(self.args, results_path, file_prefix)
         rs.save_histories(self, results_path, file_prefix)
         rs.save_nets(self, results_path, file_prefix)
-        print("Successfully wrote results on disk.")
+        if self.verbosity != VerbosityLevel.silent:
+            print("Successfully wrote results on disk.")

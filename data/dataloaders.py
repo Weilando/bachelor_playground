@@ -5,8 +5,9 @@ import torchvision.transforms as transforms
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from experiments.experiment_settings import VerbosityLevel
 
-def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='../data/datasets', device='cpu'):
+def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='../data/datasets', device='cpu', verbosity=VerbosityLevel.silent):
     """ Load the MNIST-dataset and provide DataLoaders with given properties.
     The training-set contains 60000 samples which can be split into two for training and validation.
     The test-set contains 10000 samples. """
@@ -22,10 +23,11 @@ def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='..
     test_data = datasets.MNIST(root=path, train=False, download=True, transform=tr)
     test_loader = d_utils.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=(device!='cpu'))
 
-    print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
+    if verbosity != VerbosityLevel.silent:
+        print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
     return train_loader, val_loader, test_loader
 
-def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='../data/datasets', device='cpu'):
+def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='../data/datasets', device='cpu', verbosity=VerbosityLevel.silent):
     """ Load the CIFAR-10-dataset and provide DataLoaders with given properties.
     The training-set contains 50000 samples which can be split into two for training and validation.
     The test-set contains 10000 samples. """
@@ -41,5 +43,6 @@ def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='
     test_data = datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
     test_loader = d_utils.DataLoader(test_data, batch_size=60, shuffle=False, num_workers=2, pin_memory=(device!='cpu'))
 
-    print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
+    if verbosity != VerbosityLevel.silent:
+        print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
     return train_loader, val_loader, test_loader

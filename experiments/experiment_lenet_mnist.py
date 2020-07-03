@@ -2,12 +2,13 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from experiments import experiment_settings, experiment
+from experiments.experiment_settings import VerbosityLevel
+from experiments.experiment import Experiment
 from nets.lenet import Lenet
 from data.dataloaders import get_mnist_dataloaders
 from training.trainer import TrainerAdam
 
-class Experiment_Lenet_MNIST(experiment.Experiment):
+class Experiment_Lenet_MNIST(Experiment):
     def __init__(self, args):
         super(Experiment_Lenet_MNIST, self).__init__(args)
         self.prune_rate_fc = args['prune_rate_fc']
@@ -28,27 +29,28 @@ class Experiment_Lenet_MNIST(experiment.Experiment):
         self.nets = [None] * self.net_count
         for n in range(self.net_count):
             self.nets[n] = Lenet(self.args['plan_fc'])
-        print(self.nets[0])
+        if self.verbosity == VerbosityLevel.detailed:
+            print(self.nets[0])
 
     def execute_experiment(self):
         """ Execute experiment, i.e. perform iterative magnitude pruning and save accuracy- and loss-histories after each training.
         Retrain in the end to check the last nets' accuracies. """
-        print(f"Prune networks with rate {self.prune_rate_fc}.")
         for n in range(self.net_count):
-            print(f"Train network #{n} (unpruned).")
-            self.nets[n], self.loss_hists[n,0], self.val_acc_hists[n,0], self.test_acc_hists[n,0], self.val_acc_hists_epoch[n,0], self.test_acc_hists_epoch[n,0] = self.trainer.train_net(self.nets[n], self.epoch_count, self.plot_step)
-            print(f"Final test-accuracy: {(self.test_acc_hists[n,0,-1]):1.4}")
-
-            for p in range(1, self.prune_count+1):
-                print(f"Prune network #{n} in round {p}", end="")
-                self.nets[n].prune_net(self.prune_rate_fc)
+            for p in range(0, self.prune_count+1):
+                if p > 0:
+                    if self.verbosity != VerbosityLevel.silent:
+                        print(f"Prune network #{n} in round {p}.", end=" ")
+                    self.nets[n].prune_net(self.prune_rate_fc)
 
                 if n==0:
                     self.sparsity_hist[p] = self.nets[0].sparsity_report()[0]
-                print(f" (sparsity {self.sparsity_hist[p]:.6}).", end="")
 
-                print(" Train network.")
+                if self.verbosity != VerbosityLevel.silent:
+                    print(f"Train network #{n} (sparsity {self.sparsity_hist[p]:.6}).")
+
                 self.nets[n], self.loss_hists[n,p], self.val_acc_hists[n,p], self.test_acc_hists[n,p], self.val_acc_hists_epoch[n,p], self.test_acc_hists_epoch[n,p] = self.trainer.train_net(self.nets[n], self.epoch_count, self.plot_step)
 
-                print(f"Final test-accuracy: {(self.test_acc_hists_epoch[n,p,-1]):1.4}")
-            print()
+                if self.verbosity != VerbosityLevel.silent:
+                    print(f"Final test-accuracy: {(self.test_acc_hists_epoch[n,p,-1]):1.4}")
+            if self.verbosity != VerbosityLevel.silent:
+                print()

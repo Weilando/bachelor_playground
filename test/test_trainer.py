@@ -43,7 +43,7 @@ class Test_trainer(unittest.TestCase):
         expected_hist_shape = (3,)
         expected_hist_epoch_shape = (2,)
 
-        net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch = trainer.train_net(net, epoch_count=2, plot_step=3, verbose=False, reg_factor=0.)
+        net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch = trainer.train_net(net, epoch_count=2, plot_step=3, reg_factor=0.)
 
         self.assertTrue(net != None)
         self.assertEqual(expected_hist_shape, loss_hist.shape)
@@ -78,7 +78,7 @@ class Test_trainer(unittest.TestCase):
         expected_hist_shape = (2,)
         expected_hist_epoch_shape = (2,)
 
-        net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch = trainer.train_net(net, epoch_count=2, plot_step=4, verbose=False, reg_factor=0.)
+        net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch = trainer.train_net(net, epoch_count=2, plot_step=4, reg_factor=0.)
 
         self.assertTrue(net != None)
         self.assertEqual(expected_hist_shape, loss_hist.shape)
