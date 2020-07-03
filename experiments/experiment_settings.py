@@ -1,13 +1,18 @@
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 class VerbosityLevel(IntEnum):
     """ Enum to define the level of verbosity.
-    'silent' gives no output at all.
-    'important' gives status messages.
-    'detailed' gives more status and progress messages. """
-    silent = 0
-    important = 1
-    detailed = 2
+    'SILENT' gives no output at all.
+    'MEDIUM' gives status messages.
+    'DETAILED' gives more status and progress messages. """
+    SILENT = 0
+    MEDIUM = 1
+    DETAILED = 2
+
+class DatasetNames(str, Enum):
+    """ Enum to define available datasets. """
+    MNIST = "MNIST"
+    CIFAR10 = "CIFAR-10"
 
 
 def get_settings_lenet_mnist():
@@ -22,8 +27,8 @@ def get_settings_lenet_mnist():
     experiment_settings['prune_method'] = 'imp'
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'lenet'
-    experiment_settings['dataset'] = 'mnist'
-    experiment_settings['verbosity'] = VerbosityLevel.silent
+    experiment_settings['dataset'] = DatasetNames.MNIST
+    experiment_settings['verbosity'] = VerbosityLevel.SILENT
     return experiment_settings
 
 def get_settings_conv2_cifar10():
@@ -40,8 +45,8 @@ def get_settings_conv2_cifar10():
     experiment_settings['prune_method'] = 'imp'
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
-    experiment_settings['dataset'] = 'cifar'
-    experiment_settings['verbosity'] = VerbosityLevel.silent
+    experiment_settings['dataset'] = DatasetNames.CIFAR10
+    experiment_settings['verbosity'] = VerbosityLevel.SILENT
     return experiment_settings
 
 def get_settings_conv4_cifar10():
@@ -58,8 +63,8 @@ def get_settings_conv4_cifar10():
     experiment_settings['prune_method'] = 'imp'
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
-    experiment_settings['dataset'] = 'cifar'
-    experiment_settings['verbosity'] = VerbosityLevel.silent
+    experiment_settings['dataset'] = DatasetNames.CIFAR10
+    experiment_settings['verbosity'] = VerbosityLevel.SILENT
     return experiment_settings
 
 def get_settings_conv6_cifar10():
@@ -76,6 +81,6 @@ def get_settings_conv6_cifar10():
     experiment_settings['prune_method'] = 'imp'
     experiment_settings['plot_step'] = 100
     experiment_settings['net'] = 'conv'
-    experiment_settings['dataset'] = 'cifar'
-    experiment_settings['verbosity'] = VerbosityLevel.silent
+    experiment_settings['dataset'] = DatasetNames.CIFAR10
+    experiment_settings['verbosity'] = VerbosityLevel.SILENT
     return experiment_settings

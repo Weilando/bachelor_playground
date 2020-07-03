@@ -10,7 +10,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from training import plotter
 from data import result_saver as rs
 from training.trainer import calc_hist_length
-from experiments.experiment_settings import VerbosityLevel
+from data.dataloaders import get_mnist_dataloaders, get_cifar10_dataloaders
+from experiments.experiment_settings import VerbosityLevel, DatasetNames
+from training.trainer import TrainerAdam
 
 class Experiment(object):
     def __init__(self, args):
@@ -23,7 +25,7 @@ class Experiment(object):
         self.plot_step = args['plot_step']
         self.device = torch.device(args['device'])
         self.verbosity = args['verbosity']
-        if self.verbosity != VerbosityLevel.silent:
+        if self.verbosity != VerbosityLevel.SILENT:
             print(args)
 
     def setup_experiment(self):
@@ -33,11 +35,18 @@ class Experiment(object):
         self.init_nets()
 
     def load_data_and_setup_trainer(self):
-        """ Load dataset and initialize trainer in 'self.trainer'.
+        """ Load dataset and initialize trainer.
         Store the length of the training-loader into 'self.epoch_length' to initialize histories. """
-        self.trainer = None
-        self.epoch_length = 0
-        pass
+        # load dataset
+        if self.args['dataset'] == DatasetNames.MNIST:
+            train_loader, val_loader, test_loader = get_mnist_dataloaders(device=self.args['device'], verbosity=self.verbosity)
+        elif self.args['dataset'] == DatasetNames.CIFAR10:
+            train_loader, val_loader, test_loader = get_cifar10_dataloaders(device=self.args['device'], verbosity=self.verbosity)
+
+        self.epoch_length = len(train_loader)
+
+        # initialize trainer
+        self.trainer = TrainerAdam(self.learning_rate, train_loader, val_loader, test_loader, self.device, self.verbosity)
 
     def create_histories(self):
         """ Create np-arrays containing values from the training process.
@@ -71,7 +80,7 @@ class Experiment(object):
 
         experiment_stop = time.time() # stop clock for experiment duration
         duration = plotter.format_time(experiment_stop-experiment_start)
-        if self.verbosity != VerbosityLevel.silent:
+        if self.verbosity != VerbosityLevel.SILENT:
             print(f"Experiment duration: {duration}")
         self.args['duration'] = duration
 
@@ -86,5 +95,5 @@ class Experiment(object):
         rs.save_specs(self.args, results_path, file_prefix)
         rs.save_histories(self, results_path, file_prefix)
         rs.save_nets(self, results_path, file_prefix)
-        if self.verbosity != VerbosityLevel.silent:
+        if self.verbosity != VerbosityLevel.SILENT:
             print("Successfully wrote results on disk.")

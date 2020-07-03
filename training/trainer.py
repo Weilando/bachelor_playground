@@ -19,7 +19,7 @@ class TrainerAdam(object):
     """ Class for training a neural network 'net' with the adam-optimizer.
     The network is trained on batches from 'train_loader'.
     They are evaluated with batches from val_loader or test_loader. """
-    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu'), verbosity=VerbosityLevel.silent):
+    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu'), verbosity=VerbosityLevel.SILENT):
         super(TrainerAdam, self).__init__()
         self.learning_rate = learning_rate
         self.train_loader = train_loader
@@ -47,7 +47,7 @@ class TrainerAdam(object):
         hist_count = 0
 
         for e in range(0, epoch_count):
-            if self.verbosity != VerbosityLevel.silent:
+            if self.verbosity != VerbosityLevel.SILENT:
                 print(f"epoch: {(e+1):2} ", end="")
                 tic = time.time()
             epoch_base = e * len(self.train_loader)
@@ -81,7 +81,7 @@ class TrainerAdam(object):
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
                     hist_count += 1
-                    if self.verbosity == VerbosityLevel.detailed:
+                    if self.verbosity == VerbosityLevel.DETAILED:
                         print(f"-", end="")
                     net.train(True)
 
@@ -94,7 +94,7 @@ class TrainerAdam(object):
             test_acc_hist_epoch[e] = self.compute_acc(net, test=True)
 
             # print progress
-            if self.verbosity != VerbosityLevel.silent:
+            if self.verbosity != VerbosityLevel.SILENT:
                 toc = time.time()
                 print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc-tic)})")
         return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch

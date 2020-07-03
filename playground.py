@@ -46,7 +46,7 @@ def should_override_net_count(nets):
 
 def main(experiment, epochs, nets, prunes, cuda, verbose):
     assert verbose in experiment_settings.VerbosityLevel.__members__.values()
-    if verbose != experiment_settings.VerbosityLevel.silent:
+    if verbose != experiment_settings.VerbosityLevel.SILENT:
         print("Welcome to bachelor_playground.")
 
     settings = load_settings(experiment)
@@ -55,7 +55,7 @@ def main(experiment, epochs, nets, prunes, cuda, verbose):
     use_cuda = cuda and is_available()
     settings['device'] = "cuda:0" if use_cuda else "cpu"
     settings['device_name'] = get_device_name(0) if use_cuda else "cpu"
-    if verbose != experiment_settings.VerbosityLevel.silent:
+    if verbose != experiment_settings.VerbosityLevel.SILENT:
         print(settings['device_name'])
 
     if should_override_epoch_count(epochs):
