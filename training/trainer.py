@@ -1,16 +1,12 @@
-import time
 import math
-import numpy as np
+import time
 
+import numpy as np
 import torch
 import torch.optim as optim
 
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from training import plotter
 from experiments.experiment_settings import VerbosityLevel
+from training import plotter
 
 
 def calc_hist_length(batch_count, epoch_count, plot_step):

@@ -1,15 +1,13 @@
+import os
 from argparse import ArgumentParser
+
 from torch.cuda import is_available, get_device_name
 
-import os
-import sys
+from experiments.experiment_conv_cifar10 import ExperimentConvCIFAR10
+from experiments.experiment_lenet_mnist import ExperimentLenetMNIST
+from experiments.experiment_settings import get_settings, ExperimentNames, VerbosityLevel
 
 current_path = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(current_path, '.')))
-from experiments.experiment_settings import get_settings, ExperimentNames, VerbosityLevel
-from experiments.experiment_lenet_mnist import ExperimentLenetMNIST
-from experiments.experiment_conv_cifar10 import ExperimentConvCIFAR10
-
 os.chdir(os.path.join(current_path, 'experiments'))
 
 

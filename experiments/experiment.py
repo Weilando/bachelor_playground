@@ -1,10 +1,7 @@
-import numpy as np
-import os
-import sys
 import time
-import torch
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import numpy as np
+import torch
 
 from data import result_saver as rs
 from data.dataloaders import get_mnist_dataloaders, get_cifar10_dataloaders
@@ -94,7 +91,7 @@ class Experiment(object):
         duration = plotter.format_time(experiment_stop - experiment_start)
         if self.args.verbosity != VerbosityLevel.SILENT:
             print(f"Experiment duration: {duration}")
-        self.args['duration'] = duration
+        self.args.duration = duration
 
         self.save_results()
 

@@ -1,12 +1,9 @@
 import numpy as np
-import os
-import sys
 import torch.nn as nn
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from nets.weight_initializer import gaussian_glorot
 from nets.net import Net
 from nets.plan_check import is_numerical_spec
+from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
 

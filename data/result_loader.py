@@ -1,14 +1,12 @@
 import glob
 import json
+import os
+
 import numpy as np
 import torch
 
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from nets import lenet, conv
 from experiments.experiment_settings import NetNames
+from nets import lenet, conv
 
 
 def print_spec_files():

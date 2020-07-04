@@ -1,15 +1,8 @@
-import os
-import sys
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-test_dir = os.path.join(os.getcwd(), 'test')
-if os.path.exists(test_dir):
-    os.chdir(test_dir)
-    
 import experiments.experiment_settings as experiment_settings
-from experiments.experiment_lenet_mnist import ExperimentLenetMNIST
 from experiments.experiment_conv_cifar10 import ExperimentConvCIFAR10
+from experiments.experiment_lenet_mnist import ExperimentLenetMNIST
 
 
 class Test_experiment(unittest.TestCase):

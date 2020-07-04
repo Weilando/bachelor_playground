@@ -1,11 +1,4 @@
-import os
-import sys
 import unittest
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-test_dir = os.path.join(os.getcwd(), 'test')
-if os.path.exists(test_dir):
-    os.chdir(test_dir)
 
 from playground import should_override_epoch_count, should_override_prune_count, should_override_net_count
 

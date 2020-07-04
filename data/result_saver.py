@@ -1,12 +1,9 @@
-from dataclasses import asdict
 import json
+import os
+from dataclasses import asdict
+
 import numpy as np
 import torch
-
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 def setup_results_path():
@@ -19,7 +16,7 @@ def setup_results_path():
 
 def generate_file_prefix(specs, save_time):
     """ Generate file names' prefix. """
-    return f"{save_time}-{specs['net']}-{specs['dataset']}"
+    return f"{save_time}-{specs.net}-{specs.dataset}"
 
 
 def save_specs(specs, results_path, file_prefix):

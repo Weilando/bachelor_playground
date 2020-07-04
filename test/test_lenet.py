@@ -1,9 +1,7 @@
-import torch
 import unittest
 
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import torch
+
 from nets.lenet import Lenet
 
 
@@ -11,6 +9,7 @@ class Test_lenet(unittest.TestCase):
     """ Tests for the Lenet class.
     Call with 'python -m test.test_lenet' from project root '~'.
     Call with 'python -m test_lenet' from inside '~/test'. """
+
     def test_forward_pass_simple_architecture(self):
         """ The neural network with one hidden layer should perform a forward pass for  without exceptions. """
         net = Lenet(plan_fc=[5, 10])
