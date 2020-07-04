@@ -32,7 +32,7 @@ def save_nets(experiment, results_path, file_prefix):
     for num, net in enumerate(experiment.nets):
         net.train(True)
         net.to(torch.device("cpu"))
-        net_path = histories_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
+        net_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
         torch.save(net.state_dict(), net_path)
 
 def save_histories(experiment, results_path, file_prefix):

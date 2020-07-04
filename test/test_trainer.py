@@ -23,9 +23,9 @@ class Test_trainer(unittest.TestCase):
         self.assertEqual(2, calc_hist_length(4, 4, 10))
 
     def test_execute_training(self):
-        ''' The training should be executed without errors and results should have correct shapes.
+        """ The training should be executed without errors and results should have correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
-        Inputs have shape (1,4). '''
+        Inputs have shape (1,4). """
         # setup net
         net = nn.Linear(4,2)
         net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
@@ -45,7 +45,7 @@ class Test_trainer(unittest.TestCase):
 
         net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch = trainer.train_net(net, epoch_count=2, plot_step=3, reg_factor=0.)
 
-        self.assertTrue(net != None)
+        self.assertTrue(net is not None)
         self.assertEqual(expected_hist_shape, loss_hist.shape)
         self.assertEqual(expected_hist_shape, val_acc_hist.shape)
         self.assertEqual(expected_hist_shape, test_acc_hist.shape)
@@ -58,9 +58,9 @@ class Test_trainer(unittest.TestCase):
         self.assertTrue(all(test_acc_hist_epoch > 0))
 
     def test_execute_training_rounding(self):
-        ''' The training should be executed without errors and results should have correct shapes.
+        """ The training should be executed without errors and results should have correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
-        Inputs have shape (1,4). '''
+        Inputs have shape (1,4). """
         # setup net
         net = nn.Linear(4,2)
         net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
@@ -80,7 +80,7 @@ class Test_trainer(unittest.TestCase):
 
         net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch = trainer.train_net(net, epoch_count=2, plot_step=4, reg_factor=0.)
 
-        self.assertTrue(net != None)
+        self.assertTrue(net is not None)
         self.assertEqual(expected_hist_shape, loss_hist.shape)
         self.assertEqual(expected_hist_shape, val_acc_hist.shape)
         self.assertEqual(expected_hist_shape, test_acc_hist.shape)
@@ -93,9 +93,9 @@ class Test_trainer(unittest.TestCase):
         self.assertTrue(all(test_acc_hist_epoch > 0))
 
     def test_compute_correct_test_acc(self):
-        ''' The correct test-accuracy should be calculated.
+        """ The correct test-accuracy should be calculated.
         The fake-net with one linear layer classifies half of the fake-samples correctly.
-        Use a fake-val_loader with one batch to validate the result. '''
+        Use a fake-val_loader with one batch to validate the result. """
         # setup net
         net = nn.Linear(4,2)
         net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
@@ -111,9 +111,9 @@ class Test_trainer(unittest.TestCase):
         self.assertEqual(0.5, trainer.compute_acc(net, test=True))
 
     def test_compute_correct_val_acc(self):
-        ''' The correct validation-accuracy should be calculated.
+        """ The correct validation-accuracy should be calculated.
         The fake-net with one linear layer classifies all fake-samples correctly.
-        Use a fake-val_loader with one batch to validate the result. '''
+        Use a fake-val_loader with one batch to validate the result. """
         # setup net
         net = nn.Linear(4,2)
         net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))

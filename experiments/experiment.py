@@ -1,10 +1,9 @@
-import math
 import numpy as np
+import os
+import sys
 import time
 import torch
 
-import os
-import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from training import plotter
@@ -21,6 +20,7 @@ class Experiment(object):
 
         self.net_count = args['net_count']
         self.epoch_count = args['epoch_count']
+        self.prune_count = args['prune_count']
         self.learning_rate = args['learning_rate']
         self.plot_step = args['plot_step']
         self.device = torch.device(args['device'])
@@ -42,6 +42,8 @@ class Experiment(object):
             train_loader, val_loader, test_loader = get_mnist_dataloaders(device=self.args['device'], verbosity=self.verbosity)
         elif self.args['dataset'] == DatasetNames.CIFAR10:
             train_loader, val_loader, test_loader = get_cifar10_dataloaders(device=self.args['device'], verbosity=self.verbosity)
+        else:
+            raise AssertionError(f"Could not load datasets, because the given name {self.args['dataset']} is invalid.")
 
         self.epoch_length = len(train_loader)
 

@@ -1,9 +1,8 @@
-import torch
-import torch.nn as nn
 import numpy as np
-
 import os
 import sys
+import torch.nn as nn
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.weight_initializer import gaussian_glorot
 from nets.net import Net
@@ -25,18 +24,18 @@ class Lenet(Net):
 
         # create and initialize layers with Gaussian Glorot
         fc_layers = []
-        input = 784 # 28*28=784, dimension of samples in MNIST
+        input_features = 784 # 28*28=784, dimension of samples in MNIST
 
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
-            fc_layers.append(nn.Linear(input, spec))
+            fc_layers.append(nn.Linear(input_features, spec))
             fc_layers.append(nn.Tanh())
-            self.init_weight_count_net += input * spec
-            input = spec
+            self.init_weight_count_net += input_features * spec
+            input_features = spec
 
         self.fc = nn.Sequential(*fc_layers)
-        self.out = nn.Linear(input, 10)
-        self.init_weight_count_net += input * 10
+        self.out = nn.Linear(input_features, 10)
+        self.init_weight_count_net += input_features * 10
         self.crit = nn.CrossEntropyLoss()
 
         self.apply(gaussian_glorot)

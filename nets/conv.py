@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 import numpy as np
 
@@ -106,6 +105,8 @@ class Conv(Net):
         elif isinstance(layer, nn.Conv2d):
             unpr_weight_count = int(layer.weight.nonzero().numel()/4)
             init_weight_count = layer.in_channels * layer.out_channels * layer.kernel_size[0] * layer.kernel_size[1]
+        else:
+            raise AssertionError(f"Could not calculate sparsity for layer of type {type(layer)}.")
 
         sparsity = unpr_weight_count / init_weight_count
         return (sparsity, unpr_weight_count)

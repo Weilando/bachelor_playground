@@ -6,7 +6,7 @@ import math
 def setup_masks(layer):
     """ Setup a mask of ones for all linear and convolutional layers. """
     if isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d):
-        layer = prune.custom_from_mask(layer, name='weight', mask=torch.ones_like(layer.weight))
+        prune.custom_from_mask(layer, name='weight', mask=torch.ones_like(layer.weight))
 
 def prune_mask(layer, prune_rate):
     """ Prune mask for given layer, i.e. set its entries to zero for weights with smallest magnitudes.
@@ -15,6 +15,8 @@ def prune_mask(layer, prune_rate):
         init_weight_count = layer.in_features * layer.out_features
     elif isinstance(layer, nn.Conv2d):
         init_weight_count = layer.in_channels * layer.out_channels * layer.kernel_size[0] * layer.kernel_size[1]
+    else:
+        raise AssertionError(f"Could not prune mask for layer of type {type(layer)}.")
 
     unpruned_weight_count = int(layer.weight_mask.flatten().sum())
     pruned_weight_count = int(init_weight_count - unpruned_weight_count)
@@ -37,4 +39,4 @@ def prune_layer(layer, prune_rate):
         layer.weight = nn.Parameter(layer.weight_init.clone())
 
         # apply pruned mask
-        layer = prune.custom_from_mask(layer, name='weight',  mask=pruned_mask)
+        prune.custom_from_mask(layer, name='weight',  mask=pruned_mask)

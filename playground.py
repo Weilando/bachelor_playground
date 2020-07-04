@@ -25,21 +25,21 @@ def load_settings(experiment):
 
 def should_override_epoch_count(epochs):
     """ Check if the 'epochs'-flag was set and if the given value is valid. """
-    if epochs != None:
+    if epochs is not None:
         assert epochs > 0, f"Epoch count needs to be a positive number, but was {epochs}."
         return True
     return False
 
 def should_override_prune_count(prunes):
     """ Check if the 'prunes'-flag was set and if the given value is valid. """
-    if prunes != None:
+    if prunes is not None:
         assert prunes >= 0, f"Prune count needs to be a number greater or equal to zero, but was {prunes}."
         return True
     return False
 
 def should_override_net_count(nets):
     """ Check if the 'nets'-flag was set and if the given value is valid. """
-    if nets != None:
+    if nets is not None:
         assert nets > 0, f"Net count needs to be a positive number, but was {nets}."
         return True
     return False

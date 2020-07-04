@@ -21,7 +21,7 @@ def format_time(time):
     """ Format a given integer (UIX time) into a string.
     Convert times shorter than a minute into seconds with four decimal places, and times longer than a minute into minutes and seconds. """
     if time >= 60:
-        minutes, seconds = divmod((time), 60)
+        minutes, seconds = divmod(time, 60)
         return f"{round(minutes)}:{round(seconds):02d}min"
     return f"{time:.4f}sec"
 
@@ -48,7 +48,6 @@ def gen_plot_average_acc_on_ax(ax, acc_hists, sparsity_hist, force_one=False):
 
 def gen_plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist, force_one=False):
     """ Generate plots of means and error-bars for given accuracies (per sparsity) on ax. """
-    net_count, prune_count = acc_hists.shape
     acc_mean, acc_neg_yerr, acc_pos_yerr = get_means_and_y_errors(acc_hists) # each result has shape (prune_count)
 
     # plot baseline, i.e. unpruned results

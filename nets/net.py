@@ -6,7 +6,7 @@ class Net(nn.Module):
     Its architecture can be specified via sizes in plan_conv and plan_fc.
     Initial weights for each layer are stored as buffers after applying the weight initialization.
     """
-    def __init__(self, plan_conv=[], plan_fc=[]):
+    def __init__(self):
         super(Net, self).__init__()
         pass
 

@@ -11,11 +11,10 @@ class Experiment_Conv_CIFAR10(Experiment):
         super(Experiment_Conv_CIFAR10, self).__init__(args)
         self.prune_rate_conv = args['prune_rate_conv']
         self.prune_rate_fc = args['prune_rate_fc']
-        self.prune_count = args['prune_count']
 
     def init_nets(self):
         """ Initialize nets in list 'self.nets' which should be trained during the exeperiment. """
-        self.nets = [None] * self.net_count
+        self.nets = [Conv] * self.net_count
         for n in range(self.net_count):
             self.nets[n] = Conv(self.args['plan_conv'], self.args['plan_fc'])
         if self.verbosity == VerbosityLevel.DETAILED:

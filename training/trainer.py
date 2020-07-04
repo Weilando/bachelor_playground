@@ -36,10 +36,10 @@ class TrainerAdam(object):
 
         # initialize histories
         hist_length = calc_hist_length(len(self.train_loader), epoch_count, plot_step)
-        loss_hist = np.zeros((hist_length), dtype=float) # save each plot_step iterations
+        loss_hist = np.zeros(hist_length, dtype=float) # save each plot_step iterations
         val_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
         test_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
-        val_acc_hist_epoch = np.zeros((epoch_count), dtype=float) # save per epoch
+        val_acc_hist_epoch = np.zeros(epoch_count, dtype=float) # save per epoch
         test_acc_hist_epoch = np.zeros_like(val_acc_hist_epoch, dtype=float) # save per epoch
 
         # setup training

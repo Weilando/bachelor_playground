@@ -2,7 +2,7 @@
 # Install miniconda
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
-source .bashrc
+source ~/.bashrc
 
 # Install dependencies into environment bachelor_playground
 conda create --name bachelor_playground --file conda_specs.txt
