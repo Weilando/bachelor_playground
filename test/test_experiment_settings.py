@@ -1,6 +1,7 @@
 import unittest
 
-from experiments.experiment_settings import get_settings, DatasetNames, ExperimentNames, ExperimentSettings, NetNames
+from experiments.experiment_settings import get_settings, DatasetNames, ExperimentNames, ExperimentSettings, NetNames, \
+    get_settings_lenet_toy
 
 
 class TestExperimentSettings(unittest.TestCase):
@@ -39,6 +40,14 @@ class TestExperimentSettings(unittest.TestCase):
         self.assertIs(type(experiment_settings), ExperimentSettings)
         self.assertIs(experiment_settings.net, NetNames.CONV)
         self.assertIs(experiment_settings.dataset, DatasetNames.CIFAR10)
+
+    def test_get_settings_for_lenet_toy(self):
+        """ Get results without errors and verify the most important attributes. """
+        experiment_settings = get_settings_lenet_toy()
+
+        self.assertIs(type(experiment_settings), ExperimentSettings)
+        self.assertIs(experiment_settings.net, NetNames.LENET)
+        self.assertIs(experiment_settings.dataset, DatasetNames.TOY)
 
     def test_get_settings_should_raise_assertion_error_on_invalid_name(self):
         """ An assertion error should be thrown, because the given name is invalid. """

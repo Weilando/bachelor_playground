@@ -4,17 +4,20 @@ import numpy as np
 import torch
 
 from data import result_saver as rs
-from data.dataloaders import get_mnist_dataloaders, get_cifar10_dataloaders
-from experiments.experiment_settings import VerbosityLevel, DatasetNames
+from data.dataloaders import get_mnist_dataloaders, get_cifar10_dataloaders, get_toy_dataloaders
+from experiments.experiment_settings import VerbosityLevel, DatasetNames, NetNames
+from nets.conv import Conv
+from nets.lenet import Lenet
 from nets.net import Net
 from training import plotter
 from training.trainer import TrainerAdam, calc_hist_length
 
 
 class Experiment(object):
-    def __init__(self, args):
+    def __init__(self, args, result_path='../data/results'):
         super(Experiment, self).__init__()
         self.args = args
+        self.result_path = result_path
 
         if self.args.verbosity != VerbosityLevel.SILENT:
             print(args)
@@ -48,6 +51,8 @@ class Experiment(object):
         elif self.args.dataset == DatasetNames.CIFAR10:
             train_loader, val_loader, test_loader = get_cifar10_dataloaders(device=self.args.device,
                                                                             verbosity=self.args.verbosity)
+        elif self.args.dataset == DatasetNames.TOY:
+            train_loader, val_loader, test_loader = get_toy_dataloaders()
         else:
             raise AssertionError(f"Could not load datasets, because the given name {self.args.dataset} is invalid.")
 
@@ -73,8 +78,17 @@ class Experiment(object):
         self.sparsity_hist = np.ones((self.args.prune_count + 1), dtype=float)
 
     def init_nets(self):
-        """ Initialize nets in list 'self.nets' which should be trained during the experiment. """
-        pass
+        """ Initialize nets which are used during the experiment. """
+        for n in range(self.args.net_count):
+            if self.args.net == NetNames.LENET:
+                self.nets[n] = Lenet(self.args.plan_fc)
+            elif self.args.net == NetNames.CONV:
+                self.nets[n] = Conv(self.args.plan_conv, self.args.plan_fc)
+            else:
+                raise AssertionError(f"Could not initialize net, because the given name {self.args.net} is invalid.")
+
+        if self.args.verbosity == VerbosityLevel.DETAILED:
+            print(self.nets[0])
 
     def execute_experiment(self):
         """ Execute all actions for experiment and save accuracy- and loss-histories. """
@@ -100,9 +114,10 @@ class Experiment(object):
         save_time = time.strftime("%Y_%m_%d-%H_%M_%S", time.localtime())
         file_prefix = rs.generate_file_prefix(self.args, save_time)
 
-        results_path = rs.setup_results_path()
-        rs.save_specs(self.args, results_path, file_prefix)
-        rs.save_histories(self, results_path, file_prefix)
-        rs.save_nets(self, results_path, file_prefix)
+        results_path = rs.setup_result_path(self.result_path)
+        rs.save_specs(results_path, file_prefix, self.args)
+        rs.save_histories(results_path, file_prefix, self.loss_hists, self.val_acc_hists, self.test_acc_hists,
+                          self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist)
+        rs.save_nets(results_path, file_prefix, self.nets)
         if self.args.verbosity != VerbosityLevel.SILENT:
             print("Successfully wrote results on disk.")

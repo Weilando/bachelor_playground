@@ -3,8 +3,7 @@ from argparse import ArgumentParser
 
 from torch.cuda import is_available, get_device_name
 
-from experiments.experiment_conv_cifar10 import ExperimentConvCIFAR10
-from experiments.experiment_lenet_mnist import ExperimentLenetMNIST
+from experiments.experiment_imp import ExperimentIMP
 from experiments.experiment_settings import get_settings, ExperimentNames, VerbosityLevel
 
 current_path = os.path.dirname(__file__)
@@ -57,10 +56,7 @@ def main(experiment, epochs, nets, prunes, cuda, verbose):
         settings.prune_count = prunes
     settings.verbosity = VerbosityLevel(verbose)
 
-    if experiment == ExperimentNames.LENET_MNIST:
-        experiment = ExperimentLenetMNIST(settings)
-    else:
-        experiment = ExperimentConvCIFAR10(settings)
+    experiment = ExperimentIMP(settings)
     experiment.run_experiment()
 
 

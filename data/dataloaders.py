@@ -51,3 +51,20 @@ def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='
     test_data = datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
 
     return generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity)
+
+
+def get_toy_dataloaders(path='../data/datasets'):
+    """ Load a part of the MNIST-dataset and provide DataLoaders for use in fast tests.
+    The training-set contains 6, the validation-set 4 and the test set 4 samples.
+    The batch size is 2. """
+    # load from subset from MNIST test-set, as it is smaller than the training set
+    tr = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
+    data = datasets.MNIST(root=path, train=False, download=True, transform=tr)
+    data = Subset(data, range(0, 14))
+    train_data, val_data, test_data = random_split(data, [6, 4, 4])
+
+    train_loader = DataLoader(train_data, batch_size=2, shuffle=False, num_workers=0, pin_memory=False)
+    val_loader = DataLoader(val_data, batch_size=2, shuffle=False, num_workers=0, pin_memory=False)
+    test_loader = DataLoader(test_data, batch_size=2, shuffle=False, num_workers=0, pin_memory=False)
+
+    return train_loader, val_loader, test_loader

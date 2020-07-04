@@ -30,10 +30,9 @@ def get_specs_from_file(specs_relative_path):
 
 def get_histories_from_file(experiment_prefix):
     """ Read histories from the npz-file specified by the given experiment_prefix and return them as np.arrays. """
-    hists_path = os.path.join(os.getcwd(), f"{experiment_prefix}-histories.npz")
-    hists_file = np.load(hists_path)
-    return hists_file['loss_hists'], hists_file['val_acc_hists'], hists_file['test_acc_hists'], \
-           hists_file['val_acc_hists_epoch'], hists_file['test_acc_hists_epoch'], hists_file['sparsity_hist']
+    h_path = os.path.join(os.getcwd(), f"{experiment_prefix}-histories.npz")
+    hf = np.load(h_path)
+    return hf['loss_h'], hf['val_acc_h'], hf['test_acc_h'], hf['val_acc_ep_h'], hf['test_acc_ep_h'], hf['sparsity_h']
 
 
 def get_models_from_file(experiment_prefix, specs):

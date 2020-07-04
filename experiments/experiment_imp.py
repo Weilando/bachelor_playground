@@ -1,18 +1,19 @@
 from experiments.experiment import Experiment
 from experiments.experiment_settings import VerbosityLevel
+from nets.conv import Conv
+from nets.lenet import Lenet
 
 
 class ExperimentIMP(Experiment):
-    def __init__(self, args):
-        super(ExperimentIMP, self).__init__(args)
-
-    def init_nets(self):
-        """ Initialize nets in list 'self.nets' which should be trained during the experiment. """
-        pass
+    def __init__(self, args, result_path='../data/results'):
+        super(ExperimentIMP, self).__init__(args, result_path)
 
     def prune_net(self, net):
         """ Prune given net via its 'prune_net' method. """
-        pass
+        if isinstance(net, Lenet):
+            net.prune_net(self.args.prune_rate_fc)
+        elif isinstance(net, Conv):
+            net.prune_net(self.args.prune_rate_conv, self.args.prune_rate_fc)
 
     def execute_experiment(self):
         """ Perform iterative magnitude pruning and save accuracy- and loss-histories after each training.

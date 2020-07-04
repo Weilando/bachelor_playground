@@ -2,7 +2,7 @@ import numpy as np
 import torch.nn as nn
 
 from nets.net import Net
-from nets.plan_check import is_numerical_spec, is_batchnorm_spec
+from nets.plan_check import is_numerical_spec, is_batch_norm_spec
 from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
@@ -12,7 +12,7 @@ class Conv(Net):
     Convolutional network with convolutional layers in the beginning and fully-connected layers afterwards.
     Its architecture can be specified via sizes (positive integers) in plan_conv and plan_fc.
     'A' and and 'M' have special roles in plan_conv, as they generate Average- and Max-Pooling layers.
-    Append 'B' to any size in plan_conv to add a batch-norm layer directly behind the convolutional layer.
+    Append 'B' to any size in plan_conv to add a Batch-Norm layer directly behind the convolutional layer.
     If no architecture is specified, a Conv-2 architecture is generated.
     Works for the CIFAR-10 dataset with input 32*32*3.
     Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
@@ -36,7 +36,7 @@ class Conv(Net):
             elif spec == 'M':
                 conv_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
                 pooling_count += 1
-            elif is_batchnorm_spec(spec):
+            elif is_batch_norm_spec(spec):
                 conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
                 conv_layers.append(nn.BatchNorm2d(spec))
                 conv_layers.append(nn.ReLU())
