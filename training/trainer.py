@@ -28,7 +28,7 @@ class TrainerAdam(object):
         self.device = device
         self.verbosity = verbosity
 
-    def train_net(self, net, epoch_count=3, plot_step=100, reg_factor=0.):
+    def train_net(self, net, epoch_count=3, plot_step=100):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save accuracies and loss every 'plot_step' iterations and after each epoch.
         'reg_factor' adds L1-regularization. """
@@ -58,22 +58,15 @@ class TrainerAdam(object):
                 # push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
-                # zero the parameter gradients
-                opt.zero_grad()
-
-                # regularization loss
-                reg_loss = 0
-                for param in net.parameters():
-                    reg_loss += torch.sum(torch.abs(param))
+                opt.zero_grad() # zero the parameter gradients
 
                 # forward pass
                 outputs = net(inputs)
+                loss = net.crit(outputs, labels)
 
-                # training loss
-                train_loss = net.crit(outputs, labels)
-
-                # calculate total loss
-                loss = train_loss + reg_factor*reg_loss
+                # backward pass
+                loss.backward()
+                opt.step()
 
                 # evaluluate accuracies, save accuracies and loss
                 if ((epoch_base + j) % plot_step) == 0:
@@ -84,10 +77,6 @@ class TrainerAdam(object):
                     if self.verbosity == VerbosityLevel.DETAILED:
                         print(f"-", end="")
                     net.train(True)
-
-                # backward pass
-                loss.backward()
-                opt.step()
 
             # evaluate and save accuracies after each epoch
             val_acc_hist_epoch[e] = self.compute_acc(net, test=False)
