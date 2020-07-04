@@ -9,6 +9,7 @@ from nets.net import Net
 from nets.plan_check import is_numerical_spec
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
+
 class Lenet(Net):
     """
     Lenet with FC layers for the MNIST dataset with input 28*28.
@@ -24,7 +25,7 @@ class Lenet(Net):
 
         # create and initialize layers with Gaussian Glorot
         fc_layers = []
-        input_features = 784 # 28*28=784, dimension of samples in MNIST
+        input_features = 784  # 28*28=784, dimension of samples in MNIST
 
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
@@ -51,7 +52,7 @@ class Lenet(Net):
 
     def forward(self, x):
         """ Calculate forward pass for tensor x. """
-        x = x.view(-1, 784) # 28*28=784, dimension of samples in MNIST
+        x = x.view(-1, 784)  # 28*28=784, dimension of samples in MNIST
         x = self.fc(x)
         x = self.out(x)
         return x
@@ -70,18 +71,18 @@ class Lenet(Net):
         init_weight_count = layer.in_features * layer.out_features
 
         sparsity = unpr_weight_count / init_weight_count
-        return (sparsity, unpr_weight_count)
+        return sparsity, unpr_weight_count
 
     def sparsity_report(self):
         """ Generate a list with sparsities for the whole network and per layer. """
         unpr_weight_counts = 0
         sparsities = []
         for layer in self.fc:
-             if isinstance(layer, nn.Linear):
-                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
+            if isinstance(layer, nn.Linear):
+                curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
-                 sparsities.append(curr_sparsity)
-                 unpr_weight_counts += curr_unpr_weight_count
+                sparsities.append(curr_sparsity)
+                unpr_weight_counts += curr_unpr_weight_count
 
         out_sparsity, out_unpr_weight_count = self.sparsity_layer(self.out)
         sparsities.append(out_sparsity)

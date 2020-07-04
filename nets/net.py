@@ -18,7 +18,7 @@ class Net(nn.Module):
         """ Calculate forward pass for tensor x. """
         pass
 
-    def prune_net(self, prune_rate_conv, prune_rate_fc):
+    def prune_net(self, *prune_rates):
         """ Prune all layers with the given prune rates.
         Use weight masks and reset the unpruned weights to their initial values after pruning. """
         pass

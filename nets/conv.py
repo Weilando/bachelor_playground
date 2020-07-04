@@ -109,7 +109,7 @@ class Conv(Net):
             raise AssertionError(f"Could not calculate sparsity for layer of type {type(layer)}.")
 
         sparsity = unpr_weight_count / init_weight_count
-        return (sparsity, unpr_weight_count)
+        return sparsity, unpr_weight_count
 
     def sparsity_report(self):
         """ Generate a list with sparsities for the whole network and per layer. """

@@ -1,6 +1,6 @@
 # Playground Bachelor Thesis
 This repository contains experiments for my bachelor thesis about the _Lottery Ticket Hypothesis_.
-Currently implemented experiments:
+These experiments are currently available:
 - Finding winning tickets from fully-connected Lenet 300-100 on MNIST using Iterative Magnitude Pruning
 - Finding winning tickets from convolutional Conv-2 on CIFAR-10 using Iterative Magnitude Pruning
 - Finding winning tickets from convolutional Conv-4 on CIFAR-10 using Iterative Magnitude Pruning
@@ -23,7 +23,7 @@ Experiment | Architecture | Dataset
 
 Please use the flag `-h` to get more information on further flags and options.
 
-Experiments write their results into files in the subdirectory `/data/results`, whereas datasets are cached in `/data/datasets`.
+Experiments write their results into files in the subdirectory `/data/results`, whereas `/data/datasets` contains cached datasets.
 The file-names start with the timestamp when the experiment finished, followed by the architecture and dataset.
 The following suffixes specify the contents:
 
