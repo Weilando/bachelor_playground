@@ -3,10 +3,12 @@ import torch.nn as nn
 import torch.nn.utils.prune as prune
 import math
 
+
 def setup_masks(layer):
     """ Setup a mask of ones for all linear and convolutional layers. """
     if isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d):
         prune.custom_from_mask(layer, name='weight', mask=torch.ones_like(layer.weight))
+
 
 def prune_mask(layer, prune_rate):
     """ Prune mask for given layer, i.e. set its entries to zero for weights with smallest magnitudes.
@@ -27,6 +29,7 @@ def prune_mask(layer, prune_rate):
     new_mask = layer.weight_mask.clone()
     new_mask.flatten()[sorted_weight_indices[pruned_weight_count:(pruned_weight_count+prune_amount)]] = 0.
     return new_mask
+
 
 def prune_layer(layer, prune_rate):
     """ Prune given layer with certain prune_rate and reset surviving weights to their initial values. """

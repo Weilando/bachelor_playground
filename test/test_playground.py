@@ -9,6 +9,7 @@ if os.path.exists(test_dir):
 
 from playground import should_override_epoch_count, should_override_prune_count, should_override_net_count
 
+
 class Test_playground(unittest.TestCase):
     """ Tests for the experiment package.
     Call with 'python -m test.test_playground' from project root '~'.
@@ -51,6 +52,7 @@ class Test_playground(unittest.TestCase):
         """ An assertion error should be thrown, because the 'prunes'-flag was set with an invalid value. """
         with self.assertRaises(AssertionError):
             should_override_prune_count(-1)
+
 
 if __name__ == '__main__':
     unittest.main()

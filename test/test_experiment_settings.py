@@ -2,6 +2,7 @@ import unittest
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from experiments.experiment_settings import get_settings, DatasetNames, ExperimentNames, ExperimentSettings, NetNames
 
@@ -10,6 +11,7 @@ class TestExperimentSettings(unittest.TestCase):
     """ Tests for the experiment_settings module.
     Call with 'python -m test.test_experiment_settings' from project root '~'.
     Call with 'python -m test_experiment_settings' from inside '~/test'. """
+
     def test_get_settings_for_lenet_mnist(self):
         """ Get results without errors and verify the most important attributes. """
         experiment_settings = get_settings(ExperimentNames.LENET_MNIST)

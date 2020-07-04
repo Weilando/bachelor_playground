@@ -23,9 +23,17 @@ class Experiment(object):
             print(args)
 
         self.device = torch.device(args.device)
+
+        # Setup nets in init_nets()
         self.nets = [Net] * self.args.net_count
+
+        # Setup epoch_length and trainer in load_data_and_setup_trainer()
         self.trainer = None
         self.epoch_length = 0
+
+        # Setup history-arrays in create_histories()
+        self.loss_hists, self.val_acc_hists, self.test_acc_hists = None, None, None
+        self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist = None, None, None
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
@@ -38,16 +46,19 @@ class Experiment(object):
         Store the length of the training-loader into 'self.epoch_length' to initialize histories. """
         # load dataset
         if self.args.dataset == DatasetNames.MNIST:
-            train_loader, val_loader, test_loader = get_mnist_dataloaders(device=self.args.device, verbosity=self.args.verbosity)
+            train_loader, val_loader, test_loader = get_mnist_dataloaders(device=self.args.device,
+                                                                          verbosity=self.args.verbosity)
         elif self.args.dataset == DatasetNames.CIFAR10:
-            train_loader, val_loader, test_loader = get_cifar10_dataloaders(device=self.args.device, verbosity=self.args.verbosity)
+            train_loader, val_loader, test_loader = get_cifar10_dataloaders(device=self.args.device,
+                                                                            verbosity=self.args.verbosity)
         else:
             raise AssertionError(f"Could not load datasets, because the given name {self.args.dataset} is invalid.")
 
         self.epoch_length = len(train_loader)
 
         # initialize trainer
-        self.trainer = TrainerAdam(self.args.learning_rate, train_loader, val_loader, test_loader, self.device, self.args.verbosity)
+        self.trainer = TrainerAdam(self.args.learning_rate, train_loader, val_loader, test_loader, self.device,
+                                   self.args.verbosity)
 
     def create_histories(self):
         """ Create np-arrays containing values from the training process.
@@ -55,13 +66,14 @@ class Experiment(object):
         Accuracies and the nets' sparsity are saved after each epoch. """
         # calculate amount of iterations to save at
         history_length = calc_hist_length(self.epoch_length, self.args.epoch_count, self.args.plot_step)
-        self.loss_hists = np.zeros((self.args.net_count, self.args.prune_count+1, history_length), dtype=float)
+        self.loss_hists = np.zeros((self.args.net_count, self.args.prune_count + 1, history_length), dtype=float)
         self.val_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
         self.test_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
 
-        self.val_acc_hists_epoch = np.zeros((self.args.net_count, self.args.prune_count+1, self.args.epoch_count), dtype=float)
+        self.val_acc_hists_epoch = np.zeros((self.args.net_count, self.args.prune_count + 1, self.args.epoch_count),
+                                            dtype=float)
         self.test_acc_hists_epoch = np.zeros_like(self.val_acc_hists_epoch, dtype=float)
-        self.sparsity_hist = np.ones((self.args.prune_count+1), dtype=float)
+        self.sparsity_hist = np.ones((self.args.prune_count + 1), dtype=float)
 
     def init_nets(self):
         """ Initialize nets in list 'self.nets' which should be trained during the experiment. """
@@ -79,7 +91,7 @@ class Experiment(object):
         self.execute_experiment()
 
         experiment_stop = time.time()  # stop clock for experiment duration
-        duration = plotter.format_time(experiment_stop-experiment_start)
+        duration = plotter.format_time(experiment_stop - experiment_start)
         if self.args.verbosity != VerbosityLevel.SILENT:
             print(f"Experiment duration: {duration}")
         self.args['duration'] = duration

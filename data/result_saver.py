@@ -5,6 +5,7 @@ import torch
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
@@ -43,11 +44,11 @@ def save_nets(experiment, results_path, file_prefix):
 
 def save_histories(experiment, results_path, file_prefix):
     """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
-    histories_path = os.path.join(results_path, f"{file_prefix}-histories") # suffix is added by np.savez
+    histories_path = os.path.join(results_path, f"{file_prefix}-histories")  # suffix is added by np.savez
     np.savez(histories_path,
-            loss_hists=experiment.loss_hists,
-            val_acc_hists=experiment.val_acc_hists,
-            test_acc_hists=experiment.test_acc_hists,
-            val_acc_hists_epoch=experiment.val_acc_hists_epoch,
-            test_acc_hists_epoch=experiment.test_acc_hists_epoch,
-            sparsity_hist=experiment.sparsity_hist)
+             loss_hists=experiment.loss_hists,
+             val_acc_hists=experiment.val_acc_hists,
+             test_acc_hists=experiment.test_acc_hists,
+             val_acc_hists_epoch=experiment.val_acc_hists_epoch,
+             test_acc_hists_epoch=experiment.test_acc_hists_epoch,
+             sparsity_hist=experiment.sparsity_hist)

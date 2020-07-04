@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets import plan_check
 
+
 class Test_plan_check(unittest.TestCase):
     """ Tests for the plan_check module.
     Call with 'python -m test.test_plan_check' from project root '~'.
@@ -63,6 +64,7 @@ class Test_plan_check(unittest.TestCase):
         """ '-1B' should not be classified as numerical spec. """
         input_string = '-1B'
         self.assertFalse(plan_check.is_batchnorm_spec(input_string))
+
 
 if __name__ == '__main__':
     unittest.main()

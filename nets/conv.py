@@ -3,22 +3,25 @@ import numpy as np
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.weight_initializer import gaussian_glorot
 from nets.net import Net
 from nets.plan_check import is_numerical_spec, is_batchnorm_spec
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
+
 class Conv(Net):
     """
     Convolutional network with convolutional layers in the beginning and fully-connected layers afterwards.
     Its architecture can be specified via sizes (positive integers) in plan_conv and plan_fc.
     'A' and and 'M' have special roles in plan_conv, as they generate Average- and Max-Pooling layers.
-    It is possible append 'B' to any size in plan_conv to add a batch-norm layer directly behind the convolutional layer.
-    If no architecture is specified, a Conv2-architecture is generated.
+    Append 'B' to any size in plan_conv to add a batch-norm layer directly behind the convolutional layer.
+    If no architecture is specified, a Conv-2 architecture is generated.
     Works for the CIFAR-10 dataset with input 32*32*3.
     Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
     """
+
     def __init__(self, plan_conv=[64, 64, 'M'], plan_fc=[256, 256]):
         super(Conv, self).__init__()
         # statistics
@@ -52,7 +55,7 @@ class Conv(Net):
                 raise AssertionError(f"{spec} from plan_conv is not a numerical spec.")
 
         # Each Pooling-layer quarters the input size (32*32=1024)
-        filters = filters * round(1024 / (4**pooling_count))
+        filters = filters * round(1024 / (4 ** pooling_count))
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
             fc_layers.append(nn.Linear(filters, spec))
@@ -95,15 +98,15 @@ class Conv(Net):
         for layer in self.fc:
             prune_layer(layer, prune_rate_fc)
         # prune output-layer with half of the fc pruning rate
-        prune_layer(self.out, prune_rate_fc/2)
+        prune_layer(self.out, prune_rate_fc / 2)
 
     def sparsity_layer(self, layer):
         """ Calculates sparsity and counts unpruned weights for given layer. """
         if isinstance(layer, nn.Linear):
-            unpr_weight_count = int(layer.weight.nonzero().numel()/2)
+            unpr_weight_count = int(layer.weight.nonzero().numel() / 2)
             init_weight_count = layer.in_features * layer.out_features
         elif isinstance(layer, nn.Conv2d):
-            unpr_weight_count = int(layer.weight.nonzero().numel()/4)
+            unpr_weight_count = int(layer.weight.nonzero().numel() / 4)
             init_weight_count = layer.in_channels * layer.out_channels * layer.kernel_size[0] * layer.kernel_size[1]
         else:
             raise AssertionError(f"Could not calculate sparsity for layer of type {type(layer)}.")
@@ -117,17 +120,17 @@ class Conv(Net):
         sparsities = []
 
         for layer in self.conv:
-             if isinstance(layer, nn.Conv2d):
-                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
+            if isinstance(layer, nn.Conv2d):
+                curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
-                 sparsities.append(curr_sparsity)
-                 unpr_weight_counts += curr_unpr_weight_count
+                sparsities.append(curr_sparsity)
+                unpr_weight_counts += curr_unpr_weight_count
         for layer in self.fc:
-             if isinstance(layer, nn.Linear):
-                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
+            if isinstance(layer, nn.Linear):
+                curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
-                 sparsities.append(curr_sparsity)
-                 unpr_weight_counts += curr_unpr_weight_count
+                sparsities.append(curr_sparsity)
+                unpr_weight_counts += curr_unpr_weight_count
 
         out_sparsity, out_unpr_weight_count = self.sparsity_layer(self.out)
         sparsities.append(out_sparsity)

@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.lenet import Lenet
 
+
 class Test_lenet(unittest.TestCase):
     """ Tests for the Lenet class.
     Call with 'python -m test.test_lenet' from project root '~'.
@@ -50,6 +51,7 @@ class Test_lenet(unittest.TestCase):
         net.prune_net(prune_rate=0.1)
         sparsity_report = net.sparsity_report()
         self.assertTrue(([0.8103, 0.81, 0.81, 0.902] == sparsity_report).all())
+
 
 if __name__ == '__main__':
     unittest.main()

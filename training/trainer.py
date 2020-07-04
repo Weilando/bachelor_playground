@@ -7,19 +7,24 @@ import torch.optim as optim
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from training import plotter
 from experiments.experiment_settings import VerbosityLevel
+
 
 def calc_hist_length(batch_count, epoch_count, plot_step):
     """ Calculate length of history arrays based on batch_count, epoch_count and plot_step. """
     return math.ceil((batch_count * epoch_count) / plot_step)
 
+
 class TrainerAdam(object):
     """ Class for training a neural network 'net' with the adam-optimizer.
     The network is trained on batches from 'train_loader'.
     They are evaluated with batches from val_loader or test_loader. """
-    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu'), verbosity=VerbosityLevel.SILENT):
+
+    def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu'),
+                 verbosity=VerbosityLevel.SILENT):
         super(TrainerAdam, self).__init__()
         self.learning_rate = learning_rate
         self.train_loader = train_loader
@@ -32,23 +37,23 @@ class TrainerAdam(object):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save accuracies and loss every 'plot_step' iterations and after each epoch.
         'reg_factor' adds L1-regularization. """
-        net.to(self.device) # push model to device
+        net.to(self.device)  # push model to device
 
         # initialize histories
         hist_length = calc_hist_length(len(self.train_loader), epoch_count, plot_step)
-        loss_hist = np.zeros(hist_length, dtype=float) # save each plot_step iterations
-        val_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
-        test_acc_hist = np.zeros_like(loss_hist, dtype=float) # save each plot_step iterations
-        val_acc_hist_epoch = np.zeros(epoch_count, dtype=float) # save per epoch
-        test_acc_hist_epoch = np.zeros_like(val_acc_hist_epoch, dtype=float) # save per epoch
+        loss_hist = np.zeros(hist_length, dtype=float)  # save each plot_step iterations
+        val_acc_hist = np.zeros_like(loss_hist, dtype=float)  # save each plot_step iterations
+        test_acc_hist = np.zeros_like(loss_hist, dtype=float)  # save each plot_step iterations
+        val_acc_hist_epoch = np.zeros(epoch_count, dtype=float)  # save per epoch
+        test_acc_hist_epoch = np.zeros_like(val_acc_hist_epoch, dtype=float)  # save per epoch
 
         # setup training
-        opt = optim.Adam(net.parameters(), lr=self.learning_rate) # instantiate optimizer
+        opt = optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
         hist_count = 0
 
         for e in range(0, epoch_count):
             if self.verbosity != VerbosityLevel.SILENT:
-                print(f"epoch: {(e+1):2} ", end="")
+                print(f"epoch: {(e + 1):2} ", end="")
                 tic = time.time()
             epoch_base = e * len(self.train_loader)
 
@@ -58,7 +63,7 @@ class TrainerAdam(object):
                 # push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
-                opt.zero_grad() # zero the parameter gradients
+                opt.zero_grad()  # zero the parameter gradients
 
                 # forward pass
                 outputs = net(inputs)
@@ -85,13 +90,13 @@ class TrainerAdam(object):
             # print progress
             if self.verbosity != VerbosityLevel.SILENT:
                 toc = time.time()
-                print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc-tic)})")
+                print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc - tic)})")
         return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch
 
     def compute_acc(self, net, test=True):
         """ Compute the given net's accuracy.
         'test' indicates wheter the test- or validation-accuracy should be calculated. """
-        net.train(False) # set model to evaluation mode (important for batchnorm/dropout)
+        net.train(False)  # set model to evaluation mode (important for batchnorm/dropout)
 
         correct = 0
         total = 0

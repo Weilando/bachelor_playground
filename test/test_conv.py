@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nets.conv import Conv
 
+
 class Test_conv(unittest.TestCase):
     """ Tests for the Conv class.
     Call with 'python -m test.test_conv' from project root '~'.
@@ -42,6 +43,7 @@ class Test_conv(unittest.TestCase):
         net.prune_net(prune_rate_conv=0.1, prune_rate_fc=0.2)
         sparsity_report = net.sparsity_report()
         self.assertTrue(np.allclose([0.801, 0.9, 0.9, 0.8, 0.8, 0.9], sparsity_report, atol=1e-03, rtol=1e-03))
+
 
 if __name__ == '__main__':
     unittest.main()

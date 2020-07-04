@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def get_means_and_y_errors(arr):
     """ Calculate means and error bars for given array of arrays.
     The array is supposed to be of shape (net_count, prune_count+1, data_length).
-    In this case this function squashes the net-dimension, so one gets mean, max and min with shape (prune_count+1, data_length). """
+    Then this function squashes the net-dimension, so mean, max and min have shape (prune_count+1, data_length). """
     arr_mean = np.mean(arr, axis=0)
     arr_neg_yerr = arr_mean - np.min(arr, axis=0)
     arr_pos_yerr = np.max(arr, axis=0) - arr_mean
@@ -22,7 +22,8 @@ def find_stop_iteration(loss_hists):
 
 def format_time(time):
     """ Format a given integer (UIX time) into a string.
-    Convert times shorter than a minute into seconds with four decimal places, and times longer than a minute into minutes and seconds. """
+    Convert times shorter than a minute into seconds with four decimal places.
+    Convert longer times into rounded minutes and seconds, separated by a colon. """
     if time >= 60:
         minutes, seconds = divmod(time, 60)
         return f"{round(minutes)}:{round(seconds):02d}min"
