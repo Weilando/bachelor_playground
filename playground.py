@@ -63,7 +63,7 @@ def main(experiment, epochs, nets, prunes, cuda, verbose):
 if __name__ == '__main__':
     p = ArgumentParser(description='bachelor_playground - Framework for pruning-experiments.')
 
-    p.add_argument('experiment', choices=[n.value for n in ExperimentNames],
+    p.add_argument('experiment', choices=ExperimentNames.get_value_list(),
                    help='choose experiment')
     p.add_argument('-c', '--cuda', action='store_true', default=False, help='use cuda, if available')
     p.add_argument('-v', '--verbose', action='count', default=0,

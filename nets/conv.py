@@ -1,4 +1,3 @@
-import numpy as np
 import torch.nn as nn
 
 from nets.net import Net
@@ -18,10 +17,13 @@ class Conv(Net):
     Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
     """
 
-    def __init__(self, plan_conv=[64, 64, 'M'], plan_fc=[256, 256]):
+    def __init__(self, plan_conv=None, plan_fc=None):
         super(Conv, self).__init__()
-        # statistics
-        self.init_weight_count_net = dict([('conv', 0), ('fc', 0)])
+        # create Conv-2 if no plans are given
+        if plan_conv is None:
+            plan_conv = [64, 64, 'M']
+        if plan_fc is None:
+            plan_fc = [256, 256]
 
         # create and initialize layers with Gaussian Glorot
         conv_layers = []
@@ -95,43 +97,3 @@ class Conv(Net):
             prune_layer(layer, prune_rate_fc)
         # prune output-layer with half of the fc pruning rate
         prune_layer(self.out, prune_rate_fc / 2)
-
-    def sparsity_layer(self, layer):
-        """ Calculates sparsity and counts unpruned weights for given layer. """
-        if isinstance(layer, nn.Linear):
-            unpr_weight_count = int(layer.weight.nonzero().numel() / 2)
-            init_weight_count = layer.in_features * layer.out_features
-        elif isinstance(layer, nn.Conv2d):
-            unpr_weight_count = int(layer.weight.nonzero().numel() / 4)
-            init_weight_count = layer.in_channels * layer.out_channels * layer.kernel_size[0] * layer.kernel_size[1]
-        else:
-            raise AssertionError(f"Could not calculate sparsity for layer of type {type(layer)}.")
-
-        sparsity = unpr_weight_count / init_weight_count
-        return sparsity, unpr_weight_count
-
-    def sparsity_report(self):
-        """ Generate a list with sparsities for the whole network and per layer. """
-        unpr_weight_counts = 0
-        sparsities = []
-
-        for layer in self.conv:
-            if isinstance(layer, nn.Conv2d):
-                curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
-
-                sparsities.append(curr_sparsity)
-                unpr_weight_counts += curr_unpr_weight_count
-        for layer in self.fc:
-            if isinstance(layer, nn.Linear):
-                curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
-
-                sparsities.append(curr_sparsity)
-                unpr_weight_counts += curr_unpr_weight_count
-
-        out_sparsity, out_unpr_weight_count = self.sparsity_layer(self.out)
-        sparsities.append(out_sparsity)
-        unpr_weight_counts += out_unpr_weight_count
-
-        sparsity_net = unpr_weight_counts / (self.init_weight_count_net['conv'] + self.init_weight_count_net['fc'])
-        sparsities.insert(0, sparsity_net)
-        return np.round(sparsities, decimals=4)

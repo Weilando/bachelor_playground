@@ -9,6 +9,11 @@ class TestExperimentSettings(unittest.TestCase):
     Call with 'python -m test.test_experiment_settings' from project root '~'.
     Call with 'python -m test_experiment_settings' from inside '~/test'. """
 
+    def test_get_value_list_from_experiment_names(self):
+        """ ExperimentNames should generate a list of all values, i.e. strings of experiment names. """
+        expected_list = ['lenet-mnist', 'conv2-cifar10', 'conv4-cifar10', 'conv6-cifar10']
+        self.assertEqual(expected_list, ExperimentNames.get_value_list())
+
     def test_get_settings_for_lenet_mnist(self):
         """ Get results without errors and verify the most important attributes. """
         experiment_settings = get_settings(ExperimentNames.LENET_MNIST)

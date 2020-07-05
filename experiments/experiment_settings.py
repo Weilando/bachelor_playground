@@ -32,6 +32,11 @@ class ExperimentNames(str, Enum):
     CONV4_CIFAR10 = "conv4-cifar10"
     CONV6_CIFAR10 = "conv6-cifar10"
 
+    @staticmethod
+    def get_value_list():
+        # noinspection PyUnresolvedReferences
+        return [name.value for name in ExperimentNames]
+
 
 @dataclass
 class ExperimentSettings:

@@ -62,14 +62,12 @@ class Test_result_saver(unittest.TestCase):
         h6 = np.ones(3)
 
         with TemporaryDirectory() as tmp_dir_name:
+            # save histories
             result_saver.save_histories(tmp_dir_name, 'prefix', h1, h2, h3, h4, h5, h6)
 
+            # load and validate histories from file
             result_file_path = os.path.join(tmp_dir_name, 'prefix-histories.npz')
-            with open(result_file_path, 'rb') as result_file:
-                # save histories
-                result_file = np.load(result_file)
-
-                # load and validate histories from file
+            with np.load(result_file_path) as result_file:
                 np.testing.assert_array_equal(h1, result_file['loss_h'])
                 np.testing.assert_array_equal(h2, result_file['val_acc_h'])
                 np.testing.assert_array_equal(h3, result_file['test_acc_h'])

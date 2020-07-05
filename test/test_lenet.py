@@ -20,7 +20,8 @@ class Test_lenet(unittest.TestCase):
         """ The neural network with one hidden layer should return the correct weight count.
         It holds weight_count = 28*28*5 + 5*10 + 10*10 = 4070. """
         net = Lenet(plan_fc=[5, 10])
-        self.assertEqual(4070, net.init_weight_count_net)
+        expected_weight_count = dict([('conv', 0), ('fc', 4070)])
+        self.assertEqual(expected_weight_count, net.init_weight_count_net)
 
     def test_sparsity_report_initial_weights(self):
         """ The neural network should be fully connected right after initialization. """

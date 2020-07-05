@@ -1,4 +1,3 @@
-import numpy as np
 import torch.nn as nn
 
 from nets.net import Net
@@ -15,10 +14,11 @@ class Lenet(Net):
     The neural network is prunable using iterative magnitude pruning (IMP).
     Initial weights for each layer are stored as buffers after applying the weight initialization with Gaussian Glorot.
     """
-    def __init__(self, plan_fc=[300, 100]):
+    def __init__(self, plan_fc=None):
         super(Lenet, self).__init__()
-        # statistics
-        self.init_weight_count_net = 0
+        # create Lenet if no plan is given
+        if plan_fc is None:
+            plan_fc = [300, 100]
 
         # create and initialize layers with Gaussian Glorot
         fc_layers = []
@@ -28,12 +28,13 @@ class Lenet(Net):
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
             fc_layers.append(nn.Linear(input_features, spec))
             fc_layers.append(nn.Tanh())
-            self.init_weight_count_net += input_features * spec
+            self.init_weight_count_net['fc'] += input_features * spec
             input_features = spec
 
+        self.conv = []
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(input_features, 10)
-        self.init_weight_count_net += input_features * 10
+        self.init_weight_count_net['fc'] += input_features * 10
         self.crit = nn.CrossEntropyLoss()
 
         self.apply(gaussian_glorot)
@@ -61,30 +62,3 @@ class Lenet(Net):
             prune_layer(layer, prune_rate)
         # prune output-layer with half of the pruning rate
         prune_layer(self.out, prune_rate/2)
-
-    def sparsity_layer(self, layer):
-        """ Calculates sparsity and counts unpruned weights for given layer. """
-        unpr_weight_count = int(layer.weight.nonzero().numel()/2)
-        init_weight_count = layer.in_features * layer.out_features
-
-        sparsity = unpr_weight_count / init_weight_count
-        return sparsity, unpr_weight_count
-
-    def sparsity_report(self):
-        """ Generate a list with sparsities for the whole network and per layer. """
-        unpr_weight_counts = 0
-        sparsities = []
-        for layer in self.fc:
-            if isinstance(layer, nn.Linear):
-                curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
-
-                sparsities.append(curr_sparsity)
-                unpr_weight_counts += curr_unpr_weight_count
-
-        out_sparsity, out_unpr_weight_count = self.sparsity_layer(self.out)
-        sparsities.append(out_sparsity)
-        unpr_weight_counts += out_unpr_weight_count
-
-        sparsity_net = unpr_weight_counts / self.init_weight_count_net
-        sparsities.insert(0, sparsity_net)
-        return np.round(sparsities, decimals=4)
