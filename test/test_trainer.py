@@ -1,4 +1,5 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 import torch
 import torch.nn as nn
@@ -6,7 +7,7 @@ import torch.nn as nn
 from training.trainer import TrainerAdam, calc_hist_length
 
 
-class Test_trainer(unittest.TestCase):
+class TestTrainer(TestCase):
     """ Tests for the trainer module.
     Call with 'python -m test.test_trainer' from project root '~'.
     Call with 'python -m test_trainer' from inside '~/test'. """
@@ -130,4 +131,4 @@ class Test_trainer(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

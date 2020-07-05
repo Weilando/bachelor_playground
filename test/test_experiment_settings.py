@@ -1,10 +1,11 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 from experiments.experiment_settings import get_settings, DatasetNames, ExperimentNames, ExperimentSettings, NetNames, \
     get_settings_lenet_toy
 
 
-class TestExperimentSettings(unittest.TestCase):
+class TestExperimentSettings(TestCase):
     """ Tests for the experiment_settings module.
     Call with 'python -m test.test_experiment_settings' from project root '~'.
     Call with 'python -m test_experiment_settings' from inside '~/test'. """
@@ -61,4 +62,4 @@ class TestExperimentSettings(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

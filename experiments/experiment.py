@@ -114,7 +114,7 @@ class Experiment(object):
         save_time = time.strftime("%Y_%m_%d-%H_%M_%S", time.localtime())
         file_prefix = rs.generate_file_prefix(self.args, save_time)
 
-        results_path = rs.setup_result_path(self.result_path)
+        results_path = rs.setup_and_get_result_path(self.result_path)
         rs.save_specs(results_path, file_prefix, self.args)
         rs.save_histories(results_path, file_prefix, self.loss_hists, self.val_acc_hists, self.test_acc_hists,
                           self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist)

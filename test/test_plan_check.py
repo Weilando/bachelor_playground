@@ -1,12 +1,14 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 from nets import plan_check
 
 
-class Test_plan_check(unittest.TestCase):
+class TestPlanCheck(TestCase):
     """ Tests for the plan_check module.
     Call with 'python -m test.test_plan_check' from project root '~'.
     Call with 'python -m test_plan_check' from inside '~/test'. """
+
     def test_one_is_numerical_spec(self):
         """ '1' should be classified as numerical spec. """
         input_string = '1'
@@ -64,4 +66,4 @@ class Test_plan_check(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

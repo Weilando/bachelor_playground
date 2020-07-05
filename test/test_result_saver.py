@@ -1,8 +1,9 @@
 import os
-import unittest
 from dataclasses import asdict
 from json import load as j_load
 from tempfile import TemporaryDirectory
+from unittest import main as unittest_main
+from unittest import mock, TestCase
 
 import numpy as np
 from torch import load as t_load
@@ -12,10 +13,44 @@ from experiments.experiment_settings import get_settings_lenet_toy
 from nets.lenet import Lenet
 
 
-class Test_result_saver(unittest.TestCase):
+class TestResultSaver(TestCase):
     """ Tests for the result_saver module.
     Call with 'python -m test.test_result_saver' from project root '~'.
     Call with 'python -m test_result_saver' from inside '~/test'. """
+
+    def test_setup_and_get_result_path(self):
+        """ Generate the correct absolute result path. """
+        with mock.patch('data.result_saver.os') as mocked_os:
+            expected_path = "//root/results"
+
+            mocked_os.getcwd.return_value = "//root"
+            mocked_os.path.exists.return_value = True
+            mocked_os.path.join.return_value = expected_path
+
+            result_path = result_saver.setup_and_get_result_path("results")
+
+            self.assertEqual(expected_path, result_path)
+            mocked_os.getcwd.assert_called_once()
+            mocked_os.path.exists.assert_called_once_with(expected_path)
+            mocked_os.path.join.called_once_with("//root", "results")
+            mocked_os.mkdir.assert_not_called()
+
+    def test_setup_and_get_result_path_with_make(self):
+        """ Generate the correct absolute result path and make the directory. """
+        with mock.patch('data.result_saver.os') as mocked_os:
+            expected_path = "//root/results"
+
+            mocked_os.getcwd.return_value = "//root"
+            mocked_os.path.exists.return_value = False
+            mocked_os.path.join.return_value = expected_path
+
+            result_path = result_saver.setup_and_get_result_path("results")
+
+            self.assertEqual(expected_path, result_path)
+            mocked_os.getcwd.assert_called_once()
+            mocked_os.path.exists.assert_called_once_with(expected_path)
+            mocked_os.path.join.called_once_with("//root", "results")
+            mocked_os.mkdir.assert_called_once_with(expected_path)
 
     def test_generate_file_prefix_for_toy_experiment(self):
         """ Should generate the correct file_prefix for toy specs and a fake time-string. """
@@ -95,4 +130,4 @@ class Test_result_saver(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

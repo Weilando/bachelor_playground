@@ -6,12 +6,12 @@ import numpy as np
 import torch
 
 
-def setup_result_path(result_path='../data/results'):
+def setup_and_get_result_path(relative_result_path='../data/results'):
     """ Generate absolute path to results directory and create it, if necessary. """
-    full_result_path = os.path.join(os.getcwd(), result_path)
-    if not os.path.exists(full_result_path):
-        os.mkdir(full_result_path)
-    return full_result_path
+    absolute_result_path = os.path.join(os.getcwd(), relative_result_path)
+    if not os.path.exists(absolute_result_path):
+        os.mkdir(absolute_result_path)
+    return absolute_result_path
 
 
 def generate_file_prefix(specs, save_time):

@@ -1,4 +1,5 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 import numpy as np
 import torch
@@ -6,11 +7,12 @@ import torch
 from nets.conv import Conv
 
 
-class Test_conv(unittest.TestCase):
+class TestConv(TestCase):
     """ Tests for the Conv class.
     Call with 'python -m test.test_conv' from project root '~'.
     Call with 'python -m test_conv' from inside '~/test'.
     Inputs are of size [60, 3, 32, 32] (for batch-size 60) """
+
     def test_forward_pass_simple_conv(self):
         """ The neural network with architecture Conv-2 should perform a forward pass without exceptions. """
         net = Conv(plan_conv=[8, 'M', 16, 'A'], plan_fc=[32, 16])
@@ -44,4 +46,4 @@ class Test_conv(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

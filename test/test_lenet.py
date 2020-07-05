@@ -1,11 +1,12 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 import torch
 
 from nets.lenet import Lenet
 
 
-class Test_lenet(unittest.TestCase):
+class TestLenet(TestCase):
     """ Tests for the Lenet class.
     Call with 'python -m test.test_lenet' from project root '~'.
     Call with 'python -m test_lenet' from inside '~/test'. """
@@ -54,4 +55,4 @@ class Test_lenet(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

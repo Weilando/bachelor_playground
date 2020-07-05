@@ -1,4 +1,5 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 import torch
 import torch.nn as nn
@@ -7,7 +8,7 @@ import torch.nn.utils.prune as prune
 import pruning.magnitude_pruning as mp
 
 
-class Test_pruning(unittest.TestCase):
+class TestPruning(TestCase):
     """ Tests for the pruning logic.
     Call with 'python -m test.test_pruning' from project root '~'.
     Call with 'python -m test_pruning' from inside '~/test'. """
@@ -141,4 +142,4 @@ class Test_pruning(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

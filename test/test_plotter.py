@@ -1,11 +1,12 @@
-import unittest
+from unittest import TestCase
+from unittest import main as unittest_main
 
 import numpy as np
 
 from training import plotter
 
 
-class Test_plotter(unittest.TestCase):
+class TestPlotter(TestCase):
     """ Tests for the plotter module.
     Call with 'python -m test.test_plotter' from project root '~'.
     Call with 'python -m test_plotter' from inside '~/test'. """
@@ -60,4 +61,4 @@ class Test_plotter(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

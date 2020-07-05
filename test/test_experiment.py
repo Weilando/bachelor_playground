@@ -1,11 +1,12 @@
-import unittest
 from tempfile import TemporaryDirectory
+from unittest import TestCase
+from unittest import main as unittest_main
 
 import experiments.experiment_settings as experiment_settings
 from experiments.experiment_imp import ExperimentIMP
 
 
-class Test_experiment(unittest.TestCase):
+class TestExperiment(TestCase):
     """ Tests for the experiment package.
     Call with 'python -m test.test_experiment' from project root '~'.
     Call with 'python -m test_experiment' from inside '~/test'. """
@@ -34,4 +35,4 @@ class Test_experiment(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()
