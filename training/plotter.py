@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # evaluation functions
@@ -31,6 +31,33 @@ def format_time(time):
 
 
 # generator functions for plots
+def gen_baseline_mean_plot_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
+    """ Plots the baseline as dashed line wit error bars on given ax. """
+    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], label="Mean after 0 prunes", ls='--')
+
+
+def gen_pruned_mean_plots_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_min, prune_max):
+    """ Plots means per pruning level as line with error bars on given ax.
+     Labels contain the sparsity at given level of pruning.
+     prune_min and prune_max specify the prune-levels to plot. """
+    for p in range(prune_min, prune_max + 1):
+        ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos],
+                    label=f"Mean after {p} prunes (sparsity  {sparsity_hist[p]:.4})")
+
+
+def setup_loss_grids_on_ax(ax):
+    """ Setup grids for loss plots on given ax. """
+    ax.grid('major')
+    ax.set_ylim(bottom=0)
+
+
+def setup_acc_grids_on_ax(ax, force_one=False):
+    """ Setup grids for accuracy plots on given ax. """
+    ax.grid('major')
+    if force_one:
+        ax.set_ylim(top=1)
+
+
 def gen_plot_average_acc_on_ax(ax, acc_hists, sparsity_hist, force_one=False):
     """ Generate plots of means and error-bars for given accuracies (per epoch) on ax. """
     net_count, prune_count, epoch_count = acc_hists.shape
@@ -38,18 +65,21 @@ def gen_plot_average_acc_on_ax(ax, acc_hists, sparsity_hist, force_one=False):
     acc_mean, acc_neg_yerr, acc_pos_yerr = get_means_and_y_errors(acc_hists)
     acc_xs = np.linspace(start=1, stop=epoch_count, num=epoch_count)
 
-    # plot baseline, i.e. unpruned results
-    ax.errorbar(x=acc_xs, y=acc_mean[0], yerr=[acc_neg_yerr[0], acc_pos_yerr[0]], label="Mean after 0 prunes", ls='--')
+    gen_baseline_mean_plot_on_ax(ax, acc_xs, acc_mean[0], acc_neg_yerr[0], acc_pos_yerr[0])
+    gen_pruned_mean_plots_on_ax(ax, acc_xs, acc_mean, acc_neg_yerr, acc_pos_yerr, sparsity_hist, 1, prune_count)
+    setup_acc_grids_on_ax(ax, force_one)
 
-    # plot pruned results
-    for p in range(1, prune_count + 1):
-        ax.errorbar(x=acc_xs, y=acc_mean[p], yerr=[acc_neg_yerr[p], acc_pos_yerr[p]],
-                    label=f"Mean after {p} prunes (sparsity  {sparsity_hist[p]:.4})")
 
-    # setup grids
-    ax.grid('major')
-    if force_one:
-        ax.set_ylim(top=1)
+def gen_plot_average_loss_on_ax(ax, loss_hists, sparsity_hist, plot_step):
+    """ Generate plots of means and error-bars for given losses on ax. """
+    net_count, prune_count, _ = loss_hists.shape
+    prune_count -= 1
+    loss_mean, loss_neg_y_err, loss_pos_y_err = get_means_and_y_errors(loss_hists)
+    loss_xs = np.linspace(start=plot_step, stop=len(loss_mean[0]) * plot_step, num=len(loss_mean[0]))
+
+    gen_baseline_mean_plot_on_ax(ax, loss_xs, loss_mean[0], loss_neg_y_err[0], loss_pos_y_err[0])
+    gen_pruned_mean_plots_on_ax(ax, loss_xs, loss_mean, loss_neg_y_err, loss_pos_y_err, sparsity_hist, 1, prune_count)
+    setup_loss_grids_on_ax(ax)
 
 
 def gen_plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist, force_one=False):
@@ -58,31 +88,7 @@ def gen_plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist, force
 
     # plot baseline, i.e. unpruned results
     ax.errorbar(x=sparsity_hist, y=acc_mean, yerr=[acc_neg_yerr, acc_pos_yerr], label="Mean of accs", marker='x')
-
-    # setup grids
-    ax.grid('major')
-    if force_one:
-        ax.set_ylim(top=1)
-
-
-def gen_plot_average_loss_on_ax(ax, loss_hists, sparsity_hist, plot_step):
-    """ Generate plots of means and error-bars for given losses on ax. """
-    net_count, prune_count, _ = loss_hists.shape
-    prune_count -= 1
-    loss_mean, loss_neg_yerr, loss_pos_yerr = get_means_and_y_errors(loss_hists)
-    loss_xs = np.linspace(start=plot_step, stop=len(loss_mean[0]) * plot_step, num=len(loss_mean[0]))
-
-    # plot baseline, i.e. unpruned results
-    ax.errorbar(x=loss_xs, y=loss_mean[0], yerr=[loss_neg_yerr[0], loss_pos_yerr[0]], label="Mean after 0 prunes",
-                ls='--')
-
-    # plot pruned results
-    for p in range(1, prune_count + 1):
-        ax.errorbar(x=loss_xs, y=loss_mean[p], yerr=[loss_neg_yerr[p], loss_pos_yerr[p]],
-                    label=f"Mean after {p} prunes (sparsity {sparsity_hist[p]:.4})")
-
-    ax.grid('major')
-    ax.set_ylim(bottom=0)
+    setup_acc_grids_on_ax(ax, force_one)
 
 
 def gen_labels_for_acc_on_ax(ax, test=True, epoch=True):
