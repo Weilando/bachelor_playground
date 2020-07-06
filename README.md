@@ -1,6 +1,6 @@
 # Playground Bachelor Thesis
 This repository contains experiments for my bachelor thesis about the _Lottery Ticket Hypothesis_.
-Currently implemented experiments:
+These experiments are currently available:
 - Finding winning tickets from fully-connected Lenet 300-100 on MNIST using Iterative Magnitude Pruning
 - Finding winning tickets from convolutional Conv-2 on CIFAR-10 using Iterative Magnitude Pruning
 - Finding winning tickets from convolutional Conv-4 on CIFAR-10 using Iterative Magnitude Pruning
@@ -23,16 +23,20 @@ Experiment | Architecture | Dataset
 
 Please use the flag `-h` to get more information on further flags and options.
 
-Experiments write their results into files in the subdirectory `/data/results`, whereas datasets are cached in `/data/datasets`.
+Experiments write their results into files in the subdirectory `/data/results`, whereas `/data/datasets` contains cached datasets.
 The file-names start with the timestamp when the experiment finished, followed by the architecture and dataset.
 The following suffixes specify the contents:
 
 Suffix | Content | Previous format
 --- | --- | ---
-`-specs.json` | hyperparameters and meta-data | `dict`
+`-specs.json` | hyper-parameters and meta-data | `ExperimentSettings`
 `-histories.npz` | histories of loss, validation-accuracy, test-accuracy and sparsity for several networks and pruning stages | `np.array` (each)
 `-net<number>.pth`| trained models (each stored in a single file) | `torch.nn.Module` (often subclasses like `Lenet` or `Conv`)
 
 ### Evaluate experiments
 It is possible to load the stored results into their previous data-structure by using methods from the module `experiments.result_loader`.
 The interactive Jupyter notebook `ExperimentEvaluation.ipynb` makes it easy to load and evaluate results from past experiments.
+
+## Tests
+There are many unit and integration tests which cover correct experiment setup and execution.
+Run them by calling `python -m unittest` from the main directory.

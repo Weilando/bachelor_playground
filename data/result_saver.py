@@ -1,47 +1,67 @@
 import json
+import os
+from dataclasses import asdict
+
 import numpy as np
 import torch
 
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-def setup_results_path():
-    """ Generate absolute path to subdirectory 'results' and create it, if necessary. """
-    results_path = os.path.join(os.getcwd(), '../data/results')
-    if not os.path.exists(results_path):
-        os.mkdir(results_path)
-    return results_path
+def setup_and_get_result_path(relative_result_path='../data/results'):
+    """ Generate absolute path to results directory and create it, if necessary. """
+    absolute_result_path = os.path.join(os.getcwd(), relative_result_path)
+    if not os.path.exists(absolute_result_path):
+        os.mkdir(absolute_result_path)
+    return absolute_result_path
+
 
 def generate_file_prefix(specs, save_time):
     """ Generate file names' prefix. """
-    return f"{save_time}-{specs['net']}-{specs['dataset']}"
+    return f"{save_time}-{specs.net}-{specs.dataset}"
 
-def save_specs(specs, results_path, file_prefix):
-    """ Save experiment's specs in json-file. """
-    # create path to json-file
-    json_path = os.path.join(results_path, f"{file_prefix}-specs.json")
 
-    # write dict 'args' to json-file
-    description_json = json.dumps(specs)
+def generate_specs_file_name(file_prefix):
+    """ Generate file name and suffix for specs-file (.json). """
+    return f"{file_prefix}-specs.json"
+
+
+def generate_histories_file_name(file_prefix):
+    """ Generate file name and suffix for histories-file (.npz). """
+    return f"{file_prefix}-histories.npz"
+
+
+def generate_net_file_name(file_prefix, net_number):
+    """ Generate file name and suffix for net-file (.pth). """
+    return f"{file_prefix}-net{net_number}.pth"
+
+
+def save_specs(results_path, file_prefix, specs):
+    """ Save experiment's specs as dict in json-file. """
+    file_name = generate_specs_file_name(file_prefix)
+    json_path = os.path.join(results_path, file_name)
+
+    description_json = json.dumps(asdict(specs))
     with open(json_path, "w") as f:
         f.write(description_json)
 
-def save_nets(experiment, results_path, file_prefix):
+
+def save_nets(results_path, file_prefix, net_list):
     """ Save state_dicts from trained networks in single pth-files. """
-    for num, net in enumerate(experiment.nets):
+    for net_number, net in enumerate(net_list):
         net.train(True)
         net.to(torch.device("cpu"))
-        net_path = histories_path = os.path.join(results_path, f"{file_prefix}-net{num}.pth")
-        torch.save(net.state_dict(), net_path)
 
-def save_histories(experiment, results_path, file_prefix):
+        file_name = generate_net_file_name(file_prefix, net_number)
+        net_path = os.path.join(results_path, file_name)
+
+        with open(net_path, "wb") as f:
+            torch.save(net.state_dict(), f)
+
+
+def save_histories(results_path, file_prefix, loss_h, val_acc_h, test_acc_h, val_acc_ep_h, test_acc_ep_h, sparsity_h):
     """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
-    histories_path = os.path.join(results_path, f"{file_prefix}-histories") # suffix is added by np.savez
-    np.savez(histories_path,
-            loss_hists=experiment.loss_hists,
-            val_acc_hists=experiment.val_acc_hists,
-            test_acc_hists=experiment.test_acc_hists,
-            val_acc_hists_epoch=experiment.val_acc_hists_epoch,
-            test_acc_hists_epoch=experiment.test_acc_hists_epoch,
-            sparsity_hist=experiment.sparsity_hist)
+    file_name = generate_histories_file_name(file_prefix)
+    histories_path = os.path.join(results_path, file_name)
+
+    with open(histories_path, "wb") as f:
+        np.savez(f, loss_h=loss_h, val_acc_h=val_acc_h, test_acc_h=test_acc_h,
+                 val_acc_ep_h=val_acc_ep_h, test_acc_ep_h=test_acc_ep_h, sparsity_h=sparsity_h)

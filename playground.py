@@ -1,83 +1,73 @@
+import os
 from argparse import ArgumentParser
+
 from torch.cuda import is_available, get_device_name
 
-import os
-import sys
+from experiments.experiment_imp import ExperimentIMP
+from experiments.experiment_settings import get_settings, ExperimentNames, VerbosityLevel
+
 current_path = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(current_path, '.')))
-from experiments import experiment_settings
-from experiments.experiment_lenet_mnist import Experiment_Lenet_MNIST
-from experiments.experiment_conv_cifar10 import Experiment_Conv_CIFAR10
 os.chdir(os.path.join(current_path, 'experiments'))
 
-def load_settings(experiment):
-    """ Load dict 'settings' from module 'experiment_settings'. """
-    if experiment=='lenet-mnist':
-        return experiment_settings.get_settings_lenet_mnist()
-    elif experiment=='conv2-cifar10':
-        return experiment_settings.get_settings_conv2_cifar10()
-    elif experiment=='conv4-cifar10':
-        return experiment_settings.get_settings_conv4_cifar10()
-    elif experiment=='conv6-cifar10':
-        return experiment_settings.get_settings_conv6_cifar10()
-    else:
-        raise AssertionError(f"{experiment} is not a valid experiment name.")
 
 def should_override_epoch_count(epochs):
     """ Check if the 'epochs'-flag was set and if the given value is valid. """
-    if epochs != None:
+    if epochs is not None:
         assert epochs > 0, f"Epoch count needs to be a positive number, but was {epochs}."
         return True
     return False
 
+
 def should_override_prune_count(prunes):
     """ Check if the 'prunes'-flag was set and if the given value is valid. """
-    if prunes != None:
+    if prunes is not None:
         assert prunes >= 0, f"Prune count needs to be a number greater or equal to zero, but was {prunes}."
         return True
     return False
 
+
 def should_override_net_count(nets):
     """ Check if the 'nets'-flag was set and if the given value is valid. """
-    if nets != None:
+    if nets is not None:
         assert nets > 0, f"Net count needs to be a positive number, but was {nets}."
         return True
     return False
 
+
 def main(experiment, epochs, nets, prunes, cuda, verbose):
-    assert verbose in experiment_settings.VerbosityLevel.__members__.values()
-    if verbose != experiment_settings.VerbosityLevel.SILENT:
+    assert verbose in VerbosityLevel.__members__.values()
+    if verbose != VerbosityLevel.SILENT:
         print("Welcome to bachelor_playground.")
 
-    settings = load_settings(experiment)
+    settings = get_settings(experiment)
 
     # enable CUDA
     use_cuda = cuda and is_available()
-    settings['device'] = "cuda:0" if use_cuda else "cpu"
-    settings['device_name'] = get_device_name(0) if use_cuda else "cpu"
-    if verbose != experiment_settings.VerbosityLevel.SILENT:
-        print(settings['device_name'])
+    settings.device = "cuda:0" if use_cuda else "cpu"
+    settings.device_name = get_device_name(0) if use_cuda else "cpu"
+    if verbose != VerbosityLevel.SILENT:
+        print(settings.device_name)
 
     if should_override_epoch_count(epochs):
-        settings['epoch_count'] = epochs
+        settings.epoch_count = epochs
     if should_override_net_count(nets):
-        settings['net_count'] = nets
+        settings.net_count = nets
     if should_override_prune_count(prunes):
-        settings['prune_count'] = prunes
-    settings['verbosity'] = experiment_settings.VerbosityLevel(verbose)
+        settings.prune_count = prunes
+    settings.verbosity = VerbosityLevel(verbose)
 
-    if experiment=='lenet-mnist':
-        experiment = Experiment_Lenet_MNIST(settings)
-    else:
-        experiment = Experiment_Conv_CIFAR10(settings)
+    experiment = ExperimentIMP(settings)
     experiment.run_experiment()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     p = ArgumentParser(description='bachelor_playground - Framework for pruning-experiments.')
 
-    p.add_argument('experiment', choices=['lenet-mnist', 'conv2-cifar10', 'conv4-cifar10', 'conv6-cifar10'], help='choose experiment')
+    p.add_argument('experiment', choices=ExperimentNames.get_value_list(),
+                   help='choose experiment')
     p.add_argument('-c', '--cuda', action='store_true', default=False, help='use cuda, if available')
-    p.add_argument('-v', '--verbose', action='count', default=0, help='activate output, use twice for more detailed output (i.e. -vv)')
+    p.add_argument('-v', '--verbose', action='count', default=0,
+                   help='activate output, use twice for more detailed output (i.e. -vv)')
     p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help='specify number of epochs')
     p.add_argument('-n', '--nets', type=int, default=None, metavar='N', help='specify number of trained networks')
     p.add_argument('-p', '--prunes', type=int, default=None, metavar='P', help='specify number of pruning steps')

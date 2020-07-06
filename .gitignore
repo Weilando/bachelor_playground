@@ -11,3 +11,6 @@ NewFeatureExperiments.ipynb
 # Datasets
 /data/datasets/
 */datasets/ # should not exist
+
+# IntelliJ
+.idea
