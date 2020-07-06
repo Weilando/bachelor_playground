@@ -114,16 +114,27 @@ class TestResultLoader(TestCase):
             with self.assertRaises(AssertionError):
                 result_loader.extract_experiment_path_prefix(relative_specs_path)
 
-    def test_get_specs_from_file(self):
-        """ Should load toy_specs from json file. """
-        specs = get_settings_lenet_toy()
+    def test_get_specs_from_file_as_dict(self):
+        """ Should load toy_specs from json file as dict. """
+        experiment_settings = get_settings_lenet_toy()
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_specs(tmp_dir_name, 'prefix', specs)
+            result_saver.save_specs(tmp_dir_name, 'prefix', experiment_settings)
 
             result_file_path = f"{tmp_dir_name}/prefix-specs.json"
-            loaded_specs = result_loader.get_specs_from_file(result_file_path)
-            self.assertEqual(loaded_specs, asdict(specs))
+            loaded_dict = result_loader.get_specs_from_file(result_file_path, as_dict=True)
+            self.assertEqual(loaded_dict, asdict(experiment_settings))
+
+    def test_get_specs_from_file_as_experiment_settings(self):
+        """ Should load toy_specs from json file as ExperimentSettings. """
+        experiment_settings = get_settings_lenet_toy()
+
+        with TemporaryDirectory() as tmp_dir_name:
+            result_saver.save_specs(tmp_dir_name, 'prefix', experiment_settings)
+
+            result_file_path = f"{tmp_dir_name}/prefix-specs.json"
+            loaded_experiment_settings = result_loader.get_specs_from_file(result_file_path, as_dict=False)
+            self.assertEqual(loaded_experiment_settings, experiment_settings)
 
     def test_get_histories_from_file(self):
         """ Should load fake histories from npz file. """
@@ -149,10 +160,10 @@ class TestResultLoader(TestCase):
 
     def test_get_models_from_file(self):
         """ Should load two small Lenets from pth files. """
-        specs = get_settings_lenet_toy()
-        specs.net_count = 2
-        specs.plan_fc = [5]
-        net_list = [Lenet(specs.plan_fc), Lenet(specs.plan_fc)]
+        experiment_settings = get_settings_lenet_toy()
+        experiment_settings.net_count = 2
+        experiment_settings.plan_fc = [5]
+        net_list = [Lenet(experiment_settings.plan_fc), Lenet(experiment_settings.plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
             # save nets
@@ -160,9 +171,14 @@ class TestResultLoader(TestCase):
 
             # load and reconstruct nets from their files
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, asdict(specs))
+            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
             self.assertIsInstance(loaded_nets[0], Lenet)
             self.assertIsInstance(loaded_nets[1], Lenet)
+
+    def test_get_models_from_file_invalid_specs(self):
+        """ Should raise assertion error if specs do not have type ExperimentSettings. """
+        with self.assertRaises(AssertionError):
+            result_loader.get_models_from_files("some_path", dict())
 
 
 if __name__ == '__main__':

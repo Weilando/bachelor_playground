@@ -33,7 +33,7 @@ def format_time(time):
 # generator functions for plots
 def gen_baseline_mean_plot_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
     """ Plots the baseline as dashed line wit error bars on given ax. """
-    ax.errorbar(x=xs, y=ys, y_err=[y_err_neg, y_err_pos], label="Mean after 0 prunes", ls='--')
+    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], label="Mean after 0 prunes", ls='--')
 
 
 def gen_pruned_mean_plots_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_min, prune_max):
@@ -41,7 +41,7 @@ def gen_pruned_mean_plots_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist,
      Labels contain the sparsity at given level of pruning.
      prune_min and prune_max specify the prune-levels to plot. """
     for p in range(prune_min, prune_max + 1):
-        ax.errorbar(x=xs, y=ys, y_err=[y_err_neg, y_err_pos],
+        ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos],
                     label=f"Mean after {p} prunes (sparsity  {sparsity_hist[p]:.4})")
 
 
@@ -87,7 +87,7 @@ def gen_plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist, force
     acc_mean, acc_neg_y_err, acc_pos_y_err = get_means_and_y_errors(acc_hists)  # each result has shape (prune_count)
 
     # plot baseline, i.e. unpruned results
-    ax.errorbar(x=sparsity_hist, y=acc_mean, y_err=[acc_neg_y_err, acc_pos_y_err], label="Mean of accs", marker='x')
+    ax.errorbar(x=sparsity_hist, y=acc_mean, yerr=[acc_neg_y_err, acc_pos_y_err], label="Mean of accs", marker='x')
     setup_acc_grids_on_ax(ax, force_one)
 
 

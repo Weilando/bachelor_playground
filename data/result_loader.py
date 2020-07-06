@@ -5,7 +5,7 @@ import os
 import numpy as np
 import torch
 
-from experiments.experiment_settings import NetNames
+from experiments.experiment_settings import NetNames, ExperimentSettings
 from nets import lenet, conv
 
 
@@ -50,11 +50,14 @@ def extract_experiment_path_prefix(relative_specs_path):
     return generate_experiment_path_prefix(absolute_specs_path)
 
 
-def get_specs_from_file(absolute_specs_path):
-    """ Read the specs-file (.json) specified by the given relative path and return it as dict. """
+def get_specs_from_file(absolute_specs_path, as_dict=False):
+    """ Read the specs-file (.json) specified by the given relative path.
+     Return result as dict or ExperimentSettings object. """
     with open(absolute_specs_path, 'r') as f:
-        specs = json.load(f)
-    return specs
+        specs_dict = json.load(f)
+    if as_dict:
+        return specs_dict
+    return ExperimentSettings(**specs_dict)
 
 
 def get_histories_from_file(experiment_path_prefix):
@@ -67,20 +70,21 @@ def get_histories_from_file(experiment_path_prefix):
 def get_models_from_files(experiment_path_prefix, specs):
     """ Read models' state_dicts from pth-files specified by the given experiment_path_prefix.
     Return an array of nets with the loaded states. """
+    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
     nets = []
-    net_file_paths = generate_net_file_paths(experiment_path_prefix, specs['net_count'])
+    net_file_paths = generate_net_file_paths(experiment_path_prefix, specs.net_count)
     for model_file in net_file_paths:
         checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
-        if specs['net'] == NetNames.LENET:
-            net = lenet.Lenet(specs['plan_fc'])
+        if specs.net == NetNames.LENET:
+            net = lenet.Lenet(specs.plan_fc)
             net.load_state_dict(checkpoint)
             net.prune_net(0.)  # apply pruned masks, but do not modify the masks
-        elif specs['net'] == NetNames.CONV:
-            net = conv.Conv(specs['plan_conv'], ['specs.plan_fc'])
+        elif specs.net == NetNames.CONV:
+            net = conv.Conv(specs.plan_conv, specs.plan_fc)
             net.load_state_dict(checkpoint)
             net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
         else:
-            raise AssertionError(f"Could not rebuild net because name {specs['net']} is invalid.")
+            raise AssertionError(f"Could not rebuild net because name {specs.net} is invalid.")
 
         nets.append(net)
     return nets
