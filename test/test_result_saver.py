@@ -19,7 +19,7 @@ class TestResultSaver(TestCase):
     Call with 'python -m test_result_saver' from inside '~/test'. """
 
     def test_setup_and_get_result_path(self):
-        """ Generate the correct absolute result path. """
+        """ Should generate the correct absolute result path. """
         with mock.patch('data.result_saver.os') as mocked_os:
             expected_path = "//root/results"
 
@@ -36,7 +36,7 @@ class TestResultSaver(TestCase):
             mocked_os.mkdir.assert_not_called()
 
     def test_setup_and_get_result_path_with_make(self):
-        """ Generate the correct absolute result path and make the directory. """
+        """ Should generate the correct absolute result path and make the directory. """
         with mock.patch('data.result_saver.os') as mocked_os:
             expected_path = "//root/results"
 

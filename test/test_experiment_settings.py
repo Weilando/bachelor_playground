@@ -16,7 +16,7 @@ class TestExperimentSettings(TestCase):
         self.assertEqual(expected_list, ExperimentNames.get_value_list())
 
     def test_get_settings_for_lenet_mnist(self):
-        """ Get results without errors and verify the most important attributes. """
+        """ Should get results without errors and verify the most important attributes. """
         experiment_settings = get_settings(ExperimentNames.LENET_MNIST)
 
         self.assertIs(type(experiment_settings), ExperimentSettings)
@@ -24,7 +24,7 @@ class TestExperimentSettings(TestCase):
         self.assertIs(experiment_settings.dataset, DatasetNames.MNIST)
 
     def test_get_settings_for_conv2_cifar10(self):
-        """ Get results without errors and verify the most important attributes. """
+        """ Should get results without errors and verify the most important attributes. """
         experiment_settings = get_settings(ExperimentNames.CONV2_CIFAR10)
 
         self.assertIs(type(experiment_settings), ExperimentSettings)
@@ -32,7 +32,7 @@ class TestExperimentSettings(TestCase):
         self.assertIs(experiment_settings.dataset, DatasetNames.CIFAR10)
 
     def test_get_settings_for_conv4_cifar10(self):
-        """ Get results without errors and verify the most important attributes. """
+        """ Should get results without errors and verify the most important attributes. """
         experiment_settings = get_settings(ExperimentNames.CONV4_CIFAR10)
 
         self.assertIs(type(experiment_settings), ExperimentSettings)
@@ -40,7 +40,7 @@ class TestExperimentSettings(TestCase):
         self.assertIs(experiment_settings.dataset, DatasetNames.CIFAR10)
 
     def test_get_settings_for_conv6_cifar10(self):
-        """ Get results without errors and verify the most important attributes. """
+        """ Should get results without errors and verify the most important attributes. """
         experiment_settings = get_settings(ExperimentNames.CONV6_CIFAR10)
 
         self.assertIs(type(experiment_settings), ExperimentSettings)
@@ -48,7 +48,7 @@ class TestExperimentSettings(TestCase):
         self.assertIs(experiment_settings.dataset, DatasetNames.CIFAR10)
 
     def test_get_settings_for_lenet_toy(self):
-        """ Get results without errors and verify the most important attributes. """
+        """ Should get results without errors and verify the most important attributes. """
         experiment_settings = get_settings_lenet_toy()
 
         self.assertIs(type(experiment_settings), ExperimentSettings)

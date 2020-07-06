@@ -12,7 +12,7 @@ class TestLenet(TestCase):
     Call with 'python -m test_lenet' from inside '~/test'. """
 
     def test_forward_pass_simple_architecture(self):
-        """ The neural network with one hidden layer should perform a forward pass for  without exceptions. """
+        """ The neural network with one hidden layer should perform a forward pass for without exceptions. """
         net = Lenet(plan_fc=[5, 10])
         input_sample = torch.rand(28, 28)
         net(input_sample)
@@ -31,7 +31,7 @@ class TestLenet(TestCase):
         self.assertTrue(([1.0, 1.0, 1.0, 1.0] == sparsity_report).all())
 
     def test_sparsity_report_after_single_prune(self):
-        """ Each layer should be pruned with the given pruning rate, except for the last layer.
+        """ Should prune each layer with the given pruning rate, except for the last layer.
         The last layer needs to be pruned using half of the pruning rate.
         For the whole net's sparsity we get:
         total_weights = (28*28*300) + (300*100) + (100*10) = 266200
@@ -42,7 +42,7 @@ class TestLenet(TestCase):
         self.assertTrue(([0.9002, 0.9, 0.9, 0.95] == sparsity_report).all())
 
     def test_sparsity_report_after_double_prune(self):
-        """ Each layer should be pruned with the given pruning rate, except for the last layer.
+        """ Should prune each layer with the given pruning rate, except for the last layer.
         The last layer needs to be pruned using half of the pruning rate.
         For the whole net's sparsity we get:
         total_weights = (28*28*300) + (300*100) + (100*10) = 266200

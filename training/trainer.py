@@ -46,6 +46,7 @@ class TrainerAdam(object):
         # setup training
         opt = optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
         hist_count = 0
+        tic = 0
 
         for e in range(0, epoch_count):
             if self.verbosity != VerbosityLevel.SILENT:
@@ -54,7 +55,7 @@ class TrainerAdam(object):
             epoch_base = e * len(self.train_loader)
 
             for j, data in enumerate(self.train_loader):
-                # set model to training mode (important for batchnorm/dropout)
+                # set model to training mode (important for batch-norm/dropout)
                 net.train(True)
                 # push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
@@ -63,13 +64,13 @@ class TrainerAdam(object):
 
                 # forward pass
                 outputs = net(inputs)
-                loss = net.crit(outputs, labels)
+                loss = net.criterion(outputs, labels)
 
                 # backward pass
                 loss.backward()
                 opt.step()
 
-                # evaluluate accuracies, save accuracies and loss
+                # evaluate accuracies, save accuracies and loss
                 if ((epoch_base + j) % plot_step) == 0:
                     loss_hist[hist_count] = loss.item()
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
@@ -91,8 +92,8 @@ class TrainerAdam(object):
 
     def compute_acc(self, net, test=True):
         """ Compute the given net's accuracy.
-        'test' indicates wheter the test- or validation-accuracy should be calculated. """
-        net.train(False)  # set model to evaluation mode (important for batchnorm/dropout)
+        'test' indicates whether the test- or validation-accuracy should be calculated. """
+        net.train(False)  # set model to evaluation mode (important for batch-norm/dropout)
 
         correct = 0
         total = 0

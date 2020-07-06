@@ -12,7 +12,7 @@ class TestPlotter(TestCase):
     Call with 'python -m test_plotter' from inside '~/test'. """
 
     def test_calculate_correct_mean_and_y_error(self):
-        """ The correct averages, maxima and minima should be calculated.
+        """ Should calculate the correct averages, maxima and minima.
         The input has shape (3,2,4), thus all returned arrays need to have shape (2,4). """
         arr = np.array(
             [[[3, 12, 10, 7], [2, 63, 9, 50]], [[6, 4, 15, 14], [6, 42, 27, 75]], [[9, 8, 5, 21], [4, 21, 18, 25]]],
@@ -32,7 +32,7 @@ class TestPlotter(TestCase):
         self.assertTrue((expected_max == result_max).all)
 
     def test_calculate_correct_early_stop_iteration(self):
-        """ The correct iteration for the early stopping criterion should be calculated.
+        """ Should calculate the correct iteration for the early stopping criterion.
         The input has shape (1,2,5), thus the result needs to have shape (1,2). """
         arr = np.array([[[5, 4, 3, 2, 1], [3, 2, 3, 2, 3]]], dtype=float)
         expected_iterations = np.array([[4, 1]])

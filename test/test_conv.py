@@ -11,16 +11,16 @@ class TestConv(TestCase):
     """ Tests for the Conv class.
     Call with 'python -m test.test_conv' from project root '~'.
     Call with 'python -m test_conv' from inside '~/test'.
-    Inputs are of size [60, 3, 32, 32] (for batch-size 60) """
+    Inputs are of size [batch_size, 3, 32, 32]. """
 
     def test_forward_pass_simple_conv(self):
-        """ The neural network with architecture Conv-2 should perform a forward pass without exceptions. """
+        """ The neural network with small Conv architecture should perform a forward pass without exceptions. """
         net = Conv(plan_conv=[8, 'M', 16, 'A'], plan_fc=[32, 16])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 
     def test_weight_count_conv2(self):
-        """ The neural network with architecture Conv-2 should have the right weight counts.
+        """ The neural network with Conv-2 architecture should have the right weight counts.
         conv = conv1+conv2 = 3*9*64 + 64*9*64 = 38592
         fc = hid1+hid2+out = (16*16*64)*256 + 256*256 + 256*10 = 4262400 """
         net = Conv()
@@ -34,7 +34,7 @@ class TestConv(TestCase):
         self.assertTrue(([1.0, 1.0, 1.0, 1.0, 1.0, 1.0] == sparsity_report).all())
 
     def test_sparsity_report_after_single_prune(self):
-        """ Each layer should be pruned with the given pruning rate, except for the last layer.
+        """ Should prune each layer with the given pruning rate, except for the last layer.
         The last layer needs to be pruned using half of the fc pruning rate.
         For the whole net's sparsity we get:
         total_weights = conv+fc = 38592+4262400 = 4300992

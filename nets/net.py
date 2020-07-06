@@ -13,6 +13,7 @@ class Net(nn.Module):
         self.init_weight_count_net = dict([('conv', 0), ('fc', 0)])
         self.conv = None
         self.fc = None
+        self.criterion = None
 
     def store_initial_weights(self):
         """ Store initial weights as buffer in each layer. """
@@ -43,27 +44,27 @@ class Net(nn.Module):
         return sparsity, unpr_weight_count
 
     def sparsity_report(self):
-        """ Generate a list with sparsities for the whole network and per layer. """
+        """ Generate a list with sparsity for the whole network and per layer. """
         unpr_weight_counts = 0
-        sparsities = []
+        sparsity_list = []
 
         for layer in self.conv:
             if isinstance(layer, nn.Conv2d):
                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
-                sparsities.append(curr_sparsity)
+                sparsity_list.append(curr_sparsity)
                 unpr_weight_counts += curr_unpr_weight_count
         for layer in self.fc:
             if isinstance(layer, nn.Linear):
                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
 
-                sparsities.append(curr_sparsity)
+                sparsity_list.append(curr_sparsity)
                 unpr_weight_counts += curr_unpr_weight_count
 
         out_sparsity, out_unpr_weight_count = self.sparsity_layer(self.out)
-        sparsities.append(out_sparsity)
+        sparsity_list.append(out_sparsity)
         unpr_weight_counts += out_unpr_weight_count
 
         sparsity_net = unpr_weight_counts / (self.init_weight_count_net['conv'] + self.init_weight_count_net['fc'])
-        sparsities.insert(0, sparsity_net)
-        return np.round(sparsities, decimals=4)
+        sparsity_list.insert(0, sparsity_net)
+        return np.round(sparsity_list, decimals=4)

@@ -65,13 +65,14 @@ class Conv(Net):
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(filters, 10)
         self.init_weight_count_net['fc'] += filters * 10
-        self.crit = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss()
 
         self.apply(gaussian_glorot)
         self.store_initial_weights()
         self.apply(setup_masks)
 
     def store_initial_weights(self):
+        """ Store initial weights as buffer in each layer. """
         for layer in self.conv:
             if isinstance(layer, nn.Conv2d):
                 layer.register_buffer('weight_init', layer.weight.clone())

@@ -35,7 +35,7 @@ class Lenet(Net):
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(input_features, 10)
         self.init_weight_count_net['fc'] += input_features * 10
-        self.crit = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss()
 
         self.apply(gaussian_glorot)
         self.store_initial_weights()

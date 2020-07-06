@@ -12,24 +12,23 @@ class TestExperiment(TestCase):
     Call with 'python -m test_experiment' from inside '~/test'. """
 
     def test_experiment_lenet_mnist_should_init(self):
-        """ IMP-Experiment with Lenet and MNIST should setup without errors. """
+        """ Should setup IMP-Experiment with Lenet and MNIST without errors. """
         settings = experiment_settings.get_settings_lenet_mnist()
         settings.net_count = 1
         experiment = ExperimentIMP(settings)
         experiment.setup_experiment()
 
     def test_experiment_conv6_cifar10_should_init(self):
-        """ IMP-Experiment with Conv-6 and CIFAR-10 should setup without errors. """
+        """ Should setup IMP-Experiment with Conv-6 and CIFAR-10 without errors. """
         settings = experiment_settings.get_settings_conv6_cifar10()
         settings.net_count = 1
         experiment = ExperimentIMP(settings)
         experiment.setup_experiment()
 
     def test_perform_toy_experiment(self):
-        """ IMP-Experiment with small Lenet and toy-dataset should run without errors.
-        It saves all results into a temporary folder. """
+        """ Should run IMP-Experiment with small Lenet and toy-dataset without errors. """
         settings = experiment_settings.get_settings_lenet_toy()
-        with TemporaryDirectory() as tmp_dir_name:
+        with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(settings, tmp_dir_name)
             experiment.run_experiment()
 

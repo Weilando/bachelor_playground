@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from data import result_saver as rs
-from data.dataloaders import get_mnist_dataloaders, get_cifar10_dataloaders, get_toy_dataloaders
+from data.dataloaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
 from experiments.experiment_settings import VerbosityLevel, DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
@@ -46,13 +46,13 @@ class Experiment(object):
         Store the length of the training-loader into 'self.epoch_length' to initialize histories. """
         # load dataset
         if self.args.dataset == DatasetNames.MNIST:
-            train_loader, val_loader, test_loader = get_mnist_dataloaders(device=self.args.device,
-                                                                          verbosity=self.args.verbosity)
+            train_loader, val_loader, test_loader = get_mnist_data_loaders(device=self.args.device,
+                                                                           verbosity=self.args.verbosity)
         elif self.args.dataset == DatasetNames.CIFAR10:
-            train_loader, val_loader, test_loader = get_cifar10_dataloaders(device=self.args.device,
-                                                                            verbosity=self.args.verbosity)
+            train_loader, val_loader, test_loader = get_cifar10_data_loaders(device=self.args.device,
+                                                                             verbosity=self.args.verbosity)
         elif self.args.dataset == DatasetNames.TOY:
-            train_loader, val_loader, test_loader = get_toy_dataloaders()
+            train_loader, val_loader, test_loader = get_toy_data_loaders()
         else:
             raise AssertionError(f"Could not load datasets, because the given name {self.args.dataset} is invalid.")
 
@@ -77,6 +77,7 @@ class Experiment(object):
         self.test_acc_hists_epoch = np.zeros_like(self.val_acc_hists_epoch, dtype=float)
         self.sparsity_hist = np.ones((self.args.prune_count + 1), dtype=float)
 
+    # noinspection PyTypeChecker
     def init_nets(self):
         """ Initialize nets which are used during the experiment. """
         for n in range(self.args.net_count):

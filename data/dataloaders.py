@@ -19,8 +19,8 @@ def generate_data_loaders(train_data, val_data, test_data, batch_size, device, v
     return train_loader, val_loader, test_loader
 
 
-def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='../data/datasets', device='cpu',
-                          verbosity=VerbosityLevel.SILENT):
+def get_mnist_data_loaders(batch_size=60, train_len=55000, val_len=5000, path='../data/datasets', device='cpu',
+                           verbosity=VerbosityLevel.SILENT):
     """ Load the MNIST-dataset and provide DataLoaders with given properties.
     The training-set contains 60000 samples which can be split into two for training and validation.
     The test-set contains 10000 samples. """
@@ -36,8 +36,8 @@ def get_mnist_dataloaders(batch_size=60, train_len=55000, val_len=5000, path='..
     return generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity)
 
 
-def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='../data/datasets', device='cpu',
-                            verbosity=VerbosityLevel.SILENT):
+def get_cifar10_data_loaders(batch_size=60, train_len=45000, val_len=5000, path='../data/datasets', device='cpu',
+                             verbosity=VerbosityLevel.SILENT):
     """ Load the CIFAR-10-dataset and provide DataLoaders with given properties.
     The training-set contains 50000 samples which can be split into two for training and validation.
     The test-set contains 10000 samples. """
@@ -53,7 +53,7 @@ def get_cifar10_dataloaders(batch_size=60, train_len=45000, val_len=5000, path='
     return generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity)
 
 
-def get_toy_dataloaders(path='../data/datasets'):
+def get_toy_data_loaders(path='../data/datasets'):
     """ Load a part of the MNIST-dataset and provide DataLoaders for use in fast tests.
     The training-set contains 6, the validation-set 4 and the test set 4 samples.
     The batch size is 2. """
