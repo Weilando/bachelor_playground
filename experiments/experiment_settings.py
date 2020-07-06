@@ -16,7 +16,8 @@ class DatasetNames(str, Enum):
     """ Enum to define available datasets. """
     MNIST = "MNIST"
     CIFAR10 = "CIFAR-10"
-    TOY = "Toy"
+    TOY_MNIST = "Toy-MNIST"
+    TOY_CIFAR10 = "Toy-CIFAR"
 
 
 class NetNames(str, Enum):
@@ -139,13 +140,32 @@ def get_settings_conv6_cifar10():
 
 
 def get_settings_lenet_toy():
-    """ Toy settings for a toy Lenet on a toy dataset. """
+    """ Toy settings for a toy Lenet on a toy-MNIST dataset. """
     return ExperimentSettings(
         net=NetNames.LENET,
         net_count=2,
         plan_conv=[],
         plan_fc=[3],
-        dataset=DatasetNames.TOY,
+        dataset=DatasetNames.TOY_MNIST,
+        epoch_count=2,
+        learning_rate=2e-4,
+        plot_step=2,
+        verbosity=VerbosityLevel.SILENT,
+        prune_method="IMP",
+        prune_count=1,
+        prune_rate_conv=0.0,
+        prune_rate_fc=0.2
+    )
+
+
+def get_settings_conv_toy():
+    """ Toy settings for a toy Conv on a toy-CIFAR-10 dataset. """
+    return ExperimentSettings(
+        net=NetNames.CONV,
+        net_count=2,
+        plan_conv=[4, 'M'],
+        plan_fc=[3],
+        dataset=DatasetNames.TOY_CIFAR10,
         epoch_count=2,
         learning_rate=2e-4,
         plot_step=2,

@@ -7,6 +7,24 @@ import torch.nn as nn
 from training.trainer import TrainerAdam, calc_hist_length
 
 
+def generate_single_layer_net():
+    """ Setup a neural network with one linear layer for test purposes. """
+    net = nn.Linear(4, 2)
+    net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
+    net.bias = nn.Parameter(torch.zeros(2))
+    net.criterion = nn.CrossEntropyLoss()
+    return net
+
+
+def generate_fake_data_loader():
+    """" Generate fake-DataLoader with four batches, i.e. a list with sub-lists of samples and labels. """
+    samples1 = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
+    samples2 = torch.tensor([[1., 2., 3., 4.], [1., 1., 2., 2.], [2., 2., 2., 2.]])
+    labels1 = torch.tensor([0, 0, 1])
+    labels2 = torch.tensor([1, 1, 0])
+    return [[samples1, labels1], [samples1, labels2], [samples2, labels1], [samples2, labels2]]
+
+
 class TestTrainer(TestCase):
     """ Tests for the trainer module.
     Call with 'python -m test.test_trainer' from project root '~'.
@@ -22,22 +40,15 @@ class TestTrainer(TestCase):
         History is saved at the following combinations of epochs and iterations: 0,0; 2,4; 5,0. """
         self.assertEqual(2, calc_hist_length(4, 4, 10))
 
+    # noinspection DuplicatedCode
     def test_execute_training(self):
         """ The training should be executed without errors and results should have correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
         Inputs have shape (1,4). """
-        # setup net
-        net = nn.Linear(4, 2)
-        net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
-        net.bias = nn.Parameter(torch.zeros(2))
-        net.criterion = nn.CrossEntropyLoss()
+        net = generate_single_layer_net()
 
-        # setup trainer and fake-DataLoader with four batches (use the same loader for training, validation and test)
-        samples1 = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
-        samples2 = torch.tensor([[1., 2., 3., 4.], [1., 1., 2., 2.], [2., 2., 2., 2.]])
-        labels1 = torch.tensor([0, 0, 1])
-        labels2 = torch.tensor([1, 1, 0])
-        fake_loader = [[samples1, labels1], [samples1, labels2], [samples2, labels1], [samples2, labels2]]
+        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
+        fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
         expected_hist_shape = (3,)
@@ -58,22 +69,15 @@ class TestTrainer(TestCase):
         self.assertTrue(all(val_acc_hist_epoch > 0))
         self.assertTrue(all(test_acc_hist_epoch > 0))
 
+    # noinspection DuplicatedCode
     def test_execute_training_rounding(self):
         """ Should execute training without errors and save results with correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
         Inputs have shape (1,4). """
-        # setup net
-        net = nn.Linear(4, 2)
-        net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
-        net.bias = nn.Parameter(torch.zeros(2))
-        net.criterion = nn.CrossEntropyLoss()
+        net = generate_single_layer_net()
 
-        # setup trainer and fake-DataLoader with four batches (use the same loader for training, validation and test)
-        samples1 = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
-        samples2 = torch.tensor([[1., 2., 3., 4.], [1., 1., 2., 2.], [2., 2., 2., 2.]])
-        labels1 = torch.tensor([0, 0, 1])
-        labels2 = torch.tensor([1, 1, 0])
-        fake_loader = [[samples1, labels1], [samples1, labels2], [samples2, labels1], [samples2, labels2]]
+        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
+        fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
         expected_hist_shape = (2,)
@@ -98,10 +102,7 @@ class TestTrainer(TestCase):
         """ Should calculate the correct test-accuracy.
         The fake-net with one linear layer classifies half of the fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. """
-        # setup net
-        net = nn.Linear(4, 2)
-        net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
-        net.bias = nn.Parameter(torch.zeros(2))
+        net = generate_single_layer_net()
 
         # setup trainer and fake-DataLoader with two batches (use the same samples for both batches)
         samples = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
@@ -116,10 +117,7 @@ class TestTrainer(TestCase):
         """ Should calculate the correct validation-accuracy.
         The fake-net with one linear layer classifies all fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. """
-        # setup net
-        net = nn.Linear(4, 2)
-        net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
-        net.bias = nn.Parameter(torch.zeros(2))
+        net = generate_single_layer_net()
 
         # setup trainer and fake-DataLoader with one batch
         samples = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])

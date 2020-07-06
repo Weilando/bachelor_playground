@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest import main as unittest_main
 
 from experiments.experiment_settings import get_settings, DatasetNames, ExperimentNames, ExperimentSettings, NetNames, \
-    get_settings_lenet_toy
+    get_settings_lenet_toy, get_settings_conv_toy
 
 
 class TestExperimentSettings(TestCase):
@@ -11,7 +11,7 @@ class TestExperimentSettings(TestCase):
     Call with 'python -m test_experiment_settings' from inside '~/test'. """
 
     def test_get_value_list_from_experiment_names(self):
-        """ ExperimentNames should generate a list of all values, i.e. strings of experiment names. """
+        """ Should generate a list of all values, i.e. strings of experiment names. """
         expected_list = ['lenet-mnist', 'conv2-cifar10', 'conv4-cifar10', 'conv6-cifar10']
         self.assertEqual(expected_list, ExperimentNames.get_value_list())
 
@@ -53,10 +53,18 @@ class TestExperimentSettings(TestCase):
 
         self.assertIs(type(experiment_settings), ExperimentSettings)
         self.assertIs(experiment_settings.net, NetNames.LENET)
-        self.assertIs(experiment_settings.dataset, DatasetNames.TOY)
+        self.assertIs(experiment_settings.dataset, DatasetNames.TOY_MNIST)
+
+    def test_get_settings_for_conv_toy(self):
+        """ Should get results without errors and verify the most important attributes. """
+        experiment_settings = get_settings_conv_toy()
+
+        self.assertIs(type(experiment_settings), ExperimentSettings)
+        self.assertIs(experiment_settings.net, NetNames.CONV)
+        self.assertIs(experiment_settings.dataset, DatasetNames.TOY_CIFAR10)
 
     def test_get_settings_should_raise_assertion_error_on_invalid_name(self):
-        """ An assertion error should be thrown, because the given name is invalid. """
+        """ Should raise an assertion error, because the given name is invalid. """
         with self.assertRaises(AssertionError):
             get_settings("This is an invalid experiment name for sure!")
 

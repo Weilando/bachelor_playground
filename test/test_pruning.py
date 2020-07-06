@@ -23,8 +23,8 @@ class TestPruning(TestCase):
 
         expected_con = torch.ones_like(test_net[0].weight)
         expected_lin = torch.ones_like(test_net[1].weight)
-        self.assertTrue(test_net[0].weight_mask.equal(expected_con))
-        self.assertTrue(test_net[1].weight_mask.equal(expected_lin))
+        self.assertIs(test_net[0].weight_mask.equal(expected_con), True)
+        self.assertIs(test_net[1].weight_mask.equal(expected_lin), True)
 
     def test_prune_mask_for_linear_layer_correctly(self):
         """ Prune the mask for an unpruned linear layer in one step.
@@ -40,22 +40,7 @@ class TestPruning(TestCase):
         expected_mask = torch.tensor([[0., 1., 1., 1., 1.], [1., 1., 1., 0., 1.]])
         self.assertTrue(test_mask_pruned.equal(expected_mask))
 
-    def test_prune_linear_layer_correctly_once(self):
-        """ Prune an unpruned linear layer in one step.
-        Should zero out The two weights with the lowest magnitude. """
-        # Initialize linear layer with 10 given weights and unpruned mask
-        initial_weights = torch.tensor([[1., -2., 3., -1.5, -3.], [-1., 2., -4., 0.5, 1.5]])
-        test_layer = nn.Linear(2, 5)
-        test_layer.weight = nn.Parameter(initial_weights.clone())
-        test_layer.register_buffer('weight_init', initial_weights.clone())
-        test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
-
-        mp.prune_layer(layer=test_layer, prune_rate=0.2)
-
-        expected_weights = torch.tensor([[0., -2., 3., -1.5, -3.], [-1., 2., -4., 0., 1.5]])
-        self.assertTrue(test_layer.weight.equal(expected_weights))
-
-    def test_prune_linear_layer_correctly_twice(self):
+    def test_prune_linear_layer_correctly(self):
         """ Prune the mask for a pruned linear layer in one step.
         Should zero out the two weights (as ceil(8*0.2)=2) with the lowest magnitude. """
         # Initialize linear layer with 10 given weights and pruned mask
@@ -79,7 +64,6 @@ class TestPruning(TestCase):
             [1.2, -0.1, 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0.2, 0.4, 1.4, 2.2, -0.8, 0.4, 0.9]).view(2, 2, 2, 2)
         test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
         test_layer.weight = nn.Parameter(initial_weights.clone())
-        test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
         test_mask_pruned = mp.prune_mask(layer=test_layer, prune_rate=0.2)
@@ -87,24 +71,7 @@ class TestPruning(TestCase):
         expected_mask = torch.tensor([1., 0., 1., 1., 1., 1., 1., 1., 1., 0., 0., 1., 1., 1., 0., 1.]).view(2, 2, 2, 2)
         self.assertTrue(test_mask_pruned.equal(expected_mask))
 
-    def test_prune_conv_layer_correctly_once(self):
-        """ Prune an unpruned convolutional layer in one step.
-        Should zero out the four weights (as ceil(16*0.2)=4) with the lowest magnitude. """
-        # Initialize conv layer with 16 given weights and unpruned mask
-        initial_weights = torch.tensor(
-            [1.2, -0.1, 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0.2, 0.4, 1.4, 2.2, -0.8, 0.4, 0.9]).view(2, 2, 2, 2)
-        test_layer = nn.Conv2d(2, 2, kernel_size=2, padding=1)
-        test_layer.weight = nn.Parameter(initial_weights.clone())
-        test_layer.register_buffer('weight_init', initial_weights.clone())
-        test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
-
-        mp.prune_layer(layer=test_layer, prune_rate=0.2)
-
-        expected_weights = torch.tensor(
-            [1.2, -0., 1.2, 4.3, -2.1, -1.1, -0.8, 1.2, 0.5, 0., 0., 1.4, 2.2, -0.8, 0., 0.9]).view(2, 2, 2, 2)
-        self.assertTrue(test_layer.weight.equal(expected_weights))
-
-    def test_prune_conv_layer_correctly_twice(self):
+    def test_prune_conv_layer_correctly(self):
         """ Prune the mask for a pruned convolutional layer in one step.
         Should zero out the three weights (as ceil(12*0.2)=3) with the lowest magnitude. """
         # Initialize conv layer with 16 given weights and pruned mask

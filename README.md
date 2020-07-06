@@ -29,10 +29,14 @@ The following suffixes specify the contents:
 
 Suffix | Content | Previous format
 --- | --- | ---
-`-specs.json` | hyperparameters and meta-data | `dict`
+`-specs.json` | hyper-parameters and meta-data | `ExperimentSettings`
 `-histories.npz` | histories of loss, validation-accuracy, test-accuracy and sparsity for several networks and pruning stages | `np.array` (each)
 `-net<number>.pth`| trained models (each stored in a single file) | `torch.nn.Module` (often subclasses like `Lenet` or `Conv`)
 
 ### Evaluate experiments
 It is possible to load the stored results into their previous data-structure by using methods from the module `experiments.result_loader`.
 The interactive Jupyter notebook `ExperimentEvaluation.ipynb` makes it easy to load and evaluate results from past experiments.
+
+## Tests
+There are many unit and integration tests which cover correct experiment setup and execution.
+Run them by calling `python -m unittest` from the main directory.

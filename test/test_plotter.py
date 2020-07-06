@@ -24,9 +24,9 @@ class TestPlotter(TestCase):
 
         result_mean, result_min, result_max = plotter.get_means_and_y_errors(arr)
 
-        self.assertTrue(expected_shape == result_mean.shape)
-        self.assertTrue(expected_shape == result_min.shape)
-        self.assertTrue(expected_shape == result_max.shape)
+        self.assertEqual(expected_shape, result_mean.shape)
+        self.assertEqual(expected_shape, result_min.shape)
+        self.assertEqual(expected_shape, result_max.shape)
         self.assertTrue((expected_mean == result_mean).all)
         self.assertTrue((expected_min == result_min).all)
         self.assertTrue((expected_max == result_max).all)
@@ -40,7 +40,7 @@ class TestPlotter(TestCase):
 
         result_iterations = plotter.find_stop_iteration(arr)
 
-        self.assertTrue(expected_shape == result_iterations.shape)
+        self.assertEqual(expected_shape, result_iterations.shape)
         self.assertTrue((expected_iterations == result_iterations).all)
 
     def test_time_smaller_than_minute_should_be_seconds(self):

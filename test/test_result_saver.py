@@ -57,7 +57,7 @@ class TestResultSaver(TestCase):
         specs = get_settings_lenet_toy()
         time_string = 'Time'
 
-        expected_file_prefix = 'Time-Lenet-Toy'
+        expected_file_prefix = 'Time-Lenet-Toy-MNIST'
 
         self.assertEqual(expected_file_prefix, result_saver.generate_file_prefix(specs, time_string))
 

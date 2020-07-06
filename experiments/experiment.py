@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from data import result_saver as rs
-from data.dataloaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
+from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
 from experiments.experiment_settings import VerbosityLevel, DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
@@ -51,8 +51,8 @@ class Experiment(object):
         elif self.args.dataset == DatasetNames.CIFAR10:
             train_loader, val_loader, test_loader = get_cifar10_data_loaders(device=self.args.device,
                                                                              verbosity=self.args.verbosity)
-        elif self.args.dataset == DatasetNames.TOY:
-            train_loader, val_loader, test_loader = get_toy_data_loaders()
+        elif self.args.dataset in [DatasetNames.TOY_MNIST, DatasetNames.TOY_CIFAR10]:
+            train_loader, val_loader, test_loader = get_toy_data_loaders(self.args.dataset)
         else:
             raise AssertionError(f"Could not load datasets, because the given name {self.args.dataset} is invalid.")
 
