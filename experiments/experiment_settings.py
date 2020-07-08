@@ -26,6 +26,12 @@ class NetNames(str, Enum):
     CONV = "Conv"
 
 
+class PruningMethodNames(str, Enum):
+    """ Enum to define available pruning methods. """
+    IMP_LAYER = "IMP-per-layer"
+    # IMP_GLOBAL = "IMP-global"
+
+
 class ExperimentNames(str, Enum):
     """ Enum to define available experiments. """
     LENET_MNIST = "lenet-mnist"
@@ -53,11 +59,12 @@ class ExperimentSettings:
     plot_step: int
     verbosity: VerbosityLevel
 
-    prune_method: str  # only IMP yet
+    prune_method: PruningMethodNames
     prune_count: int
     prune_rate_conv: float
     prune_rate_fc: float
 
+    duration: str = "not finished"
     device: str = "cpu"
     device_name: str = "cpu"
 
@@ -73,7 +80,7 @@ def get_settings(experiment):
     elif experiment == ExperimentNames.CONV6_CIFAR10:
         return get_settings_conv6_cifar10()
     else:
-        raise AssertionError(f"{experiment} is not a valid experiment name.")
+        raise AssertionError(f"{experiment} is an invalid experiment name.")
 
 
 def get_settings_lenet_mnist():
@@ -88,7 +95,7 @@ def get_settings_lenet_mnist():
         learning_rate=1.2e-3,  # page 3, figure 2
         plot_step=100,
         verbosity=VerbosityLevel.SILENT,
-        prune_method='IMP',
+        prune_method=PruningMethodNames.IMP_LAYER,
         prune_count=3,
         prune_rate_fc=0.2,  # page 3, figure 2
         prune_rate_conv=0.0
@@ -107,7 +114,7 @@ def get_settings_conv2_cifar10():
         learning_rate=2e-4,  # page 3, figure 2
         plot_step=100,
         verbosity=VerbosityLevel.SILENT,
-        prune_method="IMP",
+        prune_method=PruningMethodNames.IMP_LAYER,
         prune_count=3,
         prune_rate_conv=0.1,  # page 3, figure 2
         prune_rate_fc=0.2  # page 3, figure 2
@@ -151,7 +158,7 @@ def get_settings_lenet_toy():
         learning_rate=2e-4,
         plot_step=2,
         verbosity=VerbosityLevel.SILENT,
-        prune_method="IMP",
+        prune_method=PruningMethodNames.IMP_LAYER,
         prune_count=1,
         prune_rate_conv=0.0,
         prune_rate_fc=0.2
@@ -170,7 +177,7 @@ def get_settings_conv_toy():
         learning_rate=2e-4,
         plot_step=2,
         verbosity=VerbosityLevel.SILENT,
-        prune_method="IMP",
+        prune_method=PruningMethodNames.IMP_LAYER,
         prune_count=1,
         prune_rate_conv=0.0,
         prune_rate_fc=0.2

@@ -1,10 +1,11 @@
 import os
 from argparse import ArgumentParser
 
-from torch.cuda import is_available, get_device_name
+import torch.cuda
 
 from experiments.experiment_imp import ExperimentIMP
 from experiments.experiment_settings import get_settings, ExperimentNames, VerbosityLevel
+from training.logger import log_from_medium
 
 current_path = os.path.dirname(__file__)
 os.chdir(os.path.join(current_path, 'experiments'))
@@ -34,19 +35,23 @@ def should_override_net_count(nets):
     return False
 
 
+def setup_cuda(cuda_wanted):
+    """ Returns cuda-device and its name, if cuda is preferred and available.
+    Return "cpu" otherwise. """
+    use_cuda = cuda_wanted and torch.cuda.is_available()
+    device = "cuda:0" if use_cuda else "cpu"
+    device_name = torch.cuda.get_device_name(0) if use_cuda else "cpu"
+    return device, device_name
+
+
 def main(experiment, epochs, nets, prunes, cuda, verbose):
     assert verbose in VerbosityLevel.__members__.values()
-    if verbose != VerbosityLevel.SILENT:
-        print("Welcome to bachelor_playground.")
+    log_from_medium(verbose, "Welcome to bachelor_playground.")
 
     settings = get_settings(experiment)
 
-    # enable CUDA
-    use_cuda = cuda and is_available()
-    settings.device = "cuda:0" if use_cuda else "cpu"
-    settings.device_name = get_device_name(0) if use_cuda else "cpu"
-    if verbose != VerbosityLevel.SILENT:
-        print(settings.device_name)
+    settings.device, settings.device_name = setup_cuda(cuda)
+    log_from_medium(verbose, settings.device_name)
 
     if should_override_epoch_count(epochs):
         settings.epoch_count = epochs

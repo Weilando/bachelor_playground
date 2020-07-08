@@ -5,11 +5,12 @@ import torch
 
 from data import result_saver as rs
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
-from experiments.experiment_settings import VerbosityLevel, DatasetNames, NetNames
+from experiments.experiment_settings import DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
 from nets.net import Net
 from training import plotter
+from training.logger import log_from_medium, log_detailed_only
 from training.trainer import TrainerAdam, calc_hist_length
 
 
@@ -19,8 +20,7 @@ class Experiment(object):
         self.args = args
         self.result_path = result_path
 
-        if self.args.verbosity != VerbosityLevel.SILENT:
-            print(args)
+        log_from_medium(self.args.verbosity, args)
 
         self.device = torch.device(args.device)
 
@@ -88,8 +88,7 @@ class Experiment(object):
             else:
                 raise AssertionError(f"Could not initialize net, because the given name {self.args.net} is invalid.")
 
-        if self.args.verbosity == VerbosityLevel.DETAILED:
-            print(self.nets[0])
+        log_detailed_only(self.args.verbosity, self.nets[0])
 
     def execute_experiment(self):
         """ Execute all actions for experiment and save accuracy- and loss-histories. """
@@ -104,9 +103,8 @@ class Experiment(object):
 
         experiment_stop = time.time()  # stop clock for experiment duration
         duration = plotter.format_time(experiment_stop - experiment_start)
-        if self.args.verbosity != VerbosityLevel.SILENT:
-            print(f"Experiment duration: {duration}")
         self.args.duration = duration
+        log_from_medium(self.args.verbosity, f"Experiment duration: {duration}")
 
         self.save_results()
 
@@ -120,5 +118,4 @@ class Experiment(object):
         rs.save_histories(results_path, file_prefix, self.loss_hists, self.val_acc_hists, self.test_acc_hists,
                           self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist)
         rs.save_nets(results_path, file_prefix, self.nets)
-        if self.args.verbosity != VerbosityLevel.SILENT:
-            print("Successfully wrote results on disk.")
+        log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")

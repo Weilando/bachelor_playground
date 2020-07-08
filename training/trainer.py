@@ -7,6 +7,7 @@ import torch.optim as optim
 
 from experiments.experiment_settings import VerbosityLevel
 from training import plotter
+from training.logger import log_from_medium, log_detailed_only
 
 
 def calc_hist_length(batch_count, epoch_count, plot_step):
@@ -46,12 +47,10 @@ class TrainerAdam(object):
         # setup training
         opt = optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
         hist_count = 0
-        tic = 0
 
         for e in range(0, epoch_count):
-            if self.verbosity != VerbosityLevel.SILENT:
-                print(f"epoch: {(e + 1):2} ", end="")
-                tic = time.time()
+            log_from_medium(self.verbosity, f"epoch: {(e + 1):2} ", False)
+            tic = time.time()
             epoch_base = e * len(self.train_loader)
 
             for j, data in enumerate(self.train_loader):
@@ -76,18 +75,15 @@ class TrainerAdam(object):
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
                     hist_count += 1
-                    if self.verbosity == VerbosityLevel.DETAILED:
-                        print(f"-", end="")
-                    net.train(True)
+                    log_detailed_only(self.verbosity, f"-", False)
 
             # evaluate and save accuracies after each epoch
             val_acc_hist_epoch[e] = self.compute_acc(net, test=False)
             test_acc_hist_epoch[e] = self.compute_acc(net, test=True)
 
-            # print progress
-            if self.verbosity != VerbosityLevel.SILENT:
-                toc = time.time()
-                print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc - tic)})")
+            toc = time.time()
+            log_from_medium(self.verbosity,
+                            f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc - tic)})\n")
         return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch
 
     def compute_acc(self, net, test=True):

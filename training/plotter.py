@@ -41,7 +41,7 @@ def gen_pruned_mean_plots_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist,
      Labels contain the sparsity at given level of pruning.
      prune_min and prune_max specify the prune-levels to plot. """
     for p in range(prune_min, prune_max + 1):
-        ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos],
+        ax.errorbar(x=xs, y=ys[p], yerr=[y_err_neg[p], y_err_pos[p]],
                     label=f"Mean after {p} prunes (sparsity  {sparsity_hist[p]:.4})")
 
 
@@ -88,6 +88,7 @@ def gen_plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist, force
 
     # plot baseline, i.e. unpruned results
     ax.errorbar(x=sparsity_hist, y=acc_mean, yerr=[acc_neg_y_err, acc_pos_y_err], label="Mean of accs", marker='x')
+    ax.invert_xaxis()
     setup_acc_grids_on_ax(ax, force_one)
 
 
