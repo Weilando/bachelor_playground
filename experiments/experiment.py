@@ -32,8 +32,7 @@ class Experiment(object):
         self.epoch_length = 0
 
         # Setup history-arrays in create_histories()
-        self.loss_hists, self.val_acc_hists, self.test_acc_hists = None, None, None
-        self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist = None, None, None
+        self.loss_hists, self.val_acc_hists, self.test_acc_hists, self.sparsity_hist = None, None, None, None
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
@@ -72,9 +71,6 @@ class Experiment(object):
         self.val_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
         self.test_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
 
-        self.val_acc_hists_epoch = np.zeros((self.args.net_count, self.args.prune_count + 1, self.args.epoch_count),
-                                            dtype=float)
-        self.test_acc_hists_epoch = np.zeros_like(self.val_acc_hists_epoch, dtype=float)
         self.sparsity_hist = np.ones((self.args.prune_count + 1), dtype=float)
 
     # noinspection PyTypeChecker
@@ -116,6 +112,6 @@ class Experiment(object):
         results_path = rs.setup_and_get_result_path(self.result_path)
         rs.save_specs(results_path, file_prefix, self.args)
         rs.save_histories(results_path, file_prefix, self.loss_hists, self.val_acc_hists, self.test_acc_hists,
-                          self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist)
+                          self.sparsity_hist)
         rs.save_nets(results_path, file_prefix, self.nets)
         log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")

@@ -12,7 +12,7 @@ from training.logger import log_from_medium, log_detailed_only
 
 def calc_hist_length(batch_count, epoch_count, plot_step):
     """ Calculate length of history arrays based on batch_count, epoch_count and plot_step. """
-    return math.ceil((batch_count * epoch_count) / plot_step)
+    return math.floor((batch_count * epoch_count) / plot_step)
 
 
 class TrainerAdam(object):
@@ -36,16 +36,15 @@ class TrainerAdam(object):
         'reg_factor' adds L1-regularization. """
         net.to(self.device)  # push model to device
 
-        # initialize histories
+        # initialize histories (one entry per plot_step iteration)
         hist_length = calc_hist_length(len(self.train_loader), epoch_count, plot_step)
-        loss_hist = np.zeros(hist_length, dtype=float)  # save each plot_step iterations
-        val_acc_hist = np.zeros_like(loss_hist, dtype=float)  # save each plot_step iterations
-        test_acc_hist = np.zeros_like(loss_hist, dtype=float)  # save each plot_step iterations
-        val_acc_hist_epoch = np.zeros(epoch_count, dtype=float)  # save per epoch
-        test_acc_hist_epoch = np.zeros_like(val_acc_hist_epoch, dtype=float)  # save per epoch
+        train_loss_hist = np.zeros(hist_length, dtype=float)
+        val_acc_hist = np.zeros_like(train_loss_hist, dtype=float)
+        test_acc_hist = np.zeros_like(train_loss_hist, dtype=float)
 
         # setup training
         opt = optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
+        running_train_loss = 0
         hist_count = 0
 
         for e in range(0, epoch_count):
@@ -53,7 +52,7 @@ class TrainerAdam(object):
             tic = time.time()
             epoch_base = e * len(self.train_loader)
 
-            for j, data in enumerate(self.train_loader):
+            for j, data in enumerate(self.train_loader, epoch_base):
                 # set model to training mode (important for batch-norm/dropout)
                 net.train(True)
                 # push inputs and targets to device
@@ -63,28 +62,25 @@ class TrainerAdam(object):
 
                 # forward pass
                 outputs = net(inputs)
-                loss = net.criterion(outputs, labels)
+                train_loss = net.criterion(outputs, labels)
 
                 # backward pass
-                loss.backward()
+                train_loss.backward()
                 opt.step()
 
                 # evaluate accuracies, save accuracies and loss
-                if ((epoch_base + j) % plot_step) == 0:
-                    loss_hist[hist_count] = loss.item()
+                running_train_loss += train_loss.item()
+                if (j % plot_step) == (plot_step - 1):
+                    train_loss_hist[hist_count] = running_train_loss / plot_step
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
                     hist_count += 1
                     log_detailed_only(self.verbosity, f"-", False)
 
-            # evaluate and save accuracies after each epoch
-            val_acc_hist_epoch[e] = self.compute_acc(net, test=False)
-            test_acc_hist_epoch[e] = self.compute_acc(net, test=True)
-
             toc = time.time()
             log_from_medium(self.verbosity,
-                            f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc - tic)})\n")
-        return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch
+                            f"val-acc: {(val_acc_hist[hist_count - 1]):1.4} (took {plotter.format_time(toc - tic)})\n")
+        return net, train_loss_hist, val_acc_hist, test_acc_hist
 
     def compute_acc(self, net, test=True):
         """ Compute the given net's accuracy.

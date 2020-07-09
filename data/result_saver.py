@@ -57,11 +57,10 @@ def save_nets(results_path, file_prefix, net_list):
             torch.save(net.state_dict(), f)
 
 
-def save_histories(results_path, file_prefix, loss_h, val_acc_h, test_acc_h, val_acc_ep_h, test_acc_ep_h, sparsity_h):
+def save_histories(results_path, file_prefix, loss_h, val_acc_h, test_acc_h, sparsity_h):
     """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
     file_name = generate_histories_file_name(file_prefix)
     histories_path = os.path.join(results_path, file_name)
 
     with open(histories_path, "wb") as f:
-        np.savez(f, loss_h=loss_h, val_acc_h=val_acc_h, test_acc_h=test_acc_h,
-                 val_acc_ep_h=val_acc_ep_h, test_acc_ep_h=test_acc_ep_h, sparsity_h=sparsity_h)
+        np.savez(f, loss_h=loss_h, val_acc_h=val_acc_h, test_acc_h=test_acc_h, sparsity_h=sparsity_h)

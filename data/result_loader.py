@@ -64,7 +64,7 @@ def get_histories_from_file(experiment_path_prefix):
     """ Read histories from the npz-file specified by the given experiment_path_prefix and return them as np.arrays. """
     histories_file_path = generate_histories_file_path(experiment_path_prefix)
     with np.load(histories_file_path) as f:
-        return f['loss_h'], f['val_acc_h'], f['test_acc_h'], f['val_acc_ep_h'], f['test_acc_ep_h'], f['sparsity_h']
+        return f['loss_h'], f['val_acc_h'], f['test_acc_h'], f['sparsity_h']
 
 
 def get_models_from_files(experiment_path_prefix, specs):

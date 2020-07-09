@@ -89,26 +89,22 @@ class TestResultSaver(TestCase):
 
     def test_save_histories(self):
         """ Should save fake histories into npz file. """
-        h1 = np.zeros(3)
-        h2 = np.zeros(1)
-        h3 = np.zeros(3)
-        h4 = np.ones(1)
-        h5 = np.ones(2)
-        h6 = np.ones(3)
+        loss_h = np.zeros(3)
+        val_acc_h = np.zeros(3)
+        test_acc_h = np.zeros(3)
+        sparsity_h = np.ones(1)
 
         with TemporaryDirectory() as tmp_dir_name:
             # save histories
-            result_saver.save_histories(tmp_dir_name, 'prefix', h1, h2, h3, h4, h5, h6)
+            result_saver.save_histories(tmp_dir_name, 'prefix', loss_h, val_acc_h, test_acc_h, sparsity_h)
 
             # load and validate histories from file
             result_file_path = os.path.join(tmp_dir_name, 'prefix-histories.npz')
             with np.load(result_file_path) as result_file:
-                np.testing.assert_array_equal(h1, result_file['loss_h'])
-                np.testing.assert_array_equal(h2, result_file['val_acc_h'])
-                np.testing.assert_array_equal(h3, result_file['test_acc_h'])
-                np.testing.assert_array_equal(h4, result_file['val_acc_ep_h'])
-                np.testing.assert_array_equal(h5, result_file['test_acc_ep_h'])
-                np.testing.assert_array_equal(h6, result_file['sparsity_h'])
+                np.testing.assert_array_equal(loss_h, result_file['loss_h'])
+                np.testing.assert_array_equal(val_acc_h, result_file['val_acc_h'])
+                np.testing.assert_array_equal(test_acc_h, result_file['test_acc_h'])
+                np.testing.assert_array_equal(sparsity_h, result_file['sparsity_h'])
 
     def test_save_nets(self):
         """ Should save two small Lenets into pth files. """

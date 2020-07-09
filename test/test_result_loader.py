@@ -138,25 +138,21 @@ class TestResultLoader(TestCase):
 
     def test_get_histories_from_file(self):
         """ Should load fake histories from npz file. """
-        h1 = np.zeros(3)
-        h2 = np.zeros(1)
-        h3 = np.zeros(3)
-        h4 = np.ones(1)
-        h5 = np.ones(2)
-        h6 = np.ones(3)
+        loss_h = np.zeros(3)
+        val_acc_h = np.zeros(3)
+        test_acc_h = np.zeros(3)
+        sparsity_h = np.ones(1)
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_histories(tmp_dir_name, 'prefix', h1, h2, h3, h4, h5, h6)
+            result_saver.save_histories(tmp_dir_name, 'prefix', loss_h, val_acc_h, test_acc_h, sparsity_h)
 
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            lh1, lh2, lh3, lh4, lh5, lh6 = result_loader.get_histories_from_file(experiment_path_prefix)
-            np.testing.assert_array_equal(h1, lh1)
-            np.testing.assert_array_equal(h2, lh2)
-            np.testing.assert_array_equal(h3, lh3)
-            np.testing.assert_array_equal(h4, lh4)
-            np.testing.assert_array_equal(h5, lh5)
-            np.testing.assert_array_equal(h6, lh6)
+            loss_l, val_acc_l, test_acc_l, sparsity_l = result_loader.get_histories_from_file(experiment_path_prefix)
+            np.testing.assert_array_equal(loss_l, loss_h)
+            np.testing.assert_array_equal(val_acc_l, val_acc_h)
+            np.testing.assert_array_equal(test_acc_l, test_acc_h)
+            np.testing.assert_array_equal(sparsity_l, sparsity_h)
 
     def test_get_models_from_file(self):
         """ Should load two small Lenets from pth files. """
