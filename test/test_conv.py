@@ -19,6 +19,11 @@ class TestConv(TestCase):
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 
+    def test_raise_error_in_invalid_conv_spec(self):
+        """ The network should raise an assertion error, because plan_conv contains an invalid spec. """
+        with self.assertRaises(AssertionError):
+            Conv(plan_conv=['InvalidSpec!'])
+
     def test_weight_count_conv2(self):
         """ The neural network with Conv-2 architecture should have the right weight counts.
         conv = conv1+conv2 = 3*9*64 + 64*9*64 = 38592

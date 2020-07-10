@@ -151,7 +151,7 @@ class TestResultLoader(TestCase):
             self.assertEqual(loaded_histories, histories)
 
     def test_get_lenet_from_file(self):
-        """ Should load two small Lenets from pth files. """
+        """ Should load two small Lenet instances from pth files. """
         experiment_settings = get_settings_lenet_toy()
         net_list = [Lenet(experiment_settings.plan_fc), Lenet(experiment_settings.plan_fc)]
 
@@ -166,7 +166,7 @@ class TestResultLoader(TestCase):
             self.assertIsInstance(loaded_nets[1], Lenet)
 
     def test_get_conv_from_file(self):
-        """ Should load two small Convs from pth files. """
+        """ Should load two small Conv instances from pth files. """
         experiment_settings = get_settings_conv_toy()
         net_list = [Conv(experiment_settings.plan_conv, experiment_settings.plan_fc),
                     Conv(experiment_settings.plan_conv, experiment_settings.plan_fc)]

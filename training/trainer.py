@@ -3,7 +3,6 @@ import time
 
 import numpy as np
 import torch
-import torch.optim as optim
 
 from experiments.experiment_settings import VerbosityLevel
 from training import plotter
@@ -48,7 +47,7 @@ class TrainerAdam(object):
         test_acc_hist = np.zeros_like(train_loss_hist, dtype=float)
 
         # setup training
-        opt = optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
+        opt = torch.optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
         running_train_loss = 0
         hist_count = 0
 
@@ -78,12 +77,13 @@ class TrainerAdam(object):
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
 
                     hist_count += 1
+                    running_train_loss = 0
                     net.train(True)  # set model to training mode (important for batch-norm/dropout)
                     log_detailed_only(self.verbosity, f"-", False)
 
             toc = time.time()
             log_from_medium(self.verbosity,
-                            f"val-acc: {(val_acc_hist[hist_count - 1]):1.4} (took {plotter.format_time(toc - tic)})\n")
+                            f"val-acc: {(val_acc_hist[hist_count - 1]):1.4} (took {plotter.format_time(toc - tic)})")
         return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist
 
     def compute_acc(self, net, test=True):

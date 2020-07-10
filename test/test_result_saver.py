@@ -103,7 +103,7 @@ class TestResultSaver(TestCase):
                 self.assertEqual(histories, reconstructed_histories)
 
     def test_save_nets(self):
-        """ Should save two small Lenets into pth files. """
+        """ Should save two small Lenet instances into pth files. """
         plan_fc = [5]
         net_list = [Lenet(plan_fc), Lenet(plan_fc)]
 
