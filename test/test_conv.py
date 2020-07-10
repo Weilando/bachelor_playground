@@ -15,7 +15,7 @@ class TestConv(TestCase):
 
     def test_forward_pass_simple_conv(self):
         """ The neural network with small Conv architecture should perform a forward pass without exceptions. """
-        net = Conv(plan_conv=[8, 'M', 16, 'A'], plan_fc=[32, 16])
+        net = Conv(plan_conv=[8, 'M', '16B', 'A'], plan_fc=[32, 16])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 

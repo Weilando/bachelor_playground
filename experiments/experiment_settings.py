@@ -170,7 +170,7 @@ def get_settings_conv_toy():
     return ExperimentSettings(
         net=NetNames.CONV,
         net_count=2,
-        plan_conv=[4, 'M'],
+        plan_conv=[4, 'M', 'A'],
         plan_fc=[3],
         dataset=DatasetNames.TOY_CIFAR10,
         epoch_count=2,

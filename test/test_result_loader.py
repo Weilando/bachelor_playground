@@ -150,11 +150,9 @@ class TestResultLoader(TestCase):
             loaded_histories = result_loader.get_histories_from_file(experiment_path_prefix)
             self.assertEqual(loaded_histories, histories)
 
-    def test_get_models_from_file(self):
+    def test_get_lenet_from_file(self):
         """ Should load two small Lenets from pth files. """
         experiment_settings = get_settings_lenet_toy()
-        experiment_settings.net_count = 2
-        experiment_settings.plan_fc = [5]
         net_list = [Lenet(experiment_settings.plan_fc), Lenet(experiment_settings.plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
@@ -166,6 +164,22 @@ class TestResultLoader(TestCase):
             loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
             self.assertIsInstance(loaded_nets[0], Lenet)
             self.assertIsInstance(loaded_nets[1], Lenet)
+
+    def test_get_conv_from_file(self):
+        """ Should load two small Convs from pth files. """
+        experiment_settings = get_settings_conv_toy()
+        net_list = [Conv(experiment_settings.plan_conv, experiment_settings.plan_fc),
+                    Conv(experiment_settings.plan_conv, experiment_settings.plan_fc)]
+
+        with TemporaryDirectory() as tmp_dir_name:
+            # save nets
+            result_saver.save_nets(tmp_dir_name, 'prefix', net_list)
+
+            # load and reconstruct nets from their files
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
+            self.assertIsInstance(loaded_nets[0], Conv)
+            self.assertIsInstance(loaded_nets[1], Conv)
 
     def test_get_models_from_file_invalid_specs(self):
         """ Should raise assertion error if specs do not have type ExperimentSettings. """

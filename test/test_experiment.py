@@ -14,22 +14,6 @@ class TestExperiment(TestCase):
     Call with 'python -m test.test_experiment' from project root '~'.
     Call with 'python -m test_experiment' from inside '~/test'. """
 
-    def test_experiment_lenet_mnist_should_init(self):
-        """ Should setup IMP-Experiment with Lenet and MNIST without errors. """
-        settings = experiment_settings.get_settings_lenet_mnist()
-        settings.dataset = experiment_settings.DatasetNames.TOY_MNIST  # use toy set for speedup
-        settings.net_count = 1  # use one net for speed up
-        experiment = ExperimentIMP(settings)
-        experiment.setup_experiment()
-
-    def test_experiment_conv6_cifar10_should_init(self):
-        """ Should setup IMP-Experiment with Conv-6 and CIFAR-10 without errors. """
-        settings = experiment_settings.get_settings_conv6_cifar10()
-        settings.dataset = experiment_settings.DatasetNames.TOY_CIFAR10  # use toy set for speedup
-        settings.net_count = 1  # use one net for speed up
-        experiment = ExperimentIMP(settings)
-        experiment.setup_experiment()
-
     def test_perform_toy_lenet_experiment(self):
         """ Should run IMP-Experiment with small Lenet and toy-dataset without errors. """
         settings = experiment_settings.get_settings_lenet_toy()
