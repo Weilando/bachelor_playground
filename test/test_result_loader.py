@@ -7,7 +7,9 @@ import numpy as np
 
 import data.result_loader as result_loader
 from data import result_saver
-from experiments.experiment_settings import get_settings_lenet_toy
+from experiments.experiment_histories import ExperimentHistories
+from experiments.experiment_settings import get_settings_lenet_toy, get_settings_conv_toy
+from nets.conv import Conv
 from nets.lenet import Lenet
 
 
@@ -138,21 +140,15 @@ class TestResultLoader(TestCase):
 
     def test_get_histories_from_file(self):
         """ Should load fake histories from npz file. """
-        loss_h = np.zeros(3)
-        val_acc_h = np.zeros(3)
-        test_acc_h = np.zeros(3)
-        sparsity_h = np.ones(1)
+        histories = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_histories(tmp_dir_name, 'prefix', loss_h, val_acc_h, test_acc_h, sparsity_h)
+            result_saver.save_histories(tmp_dir_name, 'prefix', histories)
 
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loss_l, val_acc_l, test_acc_l, sparsity_l = result_loader.get_histories_from_file(experiment_path_prefix)
-            np.testing.assert_array_equal(loss_l, loss_h)
-            np.testing.assert_array_equal(val_acc_l, val_acc_h)
-            np.testing.assert_array_equal(test_acc_l, test_acc_h)
-            np.testing.assert_array_equal(sparsity_l, sparsity_h)
+            loaded_histories = result_loader.get_histories_from_file(experiment_path_prefix)
+            self.assertEqual(loaded_histories, histories)
 
     def test_get_models_from_file(self):
         """ Should load two small Lenets from pth files. """

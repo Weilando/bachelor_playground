@@ -5,6 +5,9 @@ from dataclasses import asdict
 import numpy as np
 import torch
 
+from experiments.experiment_histories import ExperimentHistories
+from experiments.experiment_settings import ExperimentSettings
+
 
 def setup_and_get_result_path(relative_result_path='../data/results'):
     """ Generate absolute path to results directory and create it, if necessary. """
@@ -36,6 +39,8 @@ def generate_net_file_name(file_prefix, net_number):
 
 def save_specs(results_path, file_prefix, specs):
     """ Save experiment's specs as dict in json-file. """
+    assert isinstance(specs, ExperimentSettings), f"specs must have type ExperimentSettings, but is {type(specs)}."
+
     file_name = generate_specs_file_name(file_prefix)
     json_path = os.path.join(results_path, file_name)
 
@@ -57,10 +62,14 @@ def save_nets(results_path, file_prefix, net_list):
             torch.save(net.state_dict(), f)
 
 
-def save_histories(results_path, file_prefix, loss_h, val_acc_h, test_acc_h, sparsity_h):
-    """ Save loss-, validation- and test-histories and sparsity-history in npz-file. """
+def save_histories(results_path, file_prefix, histories):
+    """ Save all np.arrays from histories in one npz-file. """
+    assert isinstance(histories, ExperimentHistories), \
+        f"histories must have type ExperimentSettings, but is {type(histories)}."
+
     file_name = generate_histories_file_name(file_prefix)
     histories_path = os.path.join(results_path, file_name)
 
     with open(histories_path, "wb") as f:
-        np.savez(f, loss_h=loss_h, val_acc_h=val_acc_h, test_acc_h=test_acc_h, sparsity_h=sparsity_h)
+        histories_dict = asdict(histories)  # generate key-value pairs of names and np.arrays
+        np.savez(f, **histories_dict)  # unpack key-value pairs to save named arrays

@@ -5,6 +5,7 @@ import torch
 
 from data import result_saver as rs
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
+from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
@@ -24,15 +25,15 @@ class Experiment(object):
 
         self.device = torch.device(args.device)
 
-        # Setup nets in init_nets()
+        # setup nets in init_nets()
         self.nets = [Net] * self.args.net_count
 
-        # Setup epoch_length and trainer in load_data_and_setup_trainer()
+        # setup epoch_length and trainer in load_data_and_setup_trainer()
         self.trainer = None
         self.epoch_length = 0
 
-        # Setup history-arrays in create_histories()
-        self.loss_hists, self.val_acc_hists, self.test_acc_hists, self.sparsity_hist = None, None, None, None
+        # setup history-arrays in create_histories()
+        self.hists = ExperimentHistories()
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
@@ -67,11 +68,12 @@ class Experiment(object):
         Accuracies and the nets' sparsity are saved after each epoch. """
         # calculate amount of iterations to save at
         history_length = calc_hist_length(self.epoch_length, self.args.epoch_count, self.args.plot_step)
-        self.loss_hists = np.zeros((self.args.net_count, self.args.prune_count + 1, history_length), dtype=float)
-        self.val_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
-        self.test_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
+        self.hists.train_loss = np.zeros((self.args.net_count, self.args.prune_count + 1, history_length), dtype=float)
+        self.hists.val_loss = np.zeros_like(self.hists.train_loss, dtype=float)
+        self.hists.val_acc = np.zeros_like(self.hists.train_loss, dtype=float)
+        self.hists.test_acc = np.zeros_like(self.hists.train_loss, dtype=float)
 
-        self.sparsity_hist = np.ones((self.args.prune_count + 1), dtype=float)
+        self.hists.sparsity = np.ones((self.args.prune_count + 1), dtype=float)
 
     # noinspection PyTypeChecker
     def init_nets(self):
@@ -111,7 +113,6 @@ class Experiment(object):
 
         results_path = rs.setup_and_get_result_path(self.result_path)
         rs.save_specs(results_path, file_prefix, self.args)
-        rs.save_histories(results_path, file_prefix, self.loss_hists, self.val_acc_hists, self.test_acc_hists,
-                          self.sparsity_hist)
+        rs.save_histories(results_path, file_prefix, self.hists)
         rs.save_nets(results_path, file_prefix, self.nets)
         log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")
