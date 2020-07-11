@@ -4,8 +4,8 @@ import time
 import numpy as np
 import torch
 
+from data import plotter
 from experiments.experiment_settings import VerbosityLevel
-from training import plotter
 from training.logger import log_from_medium, log_detailed_only
 
 

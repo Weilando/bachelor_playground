@@ -14,18 +14,19 @@ class PlotType(str, Enum):
 
 # evaluation
 def find_stop_iteration(loss_hists):
-    """ Find the early-stop indices for each (validation-)loss-history in 'loss_hists'.
-    Suppose 'loss_hists' has shape (net_count, prune_count, iteration_count).
-    The result has shape (net_count, prune_count) and contains the earliest index with minimum loss along the last axis,
-    saved per net_count and prune_count. """
+    """ Find the early-stop indices in 'loss_hists', i.e. the smallest indices with minimum loss along the last axis.
+    Usually the criterion is performed on the validation-loss.
+    Suppose 'loss_hists' has shape (net_count, prune_count+1, iteration_count).
+    The result has shape (net_count, prune_count+1). """
     return np.argmin(loss_hists, axis=2)
 
 
 def get_values_at_stop_iteration(stop_indices, hists):
-    """ Find the actual values from hists at given stop_indices, e.g. to get the validation loss at these times.
-    Suppose 'stop_indices' has shape (net_count, prune_count) and 'hists' has shape
-    (net_count, prune_count, iteration_count).
-    The result has shape (net_count, prune_count, 1) and contains corresponding values from 'hists' in the last dim. """
+    """ Find the actual values from 'hists' at given 'stop_indices' as calculated by find_stop_iteration(...).
+    Usually 'stop_indices' are found on the validation-loss and one needs accuracies at these times.
+    Suppose 'stop_indices' has shape (net_count, prune_count+1) and 'hists' has shape
+    (net_count, prune_count+1, iteration_count).
+    The result has shape (net_count, prune_count+1, 1) and holds corresponding values from 'hists' in the last dim. """
     return np.take_along_axis(hists, np.expand_dims(stop_indices, axis=2), axis=2)
 
 
@@ -51,20 +52,26 @@ def get_means_and_y_errors(arr):
 
 # generators
 def gen_iteration_space(arr, plot_step):
-    """ Generate a linear space from plot_step with the same length as arr and step size plot_step. """
+    """ Generate a linear space from 'plot_step' with the same length as 'arr' and step size 'plot_step'. """
     len_arr = len(arr)
     return np.linspace(start=plot_step, stop=len_arr * plot_step, num=len_arr)
 
 
 def gen_labels_on_ax(ax, plot_type: PlotType, iteration=True):
     """ Generates labels for the x- and y-axis on given ax.
-    'iteration' defines if x-labels should be generated for iterations or sparsity. """
+    'iteration' defines if the x-axis shows iterations or sparsity. """
     ax.set_ylabel(f"{plot_type.value}")
     ax.set_xlabel(f"{'Iteration' if iteration else 'Sparsity'}")
 
 
+def gen_new_single_ax():
+    """ Generates a new axes from new figure. """
+    fig = plt.figure(None, (7, 6))
+    return fig.subplots(1, 1, sharex=False)
+
+
 def gen_title_on_ax(ax, net_count, plot_type: PlotType, early_stop=False):
-    """ Generates plot-title for net_count nets on given ax.
+    """ Generates plot-title for 'net_count' nets on given ax.
     'early_stop' defines if early-stopping should be mentioned. """
     if not early_stop:
         ax.set_title(f"Average {plot_type.value} for {net_count} pruned Networks")
@@ -73,8 +80,8 @@ def gen_title_on_ax(ax, net_count, plot_type: PlotType, early_stop=False):
 
 
 def setup_grids_on_ax(ax, force_zero=False):
-    """ Setup grids for on given ax.
-    force_zero sets the minimum y-value to zero, e.g. for loss plots. """
+    """ Setup grids on given ax.
+    'force_zero' sets the minimum y-value to zero, e.g. for loss plots. """
     ax.grid()
     if force_zero:
         ax.set_ylim(bottom=0)
@@ -90,21 +97,21 @@ def setup_labeling_on_ax(ax, net_count, plot_type: PlotType, iteration=True):
 # subplots
 def plot_baseline_mean_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
     """ Plots the baseline as dashed line wit error bars on given ax. """
-    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], label="Mean after 0 prunes", ls='--')
+    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], label="0 prunes", ls='--')
 
 
 def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_min, prune_max):
-    """ Plots means per pruning level as line with error bars on given ax.
+    """ Plots means per pruning level as solid line with error bars on given ax.
      Labels contain the sparsity at given level of pruning.
-     prune_min and prune_max specify the prune-levels to plot. """
+     'prune_min' and 'prune_max' specify the prune-levels to plot. """
     for p in range(prune_min, prune_max + 1):
         ax.errorbar(x=xs, y=ys[p], yerr=[y_err_neg[p], y_err_pos[p]],
-                    label=f"Mean after {p} prunes (sparsity {sparsity_hist[p]:.4})")
+                    label=f"{p} prunes (sparsity {sparsity_hist[p]:.4})")
 
 
 def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
     """ Plot means and error-bars for given hists on ax.
-    Suppose hists has shape (net_count, prune_count).
+    Suppose hists has shape (net_count, prune_count+1) and 'sparsity_hist' has shape (prune_count+1).
     Plots dashed baseline (unpruned) and a solid line for each pruning step. """
     _, prune_count, _ = hists.shape
     prune_count -= 1  # baseline at index 0, thus first pruned round at index 1
@@ -117,7 +124,8 @@ def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
 
 
 def plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist):
-    """ Plot means and error-bars for given accuracies (per sparsity) on ax. """
+    """ Plot means and error-bars for given accuracies (per sparsity) on ax.
+    Suppose 'acc_hists' has shape (net_count, prune_count+1, 1) and 'sparsity_hist' has shape (prune_count+1). """
     # each mean has shape (prune_count+1, 1), so squeeze them to shape (prune_count+1)
     acc_mean, acc_neg_y_err, acc_pos_y_err = get_means_and_y_errors(acc_hists)
     acc_mean = np.squeeze(acc_mean)
@@ -133,12 +141,13 @@ def plot_average_acc_at_early_stop_on_ax(ax, acc_hists, sparsity_hist):
 # plots
 def plot_average_hists(hists, sparsity_hist, plot_step, plot_type: PlotType):
     """ Plot means and error bars for the given histories in hists.
-    'test' defines if labels should be generated for test- or validation-accuracies. """
+    Suppose 'hists' has shape (net_count, prune_count+1, data_length), and 'sparsity_hist' has shape (prune_count+1).
+    The x-axis is labeled with iterations, which are reconstructed from plot_step.
+    The baseline (i.e. the lowest sparsity) is a dashed line, all further pruning-levels are solid lines. """
     # setup and plot
-    fig = plt.figure(None, (7, 6))
-    ax = fig.subplots(1, 1, sharex=False)
-    plot_averages_on_ax(ax, hists, sparsity_hist, plot_step)
+    ax = gen_new_single_ax()
     setup_grids_on_ax(ax)
+    plot_averages_on_ax(ax, hists, sparsity_hist, plot_step)
 
     # labeling
     net_count, _, _ = hists.shape
@@ -147,14 +156,18 @@ def plot_average_hists(hists, sparsity_hist, plot_step, plot_type: PlotType):
 
 def plot_two_average_hists(hists_left, hists_right, sparsity_hist, plot_step, type_left: PlotType, type_right: PlotType,
                            force_zero_left=False, force_zero_right=False):
-    """ Plot means and error bars for two hists side by side. """
+    """ Plot means and error bars for two hists side by side.
+    Suppose 'hists_left' and 'hists_right' have shape (net_count, prune_count+1, data_length), and 'sparsity_hist' has
+    shape (prune_count+1).
+    The x-axis is labeled with iterations, which are reconstructed from plot_step.
+    The baseline (i.e. the lowest sparsity) is a dashed line, all further pruning-levels are solid lines. """
     # setup and plot
     fig = plt.figure(None, (14, 6))
     ax_left, ax_right = fig.subplots(1, 2, sharex=False)
-    plot_averages_on_ax(ax_left, hists_left, sparsity_hist, plot_step)
-    plot_averages_on_ax(ax_right, hists_right, sparsity_hist, plot_step)
     setup_grids_on_ax(ax_left, force_zero_left)
     setup_grids_on_ax(ax_right, force_zero_right)
+    plot_averages_on_ax(ax_left, hists_left, sparsity_hist, plot_step)
+    plot_averages_on_ax(ax_right, hists_right, sparsity_hist, plot_step)
 
     # labeling
     net_count, _, _ = hists_left.shape
@@ -164,17 +177,17 @@ def plot_two_average_hists(hists_left, hists_right, sparsity_hist, plot_step, ty
 
 def plot_acc_at_early_stopping(acc_hists, loss_hists, sparsity_hist, plot_type: PlotType):
     """ Plot means and error bars for the given accuracies at the time an early stopping criterion would end training.
-    The x-axis shows the sparsity at each time.
-    'test_acc' defines if labels should be generated for test- or validation-accuracies. """
+    Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), and 'sparsity_hist' has
+    shape (prune_count+1).
+    The x-axis shows the sparsity at each time. """
     # apply early-stopping criterion on loss_hists to find corresponding accuracies
     early_stop_indices = find_stop_iteration(loss_hists)
     early_stop_acc = get_values_at_stop_iteration(early_stop_indices, acc_hists)
 
-    # plot
-    fig = plt.figure(None, (7, 6))
-    ax = fig.subplots(1, 1, sharex=False)
-    plot_average_acc_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
+    # setup and plot
+    ax = gen_new_single_ax()
     setup_grids_on_ax(ax)
+    plot_average_acc_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
 
     # labeling
     net_count, _, _ = acc_hists.shape

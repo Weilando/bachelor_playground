@@ -4,7 +4,7 @@ from unittest import main as unittest_main
 import matplotlib.pyplot as plt
 import numpy as np
 
-from training import plotter
+from data import plotter
 
 
 class TestPlotter(TestCase):
@@ -71,7 +71,7 @@ class TestPlotter(TestCase):
         self.assertTrue((expected_max == result_max).all)
 
     # generators
-    def test_generate_iteration_space(self):
+    def test_gen_iteration_space(self):
         """ Should generate the correct iteration space. """
         arr = np.zeros(3)
         plot_step = 2
@@ -92,6 +92,11 @@ class TestPlotter(TestCase):
         plotter.gen_labels_on_ax(ax, plotter.PlotType.VAL_ACC, iteration=False)
         self.assertEqual(ax.get_ylabel(), plotter.PlotType.VAL_ACC)
         self.assertEqual(ax.get_xlabel(), "Sparsity")
+
+    def test_gen_new_single_ax(self):
+        """ Should return a single axes object. """
+        ax = plotter.gen_new_single_ax()
+        self.assertIsInstance(ax, plt.Axes)
 
     def test_gen_title_for_test_acc_on_ax(self):
         """ Should generate the correct title. """

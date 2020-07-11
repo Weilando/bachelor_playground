@@ -6,7 +6,7 @@ from experiments.experiment_settings import VerbosityLevel, DatasetNames
 from training.logger import log_from_medium
 
 
-def generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity):
+def generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity: VerbosityLevel):
     """ Generate data loaders from given data sets. """
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4,
                               pin_memory=(device != 'cpu'), drop_last=True)

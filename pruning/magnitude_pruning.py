@@ -1,7 +1,8 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.utils.prune as prune
-import math
 
 
 def setup_masks(layer):
@@ -18,7 +19,7 @@ def prune_mask(layer, prune_rate):
     elif isinstance(layer, nn.Conv2d):
         init_weight_count = layer.in_channels * layer.out_channels * layer.kernel_size[0] * layer.kernel_size[1]
     else:
-        raise AssertionError(f"Could not prune mask for layer of type {type(layer)}.")
+        raise AssertionError(f"Could not prune mask, because the layer has an invalid type {type(layer)}.")
 
     unpruned_weight_count = int(layer.weight_mask.flatten().sum())
     pruned_weight_count = int(init_weight_count - unpruned_weight_count)

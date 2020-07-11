@@ -3,14 +3,13 @@ import time
 import numpy as np
 import torch
 
-from data import result_saver as rs
+from data import result_saver as rs, plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
 from nets.net import Net
-from training import plotter
 from training.logger import log_from_medium, log_detailed_only
 from training.trainer import TrainerAdam, calc_hist_length
 
