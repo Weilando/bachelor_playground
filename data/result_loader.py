@@ -5,6 +5,7 @@ import os
 import numpy as np
 import torch
 
+from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import NetNames, ExperimentSettings
 from nets import lenet, conv
 
@@ -37,10 +38,10 @@ def generate_net_file_paths(experiment_path_prefix, net_count):
 
 
 # higher level functions
-def print_relative_spec_file_paths():
-    """ Print all relative paths for files ending with '-specs.json' from subdirectory '/results'. """
-    for experiment_file in sorted(glob.glob("results/*-specs.json")):
-        print(experiment_file)
+def get_relative_spec_file_paths(sub_dir='results'):
+    """ Return all relative paths with suffix '-specs.json' from subdirectory 'sub_dir' in ascending order. """
+    pattern = os.path.join(sub_dir, "*-specs.json")
+    return sorted(glob.glob(pattern))
 
 
 def extract_experiment_path_prefix(relative_specs_path):
@@ -53,8 +54,8 @@ def extract_experiment_path_prefix(relative_specs_path):
 def get_specs_from_file(absolute_specs_path, as_dict=False):
     """ Read the specs-file (.json) specified by the given relative path.
      Return result as dict or ExperimentSettings object. """
-    with open(absolute_specs_path, 'r') as f:
-        specs_dict = json.load(f)
+    with open(absolute_specs_path, 'r') as specs_file:
+        specs_dict = json.load(specs_file)
     if as_dict:
         return specs_dict
     return ExperimentSettings(**specs_dict)
@@ -63,8 +64,8 @@ def get_specs_from_file(absolute_specs_path, as_dict=False):
 def get_histories_from_file(experiment_path_prefix):
     """ Read histories from the npz-file specified by the given experiment_path_prefix and return them as np.arrays. """
     histories_file_path = generate_histories_file_path(experiment_path_prefix)
-    with np.load(histories_file_path) as f:
-        return f['loss_h'], f['val_acc_h'], f['test_acc_h'], f['val_acc_ep_h'], f['test_acc_ep_h'], f['sparsity_h']
+    with np.load(histories_file_path) as histories_file:
+        return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
 
 
 def get_models_from_files(experiment_path_prefix, specs):

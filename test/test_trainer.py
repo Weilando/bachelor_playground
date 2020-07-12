@@ -32,15 +32,14 @@ class TestTrainer(TestCase):
 
     def test_calculate_correct_hist_length(self):
         """ Should calculate the correct length for history arrays.
-        History is saved at the following combinations of epochs and iterations: 0,0; 2,0. """
-        self.assertEqual(2, calc_hist_length(5, 4, 10))
+        History is saved at the following combinations of epochs and iterations: 0,4; 1,4. """
+        self.assertEqual(2, calc_hist_length(5, 2, 5))
 
     def test_calculate_correct_hist_length_rounding(self):
         """ Should calculate the correct length for history arrays.
-        History is saved at the following combinations of epochs and iterations: 0,0; 2,4; 5,0. """
-        self.assertEqual(2, calc_hist_length(4, 4, 10))
+        History is saved at the following combinations of epochs and iterations: 0,3; 1,2; 2,1. """
+        self.assertEqual(3, calc_hist_length(5, 3, 4))
 
-    # noinspection DuplicatedCode
     def test_execute_training(self):
         """ The training should be executed without errors and results should have correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
@@ -51,25 +50,21 @@ class TestTrainer(TestCase):
         fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
-        expected_hist_shape = (3,)
-        expected_hist_epoch_shape = (2,)
+        expected_hist_shape = (2,)
 
-        net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch \
-            = trainer.train_net(net, epoch_count=2, plot_step=3)
+        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist = \
+            trainer.train_net(net, epoch_count=2, plot_step=3)
 
         self.assertTrue(net is not None)
-        self.assertEqual(expected_hist_shape, loss_hist.shape)
+        self.assertEqual(expected_hist_shape, train_loss_hist.shape)
+        self.assertEqual(expected_hist_shape, val_loss_hist.shape)
         self.assertEqual(expected_hist_shape, val_acc_hist.shape)
         self.assertEqual(expected_hist_shape, test_acc_hist.shape)
-        self.assertEqual(expected_hist_epoch_shape, val_acc_hist_epoch.shape)
-        self.assertEqual(expected_hist_epoch_shape, test_acc_hist_epoch.shape)
-        self.assertTrue(all(loss_hist > 0))
+        self.assertTrue(all(train_loss_hist > 0))
+        self.assertTrue(all(val_loss_hist > 0))
         self.assertTrue(all(val_acc_hist > 0))
         self.assertTrue(all(test_acc_hist > 0))
-        self.assertTrue(all(val_acc_hist_epoch > 0))
-        self.assertTrue(all(test_acc_hist_epoch > 0))
 
-    # noinspection DuplicatedCode
     def test_execute_training_rounding(self):
         """ Should execute training without errors and save results with correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
@@ -81,22 +76,19 @@ class TestTrainer(TestCase):
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
         expected_hist_shape = (2,)
-        expected_hist_epoch_shape = (2,)
 
-        net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch \
-            = trainer.train_net(net, epoch_count=2, plot_step=4)
+        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist = \
+            trainer.train_net(net, epoch_count=2, plot_step=4)
 
         self.assertTrue(net is not None)
-        self.assertEqual(expected_hist_shape, loss_hist.shape)
+        self.assertEqual(expected_hist_shape, train_loss_hist.shape)
+        self.assertEqual(expected_hist_shape, val_loss_hist.shape)
         self.assertEqual(expected_hist_shape, val_acc_hist.shape)
         self.assertEqual(expected_hist_shape, test_acc_hist.shape)
-        self.assertEqual(expected_hist_epoch_shape, val_acc_hist_epoch.shape)
-        self.assertEqual(expected_hist_epoch_shape, test_acc_hist_epoch.shape)
-        self.assertTrue(all(loss_hist > 0))
+        self.assertTrue(all(train_loss_hist > 0))
+        self.assertTrue(all(val_loss_hist > 0))
         self.assertTrue(all(val_acc_hist > 0))
         self.assertTrue(all(test_acc_hist > 0))
-        self.assertTrue(all(val_acc_hist_epoch > 0))
-        self.assertTrue(all(test_acc_hist_epoch > 0))
 
     def test_compute_correct_test_acc(self):
         """ Should calculate the correct test-accuracy.
@@ -109,7 +101,7 @@ class TestTrainer(TestCase):
         labels_batch1 = torch.tensor([0, 0, 1])
         labels_batch2 = torch.tensor([1, 1, 0])
         test_loader = [[samples, labels_batch1], [samples, labels_batch2]]
-        trainer = TrainerAdam(0., None, None, test_loader=test_loader)
+        trainer = TrainerAdam(0., [], [], test_loader=test_loader)
 
         self.assertEqual(0.5, trainer.compute_acc(net, test=True))
 
@@ -123,9 +115,20 @@ class TestTrainer(TestCase):
         samples = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
         labels = torch.tensor([0, 0, 1])
         val_loader = [[samples, labels]]
-        trainer = TrainerAdam(0., None, val_loader, test_loader=None)
+        trainer = TrainerAdam(0., [], val_loader, test_loader=[])
 
         self.assertEqual(1., trainer.compute_acc(net, test=False))
+
+    def test_compute_val_loss(self):
+        """ Should calculate a positive validation loss. """
+        net = generate_single_layer_net()
+
+        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
+        fake_loader = generate_fake_data_loader()
+        trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
+
+        val_loss = trainer.compute_val_loss(net)
+        self.assertGreater(val_loss, 0.0)
 
 
 if __name__ == '__main__':

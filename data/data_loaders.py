@@ -3,18 +3,19 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split, Subset
 
 from experiments.experiment_settings import VerbosityLevel, DatasetNames
+from training.logger import log_from_medium
 
 
-def generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity):
+def generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity: VerbosityLevel):
     """ Generate data loaders from given data sets. """
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4,
-                              pin_memory=(device != 'cpu'))
+                              pin_memory=(device != 'cpu'), drop_last=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=(device != 'cpu'))
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2,
                              pin_memory=(device != 'cpu'))
 
-    if verbosity != VerbosityLevel.SILENT:
-        print(len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data), len(test_loader))
+    log_from_medium(verbosity, (len(train_data), len(train_loader), len(val_data), len(val_loader), len(test_data),
+                                len(test_loader)))
 
     return train_loader, val_loader, test_loader
 

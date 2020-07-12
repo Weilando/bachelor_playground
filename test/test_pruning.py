@@ -107,6 +107,11 @@ class TestPruning(TestCase):
         expected_weights = torch.tensor([[0., -0., 3.], [-4., 5., -6.]])
         self.assertTrue(test_layer.weight.equal(expected_weights))
 
+    def test_prune_mask_raise_error_on_invalid_layer_type(self):
+        """ Should raise an assertion error, because no pruning procedure is defined. """
+        with self.assertRaises(AssertionError):
+            mp.prune_mask(nn.MaxPool2d(2), 0.2)
+
 
 if __name__ == '__main__':
     unittest_main()

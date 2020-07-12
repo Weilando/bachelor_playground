@@ -64,6 +64,11 @@ class TestPlanCheck(TestCase):
         input_string = '-1B'
         self.assertFalse(plan_check.is_batch_norm_spec(input_string))
 
+    def test_get_number_from_batch_norm_spec(self):
+        """ Should return number from batch-norm spec. """
+        input_string = '42B'
+        self.assertEqual(plan_check.get_number_from_batch_norm_spec(input_string), 42)
+
 
 if __name__ == '__main__':
     unittest_main()

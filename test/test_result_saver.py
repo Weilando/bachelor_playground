@@ -9,6 +9,7 @@ import numpy as np
 from torch import load as t_load
 
 import data.result_saver as result_saver
+from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import get_settings_lenet_toy
 from nets.lenet import Lenet
 
@@ -89,29 +90,20 @@ class TestResultSaver(TestCase):
 
     def test_save_histories(self):
         """ Should save fake histories into npz file. """
-        h1 = np.zeros(3)
-        h2 = np.zeros(1)
-        h3 = np.zeros(3)
-        h4 = np.ones(1)
-        h5 = np.ones(2)
-        h6 = np.ones(3)
+        histories = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))
 
         with TemporaryDirectory() as tmp_dir_name:
             # save histories
-            result_saver.save_histories(tmp_dir_name, 'prefix', h1, h2, h3, h4, h5, h6)
+            result_saver.save_histories(tmp_dir_name, 'prefix', histories)
 
             # load and validate histories from file
             result_file_path = os.path.join(tmp_dir_name, 'prefix-histories.npz')
             with np.load(result_file_path) as result_file:
-                np.testing.assert_array_equal(h1, result_file['loss_h'])
-                np.testing.assert_array_equal(h2, result_file['val_acc_h'])
-                np.testing.assert_array_equal(h3, result_file['test_acc_h'])
-                np.testing.assert_array_equal(h4, result_file['val_acc_ep_h'])
-                np.testing.assert_array_equal(h5, result_file['test_acc_ep_h'])
-                np.testing.assert_array_equal(h6, result_file['sparsity_h'])
+                reconstructed_histories = ExperimentHistories(**result_file)
+                self.assertEqual(histories, reconstructed_histories)
 
     def test_save_nets(self):
-        """ Should save two small Lenets into pth files. """
+        """ Should save two small Lenet instances into pth files. """
         plan_fc = [5]
         net_list = [Lenet(plan_fc), Lenet(plan_fc)]
 

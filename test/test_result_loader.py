@@ -1,3 +1,4 @@
+import os
 from dataclasses import asdict
 from tempfile import TemporaryDirectory
 from unittest import main as unittest_main
@@ -7,7 +8,9 @@ import numpy as np
 
 import data.result_loader as result_loader
 from data import result_saver
-from experiments.experiment_settings import get_settings_lenet_toy
+from experiments.experiment_histories import ExperimentHistories
+from experiments.experiment_settings import get_settings_lenet_toy, get_settings_conv_toy
+from nets.conv import Conv
 from nets.lenet import Lenet
 
 
@@ -84,6 +87,23 @@ class TestResultLoader(TestCase):
             result_loader.generate_net_file_paths(experiment_path_prefix, 0)
 
     # higher level functions
+    def test_get_relative_spec_file_paths(self):
+        """ Should return all relative paths to spec-file in ascending order. """
+        with TemporaryDirectory() as tmp_dir:
+            # create sub-directory 'results', two specs-files and another file
+            tmp_results = os.path.join(tmp_dir, 'results')
+            os.mkdir(tmp_results)
+            relative_path_specs_file1 = os.path.join(tmp_results, 'prefix1-specs.json')
+            relative_path_specs_file2 = os.path.join(tmp_results, 'prefix2-specs.json')
+            relative_path_no_specs_file = os.path.join(tmp_results, 'prefix.json')
+            open(relative_path_specs_file1, 'a').close()
+            open(relative_path_specs_file2, 'a').close()
+            open(relative_path_no_specs_file, 'a').close()
+
+            result_paths = result_loader.get_relative_spec_file_paths(tmp_results)
+
+            self.assertEqual([relative_path_specs_file1, relative_path_specs_file2], result_paths)
+
     def test_extract_experiment_path_prefix(self):
         """ Should extract experiment path prefix without error. """
         with mock.patch('data.result_loader.os') as mocked_os:
@@ -138,31 +158,19 @@ class TestResultLoader(TestCase):
 
     def test_get_histories_from_file(self):
         """ Should load fake histories from npz file. """
-        h1 = np.zeros(3)
-        h2 = np.zeros(1)
-        h3 = np.zeros(3)
-        h4 = np.ones(1)
-        h5 = np.ones(2)
-        h6 = np.ones(3)
+        histories = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_histories(tmp_dir_name, 'prefix', h1, h2, h3, h4, h5, h6)
+            result_saver.save_histories(tmp_dir_name, 'prefix', histories)
 
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            lh1, lh2, lh3, lh4, lh5, lh6 = result_loader.get_histories_from_file(experiment_path_prefix)
-            np.testing.assert_array_equal(h1, lh1)
-            np.testing.assert_array_equal(h2, lh2)
-            np.testing.assert_array_equal(h3, lh3)
-            np.testing.assert_array_equal(h4, lh4)
-            np.testing.assert_array_equal(h5, lh5)
-            np.testing.assert_array_equal(h6, lh6)
+            loaded_histories = result_loader.get_histories_from_file(experiment_path_prefix)
+            self.assertEqual(loaded_histories, histories)
 
-    def test_get_models_from_file(self):
-        """ Should load two small Lenets from pth files. """
+    def test_get_lenet_from_file(self):
+        """ Should load two small Lenet instances from pth files. """
         experiment_settings = get_settings_lenet_toy()
-        experiment_settings.net_count = 2
-        experiment_settings.plan_fc = [5]
         net_list = [Lenet(experiment_settings.plan_fc), Lenet(experiment_settings.plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
@@ -174,6 +182,22 @@ class TestResultLoader(TestCase):
             loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
             self.assertIsInstance(loaded_nets[0], Lenet)
             self.assertIsInstance(loaded_nets[1], Lenet)
+
+    def test_get_conv_from_file(self):
+        """ Should load two small Conv instances from pth files. """
+        experiment_settings = get_settings_conv_toy()
+        net_list = [Conv(experiment_settings.plan_conv, experiment_settings.plan_fc),
+                    Conv(experiment_settings.plan_conv, experiment_settings.plan_fc)]
+
+        with TemporaryDirectory() as tmp_dir_name:
+            # save nets
+            result_saver.save_nets(tmp_dir_name, 'prefix', net_list)
+
+            # load and reconstruct nets from their files
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
+            self.assertIsInstance(loaded_nets[0], Conv)
+            self.assertIsInstance(loaded_nets[1], Conv)
 
     def test_get_models_from_file_invalid_specs(self):
         """ Should raise assertion error if specs do not have type ExperimentSettings. """

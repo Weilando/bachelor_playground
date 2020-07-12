@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from nets.conv import Conv
+from nets.net import Net
 
 
 class TestConv(TestCase):
@@ -15,9 +16,19 @@ class TestConv(TestCase):
 
     def test_forward_pass_simple_conv(self):
         """ The neural network with small Conv architecture should perform a forward pass without exceptions. """
-        net = Conv(plan_conv=[8, 'M', 16, 'A'], plan_fc=[32, 16])
+        net = Conv(plan_conv=[8, 'M', '16B', 'A'], plan_fc=[32, 16])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
+
+    def test_raise_error_on_invalid_conv_spec(self):
+        """ The network should raise an assertion error, because plan_conv contains an invalid spec. """
+        with self.assertRaises(AssertionError):
+            Conv(plan_conv=['InvalidSpec!'])
+
+    def test_raise_error_on_sparsity_for_invalid_layer(self):
+        """ The network should raise an assertion error, because sparsity is not defined for max-pooling. """
+        with self.assertRaises(AssertionError):
+            Net.sparsity_layer(torch.nn.MaxPool2d(2))
 
     def test_weight_count_conv2(self):
         """ The neural network with Conv-2 architecture should have the right weight counts.

@@ -3,13 +3,14 @@ import time
 import numpy as np
 import torch
 
-from data import result_saver as rs
+from data import result_saver as rs, plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
-from experiments.experiment_settings import VerbosityLevel, DatasetNames, NetNames
+from experiments.experiment_histories import ExperimentHistories
+from experiments.experiment_settings import DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
 from nets.net import Net
-from training import plotter
+from training.logger import log_from_medium, log_detailed_only
 from training.trainer import TrainerAdam, calc_hist_length
 
 
@@ -19,21 +20,19 @@ class Experiment(object):
         self.args = args
         self.result_path = result_path
 
-        if self.args.verbosity != VerbosityLevel.SILENT:
-            print(args)
+        log_from_medium(self.args.verbosity, args)
 
         self.device = torch.device(args.device)
 
-        # Setup nets in init_nets()
+        # setup nets in init_nets()
         self.nets = [Net] * self.args.net_count
 
-        # Setup epoch_length and trainer in load_data_and_setup_trainer()
+        # setup epoch_length and trainer in load_data_and_setup_trainer()
         self.trainer = None
         self.epoch_length = 0
 
-        # Setup history-arrays in create_histories()
-        self.loss_hists, self.val_acc_hists, self.test_acc_hists = None, None, None
-        self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist = None, None, None
+        # setup history-arrays in create_histories()
+        self.hists = ExperimentHistories()
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
@@ -68,14 +67,12 @@ class Experiment(object):
         Accuracies and the nets' sparsity are saved after each epoch. """
         # calculate amount of iterations to save at
         history_length = calc_hist_length(self.epoch_length, self.args.epoch_count, self.args.plot_step)
-        self.loss_hists = np.zeros((self.args.net_count, self.args.prune_count + 1, history_length), dtype=float)
-        self.val_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
-        self.test_acc_hists = np.zeros_like(self.loss_hists, dtype=float)
+        self.hists.train_loss = np.zeros((self.args.net_count, self.args.prune_count + 1, history_length), dtype=float)
+        self.hists.val_loss = np.zeros_like(self.hists.train_loss, dtype=float)
+        self.hists.val_acc = np.zeros_like(self.hists.train_loss, dtype=float)
+        self.hists.test_acc = np.zeros_like(self.hists.train_loss, dtype=float)
 
-        self.val_acc_hists_epoch = np.zeros((self.args.net_count, self.args.prune_count + 1, self.args.epoch_count),
-                                            dtype=float)
-        self.test_acc_hists_epoch = np.zeros_like(self.val_acc_hists_epoch, dtype=float)
-        self.sparsity_hist = np.ones((self.args.prune_count + 1), dtype=float)
+        self.hists.sparsity = np.ones((self.args.prune_count + 1), dtype=float)
 
     # noinspection PyTypeChecker
     def init_nets(self):
@@ -88,8 +85,7 @@ class Experiment(object):
             else:
                 raise AssertionError(f"Could not initialize net, because the given name {self.args.net} is invalid.")
 
-        if self.args.verbosity == VerbosityLevel.DETAILED:
-            print(self.nets[0])
+        log_detailed_only(self.args.verbosity, self.nets[0])
 
     def execute_experiment(self):
         """ Execute all actions for experiment and save accuracy- and loss-histories. """
@@ -104,9 +100,8 @@ class Experiment(object):
 
         experiment_stop = time.time()  # stop clock for experiment duration
         duration = plotter.format_time(experiment_stop - experiment_start)
-        if self.args.verbosity != VerbosityLevel.SILENT:
-            print(f"Experiment duration: {duration}")
         self.args.duration = duration
+        log_from_medium(self.args.verbosity, f"Experiment duration: {duration}")
 
         self.save_results()
 
@@ -117,8 +112,6 @@ class Experiment(object):
 
         results_path = rs.setup_and_get_result_path(self.result_path)
         rs.save_specs(results_path, file_prefix, self.args)
-        rs.save_histories(results_path, file_prefix, self.loss_hists, self.val_acc_hists, self.test_acc_hists,
-                          self.val_acc_hists_epoch, self.test_acc_hists_epoch, self.sparsity_hist)
+        rs.save_histories(results_path, file_prefix, self.hists)
         rs.save_nets(results_path, file_prefix, self.nets)
-        if self.args.verbosity != VerbosityLevel.SILENT:
-            print("Successfully wrote results on disk.")
+        log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")

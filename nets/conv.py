@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 from nets.net import Net
-from nets.plan_check import is_numerical_spec, is_batch_norm_spec
+from nets.plan_check import is_numerical_spec, is_batch_norm_spec, get_number_from_batch_norm_spec
 from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
@@ -39,18 +39,19 @@ class Conv(Net):
                 conv_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
                 pooling_count += 1
             elif is_batch_norm_spec(spec):
-                conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
-                conv_layers.append(nn.BatchNorm2d(spec))
+                spec_number = get_number_from_batch_norm_spec(spec)
+                conv_layers.append(nn.Conv2d(filters, spec_number, kernel_size=3, padding=1))
+                conv_layers.append(nn.BatchNorm2d(spec_number))
                 conv_layers.append(nn.ReLU())
-                self.init_weight_count_net['conv'] += filters * spec * 9
-                filters = spec
+                self.init_weight_count_net['conv'] += filters * spec_number * 9
+                filters = spec_number
             elif is_numerical_spec(spec):
                 conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
                 conv_layers.append(nn.ReLU())
                 self.init_weight_count_net['conv'] += filters * spec * 9
                 filters = spec
             else:
-                raise AssertionError(f"{spec} from plan_conv is not a numerical spec.")
+                raise AssertionError(f"{spec} from plan_conv is an invalid spec.")
 
         # Each Pooling-layer quarters the input size (32*32=1024)
         filters = filters * round(1024 / (4 ** pooling_count))

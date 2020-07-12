@@ -3,15 +3,15 @@ import time
 
 import numpy as np
 import torch
-import torch.optim as optim
 
+from data import plotter
 from experiments.experiment_settings import VerbosityLevel
-from training import plotter
+from training.logger import log_from_medium, log_detailed_only
 
 
 def calc_hist_length(batch_count, epoch_count, plot_step):
     """ Calculate length of history arrays based on batch_count, epoch_count and plot_step. """
-    return math.ceil((batch_count * epoch_count) / plot_step)
+    return math.floor((batch_count * epoch_count) / plot_step)
 
 
 class TrainerAdam(object):
@@ -29,66 +29,62 @@ class TrainerAdam(object):
         self.device = device
         self.verbosity = verbosity
 
+        self.train_loader_len = len(train_loader)
+        self.val_loader_len = len(val_loader)
+
     def train_net(self, net, epoch_count=3, plot_step=100):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save accuracies and loss every 'plot_step' iterations and after each epoch.
         'reg_factor' adds L1-regularization. """
         net.to(self.device)  # push model to device
+        net.train(True)  # set model to training mode (important for batch-norm/dropout)
 
-        # initialize histories
-        hist_length = calc_hist_length(len(self.train_loader), epoch_count, plot_step)
-        loss_hist = np.zeros(hist_length, dtype=float)  # save each plot_step iterations
-        val_acc_hist = np.zeros_like(loss_hist, dtype=float)  # save each plot_step iterations
-        test_acc_hist = np.zeros_like(loss_hist, dtype=float)  # save each plot_step iterations
-        val_acc_hist_epoch = np.zeros(epoch_count, dtype=float)  # save per epoch
-        test_acc_hist_epoch = np.zeros_like(val_acc_hist_epoch, dtype=float)  # save per epoch
+        # initialize histories (one entry per plot_step iteration)
+        hist_length = calc_hist_length(self.train_loader_len, epoch_count, plot_step)
+        train_loss_hist = np.zeros(hist_length, dtype=float)
+        val_loss_hist = np.zeros_like(train_loss_hist, dtype=float)
+        val_acc_hist = np.zeros_like(train_loss_hist, dtype=float)
+        test_acc_hist = np.zeros_like(train_loss_hist, dtype=float)
 
         # setup training
-        opt = optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
+        opt = torch.optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
+        running_train_loss = 0
         hist_count = 0
-        tic = 0
 
         for e in range(0, epoch_count):
-            if self.verbosity != VerbosityLevel.SILENT:
-                print(f"epoch: {(e + 1):2} ", end="")
-                tic = time.time()
-            epoch_base = e * len(self.train_loader)
+            log_from_medium(self.verbosity, f"epoch: {(e + 1):2} ", False)
+            tic = time.time()
+            epoch_base = e * self.train_loader_len
 
-            for j, data in enumerate(self.train_loader):
-                # set model to training mode (important for batch-norm/dropout)
-                net.train(True)
-                # push inputs and targets to device
-                inputs, labels = data[0].to(self.device), data[1].to(self.device)
-
+            for j, data in enumerate(self.train_loader, epoch_base):
+                inputs, labels = data[0].to(self.device), data[1].to(self.device)  # push inputs and targets to device
                 opt.zero_grad()  # zero the parameter gradients
 
                 # forward pass
                 outputs = net(inputs)
-                loss = net.criterion(outputs, labels)
+                train_loss = net.criterion(outputs, labels)
 
                 # backward pass
-                loss.backward()
+                train_loss.backward()
                 opt.step()
 
                 # evaluate accuracies, save accuracies and loss
-                if ((epoch_base + j) % plot_step) == 0:
-                    loss_hist[hist_count] = loss.item()
+                running_train_loss += train_loss.item()
+                if (j % plot_step) == (plot_step - 1):
+                    train_loss_hist[hist_count] = running_train_loss / plot_step
+                    val_loss_hist[hist_count] = self.compute_val_loss(net)
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
+
                     hist_count += 1
-                    if self.verbosity == VerbosityLevel.DETAILED:
-                        print(f"-", end="")
-                    net.train(True)
+                    running_train_loss = 0
+                    net.train(True)  # set model to training mode (important for batch-norm/dropout)
+                    log_detailed_only(self.verbosity, f"-", False)
 
-            # evaluate and save accuracies after each epoch
-            val_acc_hist_epoch[e] = self.compute_acc(net, test=False)
-            test_acc_hist_epoch[e] = self.compute_acc(net, test=True)
-
-            # print progress
-            if self.verbosity != VerbosityLevel.SILENT:
-                toc = time.time()
-                print(f"val-acc: {(val_acc_hist_epoch[e]):1.4} (took {plotter.format_time(toc - tic)})")
-        return net, loss_hist, val_acc_hist, test_acc_hist, val_acc_hist_epoch, test_acc_hist_epoch
+            toc = time.time()
+            log_from_medium(self.verbosity,
+                            f"val-acc: {(val_acc_hist[hist_count - 1]):1.4} (took {plotter.format_time(toc - tic)})")
+        return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist
 
     def compute_acc(self, net, test=True):
         """ Compute the given net's accuracy.
@@ -99,7 +95,7 @@ class TrainerAdam(object):
         total = 0
         with torch.no_grad():
             for data in (self.test_loader if test else self.val_loader):
-                # Push inputs and targets to device
+                # push inputs and targets to device
                 inputs, labels = data[0].to(self.device), data[1].to(self.device)
                 outputs = net(inputs)
                 _, predicted = torch.max(outputs.data, 1)
@@ -107,3 +103,20 @@ class TrainerAdam(object):
                 correct += (predicted == labels).sum().item()
 
         return correct / total
+
+    def compute_val_loss(self, net):
+        """ Compute the given net's validation loss. """
+        net.train(False)  # set model to evaluation mode (important for batch-norm/dropout)
+
+        running_val_loss = 0
+        with torch.no_grad():
+            for data in self.val_loader:
+                # push inputs and targets to device
+                inputs, labels = data[0].to(self.device), data[1].to(self.device)
+
+                # forward pass
+                outputs = net(inputs)
+                val_loss = net.criterion(outputs, labels)
+                running_val_loss += val_loss.item()
+
+        return running_val_loss / self.val_loader_len
