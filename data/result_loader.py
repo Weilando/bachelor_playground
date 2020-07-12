@@ -38,10 +38,10 @@ def generate_net_file_paths(experiment_path_prefix, net_count):
 
 
 # higher level functions
-def print_relative_spec_file_paths():
-    """ Print all relative paths for files ending with '-specs.json' from subdirectory '/results'. """
-    for experiment_file in sorted(glob.glob("results/*-specs.json")):
-        print(experiment_file)
+def get_relative_spec_file_paths(sub_dir='results'):
+    """ Return all relative paths with suffix '-specs.json' from subdirectory 'sub_dir' in ascending order. """
+    pattern = os.path.join(sub_dir, "*-specs.json")
+    return sorted(glob.glob(pattern))
 
 
 def extract_experiment_path_prefix(relative_specs_path):

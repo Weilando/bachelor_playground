@@ -13,13 +13,13 @@ class TestPlotter(TestCase):
     Call with 'python -m test_plotter' from inside '~/test'. """
 
     # evaluation
-    def test_find_stop_iteration(self):
-        """ Should find the correct iterations for the early-stopping criterion.
+    def test_find_early_stop_indices(self):
+        """ Should find the correct indices for the early-stopping criterion.
         The input has shape (1,2,5), thus the result needs to have shape (1,2). """
         arr = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
         expected_iterations = np.array([[4, 2]])
 
-        result_iterations = plotter.find_stop_iteration(arr)
+        result_iterations = plotter.find_early_stop_indices(arr)
         np.testing.assert_array_equal(expected_iterations, result_iterations)
 
     def test_get_values_at_stop_iteration(self):
@@ -52,23 +52,27 @@ class TestPlotter(TestCase):
 
     def test_calculate_correct_mean_and_y_error(self):
         """ Should calculate the correct averages, maxima and minima.
-        The input has shape (3,2,4), thus all returned arrays need to have shape (2,4). """
+        The input has shape (3,2,4), thus all returned arrays need to have shape (2,4).
+        Negative and positive error-bars are equal in this case, as it holds min=[[3, 4, 5, 7], [2, 21, 9, 25]] and
+        max=[[9, 12, 15, 21], [6, 63, 15, 75]]. """
         arr = np.array(
             [[[3, 12, 10, 7], [2, 63, 9, 50]], [[6, 4, 15, 14], [6, 42, 27, 75]], [[9, 8, 5, 21], [4, 21, 18, 25]]],
             dtype=int)
-        expected_min = np.array([[3, 4, 5, 7], [2, 21, 9, 25]])
-        expected_max = np.array([[9, 12, 15, 21], [6, 63, 15, 75]])
-        expected_mean = np.array([[6, 8, 10, 14], [4, 42, 12, 50]])
-        expected_shape = (2, 4)
+        expected_y_error = np.array([[3, 4, 5, 7], [2, 21, 9, 25]])
+        expected_mean = np.array([[6, 8, 10, 14], [4, 42, 18, 50]])
 
-        result_mean, result_min, result_max = plotter.get_means_and_y_errors(arr)
+        result_mean, result_neg_y_error, result_pos_y_error = plotter.get_means_and_y_errors(arr)
 
-        self.assertEqual(expected_shape, result_mean.shape)
-        self.assertEqual(expected_shape, result_min.shape)
-        self.assertEqual(expected_shape, result_max.shape)
-        self.assertTrue((expected_mean == result_mean).all)
-        self.assertTrue((expected_min == result_min).all)
-        self.assertTrue((expected_max == result_max).all)
+        np.testing.assert_array_equal(expected_mean, result_mean)
+        np.testing.assert_array_equal(expected_y_error, result_neg_y_error)
+        np.testing.assert_array_equal(expected_y_error, result_pos_y_error)
+
+    def test_scale_early_stop_indices_to_iterations(self):
+        """ Should scale the given indices correctly, i.e. start counting by plot_step and count up with plot_step. """
+        indices = np.array([[4, 0]])
+        expected_iterations = np.array([[50, 10]])
+        result_iterations = plotter.scale_early_stop_indices_to_iterations(indices, 10)
+        np.testing.assert_array_equal(expected_iterations, result_iterations)
 
     # generators
     def test_gen_iteration_space(self):
@@ -77,7 +81,8 @@ class TestPlotter(TestCase):
         plot_step = 2
 
         expected_space = np.array([2, 4, 6])
-        np.testing.assert_array_equal(expected_space, plotter.gen_iteration_space(arr, plot_step))
+        result_space = plotter.gen_iteration_space(arr, plot_step)
+        np.testing.assert_array_equal(expected_space, result_space)
 
     def test_gen_labels_for_train_loss_and_iterations(self):
         """ Should generate the correct labels. """
@@ -156,6 +161,12 @@ class TestPlotter(TestCase):
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         plotter.plot_acc_at_early_stopping(hists, hists, sparsity, plotter.PlotType.TEST_ACC)
+
+    def test_plot_early_stop_iterations(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 2, 2))
+        sparsity = np.ones(2)
+        plotter.plot_early_stop_iterations(hists, sparsity, 10)
 
 
 if __name__ == '__main__':

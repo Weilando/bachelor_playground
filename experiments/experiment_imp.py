@@ -21,7 +21,7 @@ class ExperimentIMP(Experiment):
         for n in range(self.args.net_count):
             for p in range(0, self.args.prune_count + 1):
                 if p > 0:
-                    log_from_medium(self.args.verbosity, f"Prune network #{n} in round {p}.", False)
+                    log_from_medium(self.args.verbosity, f"Prune network #{n} in round {p}. ", False)
                     self.prune_net(self.nets[n])
 
                 if n == 0:

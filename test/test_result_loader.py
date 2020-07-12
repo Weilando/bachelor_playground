@@ -1,3 +1,4 @@
+import os
 from dataclasses import asdict
 from tempfile import TemporaryDirectory
 from unittest import main as unittest_main
@@ -86,6 +87,23 @@ class TestResultLoader(TestCase):
             result_loader.generate_net_file_paths(experiment_path_prefix, 0)
 
     # higher level functions
+    def test_get_relative_spec_file_paths(self):
+        """ Should return all relative paths to spec-file in ascending order. """
+        with TemporaryDirectory() as tmp_dir:
+            # create sub-directory 'results', two specs-files and another file
+            tmp_results = os.path.join(tmp_dir, 'results')
+            os.mkdir(tmp_results)
+            relative_path_specs_file1 = os.path.join(tmp_results, 'prefix1-specs.json')
+            relative_path_specs_file2 = os.path.join(tmp_results, 'prefix2-specs.json')
+            relative_path_no_specs_file = os.path.join(tmp_results, 'prefix.json')
+            open(relative_path_specs_file1, 'a').close()
+            open(relative_path_specs_file2, 'a').close()
+            open(relative_path_no_specs_file, 'a').close()
+
+            result_paths = result_loader.get_relative_spec_file_paths(tmp_results)
+
+            self.assertEqual([relative_path_specs_file1, relative_path_specs_file2], result_paths)
+
     def test_extract_experiment_path_prefix(self):
         """ Should extract experiment path prefix without error. """
         with mock.patch('data.result_loader.os') as mocked_os:
