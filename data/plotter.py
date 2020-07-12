@@ -22,15 +22,6 @@ def find_early_stop_indices(loss_hists):
     return np.argmin(loss_hists, axis=2)
 
 
-def get_values_at_stop_iteration(stop_indices, hists):
-    """ Find the actual values from 'hists' at given 'stop_indices' as calculated by find_early_stop_indices(...).
-    Usually 'stop_indices' are found on the validation-loss and one needs accuracies at these times.
-    Suppose 'stop_indices' has shape (net_count, prune_count+1) and 'hists' has shape
-    (net_count, prune_count+1, iteration_count).
-    The result has shape (net_count, prune_count+1, 1) and holds corresponding values from 'hists' in the last dim. """
-    return np.take_along_axis(hists, np.expand_dims(stop_indices, axis=2), axis=2)
-
-
 def format_time(time):
     """ Format a given integer (UIX time) into a string.
     Convert times shorter than a minute into seconds with four decimal places.
@@ -49,6 +40,15 @@ def get_means_and_y_errors(arr):
     arr_neg_y_err = arr_mean - np.min(arr, axis=0)
     arr_pos_y_err = np.max(arr, axis=0) - arr_mean
     return arr_mean, arr_neg_y_err, arr_pos_y_err
+
+
+def get_values_at_stop_iteration(stop_indices, hists):
+    """ Find the actual values from 'hists' at given 'stop_indices' as calculated by find_early_stop_indices(...).
+    Usually 'stop_indices' are found on the validation-loss and one needs accuracies at these times.
+    Suppose 'stop_indices' has shape (net_count, prune_count+1) and 'hists' has shape
+    (net_count, prune_count+1, iteration_count).
+    The result has shape (net_count, prune_count+1, 1) and holds corresponding values from 'hists' in the last dim. """
+    return np.take_along_axis(hists, np.expand_dims(stop_indices, axis=2), axis=2)
 
 
 def scale_early_stop_indices_to_iterations(stop_indices, plot_step):
@@ -101,34 +101,6 @@ def setup_labeling_on_ax(ax, net_count, plot_type: PlotType, iteration=True):
 
 
 # subplots
-def plot_baseline_mean_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
-    """ Plots the baseline as dashed line wit error bars on given ax. """
-    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], label="0 prunes", ls='--')
-
-
-def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_min, prune_max):
-    """ Plots means per pruning level as solid line with error bars on given ax.
-     Labels contain the sparsity at given level of pruning.
-     'prune_min' and 'prune_max' specify the prune-levels to plot. """
-    for p in range(prune_min, prune_max + 1):
-        ax.errorbar(x=xs, y=ys[p], yerr=[y_err_neg[p], y_err_pos[p]],
-                    label=f"{p} prunes (sparsity {sparsity_hist[p]:.4})")
-
-
-def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
-    """ Plot means and error-bars for given hists on ax.
-    Suppose hists has shape (net_count, prune_count+1) and 'sparsity_hist' has shape (prune_count+1).
-    Plots dashed baseline (unpruned) and a solid line for each pruning step. """
-    _, prune_count, _ = hists.shape
-    prune_count -= 1  # baseline at index 0, thus first pruned round at index 1
-
-    hists_mean, hists_neg_y_err, hists_pos_y_err = get_means_and_y_errors(hists)
-    xs = gen_iteration_space(hists_mean[0], plot_step)
-
-    plot_baseline_mean_on_ax(ax, xs, hists_mean[0], hists_neg_y_err[0], hists_pos_y_err[0])
-    plot_pruned_means_on_ax(ax, xs, hists_mean, hists_neg_y_err, hists_pos_y_err, sparsity_hist, 1, prune_count)
-
-
 def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
     """ Plot means and error-bars for given early-stopping iterations or accuracies on ax.
     The x-axis shows the sparsity at each level.
@@ -148,7 +120,55 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
     ax.invert_xaxis()  # also inverts plot!
 
 
+def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
+    """ Plot means and error-bars for given hists on ax.
+    Suppose hists has shape (net_count, prune_count+1) and 'sparsity_hist' has shape (prune_count+1).
+    Plots dashed baseline (unpruned) and a solid line for each pruning step. """
+    _, prune_count, _ = hists.shape
+    prune_count -= 1  # baseline at index 0, thus first pruned round at index 1
+
+    hists_mean, hists_neg_y_err, hists_pos_y_err = get_means_and_y_errors(hists)
+    xs = gen_iteration_space(hists_mean[0], plot_step)
+
+    plot_baseline_mean_on_ax(ax, xs, hists_mean[0], hists_neg_y_err[0], hists_pos_y_err[0])
+    plot_pruned_means_on_ax(ax, xs, hists_mean, hists_neg_y_err, hists_pos_y_err, sparsity_hist, 1, prune_count)
+
+
+def plot_baseline_mean_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
+    """ Plots the baseline as dashed line wit error bars on given ax. """
+    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], label="0 prunes", ls='--')
+
+
+def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_min, prune_max):
+    """ Plots means per pruning level as solid line with error bars on given ax.
+     Labels contain the sparsity at given level of pruning.
+     'prune_min' and 'prune_max' specify the prune-levels to plot. """
+    for p in range(prune_min, prune_max + 1):
+        ax.errorbar(x=xs, y=ys[p], yerr=[y_err_neg[p], y_err_pos[p]],
+                    label=f"{p} prunes (sparsity {sparsity_hist[p]:.4})")
+
+
 # plots
+def plot_acc_at_early_stop(acc_hists, loss_hists, sparsity_hist, plot_type: PlotType):
+    """ Plot means and error bars for the given accuracies at the time an early stopping criterion would end training.
+    Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), and 'sparsity_hist' has
+    shape (prune_count+1).
+    The x-axis shows the sparsity at each time. """
+    # apply early-stopping criterion on loss_hists to find corresponding accuracies
+    early_stop_indices = find_early_stop_indices(loss_hists)
+    early_stop_acc = get_values_at_stop_iteration(early_stop_indices, acc_hists)
+
+    # setup and plot
+    ax = gen_new_single_ax()
+    plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
+    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
+
+    # labeling
+    net_count, _, _ = acc_hists.shape
+    gen_title_on_ax(ax, net_count, plot_type, early_stop=True)
+    gen_labels_on_ax(ax, plot_type, iteration=False)
+
+
 def plot_average_hists(hists, sparsity_hist, plot_step, plot_type: PlotType):
     """ Plot means and error bars for the given histories in hists.
     Suppose 'hists' has shape (net_count, prune_count+1, data_length), and 'sparsity_hist' has shape (prune_count+1).
@@ -162,6 +182,25 @@ def plot_average_hists(hists, sparsity_hist, plot_step, plot_type: PlotType):
     # labeling
     net_count, _, _ = hists.shape
     setup_labeling_on_ax(ax, net_count, plot_type)
+
+
+def plot_early_stop_iterations(loss_hists, sparsity_hist, plot_step):
+    """ Plot means and error bars for early-stopping iterations.
+    Suppose 'loss_hists' has shape (net_count, prune_count+1, data_length), 'sparsity_hist' has shape (prune_count+1).
+    The x-axis shows the sparsity at each time. """
+    # apply early-stopping criterion on loss_hists to find iterations
+    early_stop_indices = find_early_stop_indices(loss_hists)
+    early_stop_iterations = scale_early_stop_indices_to_iterations(early_stop_indices, plot_step)
+
+    # setup and plot
+    ax = gen_new_single_ax()
+    plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist)
+    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
+
+    # labeling
+    net_count, _, _ = loss_hists.shape
+    gen_title_on_ax(ax, net_count, PlotType.EARLY_STOP_ITER, early_stop=True)
+    gen_labels_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False)
 
 
 def plot_two_average_hists(hists_left, hists_right, sparsity_hist, plot_step, type_left: PlotType, type_right: PlotType,
@@ -183,42 +222,3 @@ def plot_two_average_hists(hists_left, hists_right, sparsity_hist, plot_step, ty
     net_count, _, _ = hists_left.shape
     setup_labeling_on_ax(ax_left, net_count, type_left)
     setup_labeling_on_ax(ax_right, net_count, type_right)
-
-
-def plot_acc_at_early_stopping(acc_hists, loss_hists, sparsity_hist, plot_type: PlotType):
-    """ Plot means and error bars for the given accuracies at the time an early stopping criterion would end training.
-    Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), and 'sparsity_hist' has
-    shape (prune_count+1).
-    The x-axis shows the sparsity at each time. """
-    # apply early-stopping criterion on loss_hists to find corresponding accuracies
-    early_stop_indices = find_early_stop_indices(loss_hists)
-    early_stop_acc = get_values_at_stop_iteration(early_stop_indices, acc_hists)
-
-    # setup and plot
-    ax = gen_new_single_ax()
-    plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
-    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
-
-    # labeling
-    net_count, _, _ = acc_hists.shape
-    gen_title_on_ax(ax, net_count, plot_type, early_stop=True)
-    gen_labels_on_ax(ax, plot_type, iteration=False)
-
-
-def plot_early_stop_iterations(loss_hists, sparsity_hist, plot_step):
-    """ Plot means and error bars for early-stopping iterations.
-    Suppose 'loss_hists' has shape (net_count, prune_count+1, data_length), 'sparsity_hist' has shape (prune_count+1).
-    The x-axis shows the sparsity at each time. """
-    # apply early-stopping criterion on loss_hists to find iterations
-    early_stop_indices = find_early_stop_indices(loss_hists)
-    early_stop_iterations = scale_early_stop_indices_to_iterations(early_stop_indices, plot_step)
-
-    # setup and plot
-    ax = gen_new_single_ax()
-    plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist)
-    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
-
-    # labeling
-    net_count, _, _ = loss_hists.shape
-    gen_title_on_ax(ax, net_count, PlotType.EARLY_STOP_ITER, early_stop=True)
-    gen_labels_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False)

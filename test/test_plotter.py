@@ -22,18 +22,6 @@ class TestPlotter(TestCase):
         result_iterations = plotter.find_early_stop_indices(arr)
         np.testing.assert_array_equal(expected_iterations, result_iterations)
 
-    def test_get_values_at_stop_iteration(self):
-        """ Should find the corresponding values for the early-stopping indices.
-        The original array has shape (1,2,5) and indices have shape (1,2).
-        Thus the result needs to have shape (1,2,1). """
-        hists = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
-        stop_indices = np.array([[4, 2]])
-
-        expected_values = np.array([[[1], [7]]])
-
-        result_values = plotter.get_values_at_stop_iteration(stop_indices, hists)
-        np.testing.assert_array_equal(expected_values, result_values)
-
     def test_time_smaller_than_minute_should_be_seconds(self):
         """ If the given time is smaller than one minute, it should be returned as seconds with four digits. """
         self.assertEqual("1.2222sec", plotter.format_time(1.22222))
@@ -66,6 +54,18 @@ class TestPlotter(TestCase):
         np.testing.assert_array_equal(expected_mean, result_mean)
         np.testing.assert_array_equal(expected_y_error, result_neg_y_error)
         np.testing.assert_array_equal(expected_y_error, result_pos_y_error)
+
+    def test_get_values_at_stop_iteration(self):
+        """ Should find the corresponding values for the early-stopping indices.
+        The original array has shape (1,2,5) and indices have shape (1,2).
+        Thus the result needs to have shape (1,2,1). """
+        hists = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
+        stop_indices = np.array([[4, 2]])
+
+        expected_values = np.array([[[1], [7]]])
+
+        result_values = plotter.get_values_at_stop_iteration(stop_indices, hists)
+        np.testing.assert_array_equal(expected_values, result_values)
 
     def test_scale_early_stop_indices_to_iterations(self):
         """ Should scale the given indices correctly, i.e. start counting by plot_step and count up with plot_step. """
@@ -144,29 +144,29 @@ class TestPlotter(TestCase):
         self.assertIsNotNone(ax.get_legend())
 
     # plots
+    def test_plot_acc_at_early_stop(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 2, 2))
+        sparsity = np.ones(2)
+        plotter.plot_acc_at_early_stop(hists, hists, sparsity, plotter.PlotType.TEST_ACC)
+
     def test_plot_average_hists(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         plotter.plot_average_hists(hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS)
 
-    def test_plot_two_average_hists(self):
-        """ Should run plot routine without errors. """
-        hists = np.ones((2, 2, 2))
-        sparsity = np.ones(2)
-        plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS)
-
-    def test_plot_acc_at_early_stopping(self):
-        """ Should run plot routine without errors. """
-        hists = np.ones((2, 2, 2))
-        sparsity = np.ones(2)
-        plotter.plot_acc_at_early_stopping(hists, hists, sparsity, plotter.PlotType.TEST_ACC)
-
     def test_plot_early_stop_iterations(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         plotter.plot_early_stop_iterations(hists, sparsity, 10)
+
+    def test_plot_two_average_hists(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 2, 2))
+        sparsity = np.ones(2)
+        plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS)
 
 
 if __name__ == '__main__':

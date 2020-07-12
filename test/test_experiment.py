@@ -28,6 +28,13 @@ class TestExperiment(TestCase):
             experiment = ExperimentIMP(settings, tmp_dir_name)
             experiment.run_experiment()
 
+    def test_raise_error_on_invalid_dataset(self):
+        """ Should raise an assertion error, because the given dataset-name is invalid. """
+        settings = experiment_settings.get_settings_conv_toy()
+        with self.assertRaises(AssertionError):
+            settings.dataset = 'Invalid dataset name'
+            ExperimentIMP(settings).load_data_and_setup_trainer()
+
     def test_experiment_histories_are_equal(self):
         """ Should return True, because both ExperimentHistories contain equal arrays. """
         histories1 = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))

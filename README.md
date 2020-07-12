@@ -56,7 +56,7 @@ In most cases there is no need to call low-level functions from the module direc
 It plots the baseline, i.e. the run with the lowest sparsity, as dashed line and every further level of sparsity as solid line.
 Iterations index the x-axis.
 - `plot_two_average_hists(...)` works like the previous function, but plots two histories next to each other.
-- `plot_acc_at_early_stopping(...)` applies the early-stopping criterion on a given loss and plots averages of a second history (typically an accuracy) per sparsity.
+- `plot_acc_at_early_stop(...)` applies the early-stopping criterion on a given loss and plots averages of a second history (typically an accuracy) per sparsity.
 - `plot_early_stop_iterations(...)` applies the early-stopping criterion on a given loss and plots averages of early-stopping iterations per sparsity.
 
 All high-level plot functions offer arguments of type `data.plotter.PlotType`.
