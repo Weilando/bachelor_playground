@@ -44,7 +44,7 @@ def setup_cuda(cuda_wanted):
     return device, device_name
 
 
-def main(experiment, epochs, nets, prunes, cuda, verbose):
+def main(experiment, epochs, nets, prunes, cuda, verbose, listing):
     assert verbose in VerbosityLevel.__members__.values()
     log_from_medium(verbose, "Welcome to bachelor_playground.")
 
@@ -61,8 +61,11 @@ def main(experiment, epochs, nets, prunes, cuda, verbose):
         settings.prune_count = prunes
     settings.verbosity = VerbosityLevel(verbose)
 
-    experiment = ExperimentIMP(settings)
-    experiment.run_experiment()
+    if listing:
+        print(settings)
+    else:
+        experiment = ExperimentIMP(settings)
+        experiment.run_experiment()
 
 
 if __name__ == '__main__':
@@ -73,6 +76,8 @@ if __name__ == '__main__':
     p.add_argument('-c', '--cuda', action='store_true', default=False, help='use cuda, if available')
     p.add_argument('-v', '--verbose', action='count', default=0,
                    help='activate output, use twice for more detailed output (i.e. -vv)')
+    p.add_argument('-l', '--listing', action='store_true', default=False,
+                   help='list loaded settings, but do not run the experiment')
     p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help='specify number of epochs')
     p.add_argument('-n', '--nets', type=int, default=None, metavar='N', help='specify number of trained networks')
     p.add_argument('-p', '--prunes', type=int, default=None, metavar='P', help='specify number of pruning steps')

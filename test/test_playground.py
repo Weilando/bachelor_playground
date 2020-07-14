@@ -1,7 +1,9 @@
+import sys
+from io import StringIO
 from unittest import TestCase, mock
 from unittest import main as unittest_main
 
-from experiments.experiment_settings import ExperimentNames, VerbosityLevel
+from experiments.experiment_settings import ExperimentNames, VerbosityLevel, get_settings_lenet_mnist
 from playground import main as playground_main
 from playground import should_override_epoch_count, should_override_prune_count, should_override_net_count, setup_cuda
 
@@ -77,14 +79,55 @@ class TestPlayground(TestCase):
 
     def test_should_setup_cpu_as_wanted(self):
         """ Should return 'cpu' as cuda device and device_name, because no cuda is wanted. """
-        device, device_name = setup_cuda(True)
+        device, device_name = setup_cuda(False)
         self.assertEqual(device, 'cpu')
         self.assertEqual(device_name, 'cpu')
 
-    def test_should_start_without_errors(self):
-        """ Playground should start without errors. """
-        with mock.patch('playground.ExperimentIMP'):
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, False, VerbosityLevel.SILENT)
+    def test_should_start_experiment(self):
+        """ Playground should start the experiment with correct standard settings. """
+        expected_settings = get_settings_lenet_mnist()
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, False, VerbosityLevel.SILENT, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_print_experiment_settings(self):
+        """ Playground should not start the experiment and print the settings. """
+        expected_settings = get_settings_lenet_mnist()
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            with StringIO() as interception:
+                old_stdout = sys.stdout
+                sys.stdout = interception
+
+                playground_main(ExperimentNames.LENET_MNIST, None, None, None, False, VerbosityLevel.SILENT, True)
+
+                sys.stdout = old_stdout
+
+                self.assertEqual(interception.getvalue(), f"{expected_settings}\n")
+                mocked_experiment.assert_not_called()
+
+    def test_should_start_experiment_with_modified_epochs_parameter(self):
+        """ Playground should start the experiment with modified epoch_count. """
+        expected_settings = get_settings_lenet_mnist()
+        expected_settings.epoch_count = 42
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.LENET_MNIST, 42, None, None, False, VerbosityLevel.SILENT, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_modified_nets_parameter(self):
+        """ Playground should start the experiment with modified net_count. """
+        expected_settings = get_settings_lenet_mnist()
+        expected_settings.net_count = 1
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.LENET_MNIST, None, 1, None, False, VerbosityLevel.SILENT, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_modified_prunes_parameter(self):
+        """ Playground should start the experiment with modified prune_count. """
+        expected_settings = get_settings_lenet_mnist()
+        expected_settings.prune_count = 4
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.LENET_MNIST, None, None, 4, False, VerbosityLevel.SILENT, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
 
 
 if __name__ == '__main__':
