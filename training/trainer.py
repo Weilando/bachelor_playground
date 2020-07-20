@@ -52,7 +52,7 @@ class TrainerAdam(object):
         hist_count = 0
 
         for e in range(0, epoch_count):
-            log_from_medium(self.verbosity, f"epoch: {(e + 1):2} ", False)
+            log_from_medium(self.verbosity, f"epoch: {(e + 1):3d} ", False)
             tic = time.time()
             epoch_base = e * self.train_loader_len
 
@@ -79,11 +79,12 @@ class TrainerAdam(object):
                     hist_count += 1
                     running_train_loss = 0
                     net.train(True)  # set model to training mode (important for batch-norm/dropout)
-                    log_detailed_only(self.verbosity, f"-", False)
 
             toc = time.time()
+            log_detailed_only(self.verbosity, f"train-loss: {(train_loss_hist[hist_count - 1]):6.4f} "
+                                              f"val-loss: {(val_loss_hist[hist_count - 1]):6.4f} ", False)
             log_from_medium(self.verbosity,
-                            f"val-acc: {(val_acc_hist[hist_count - 1]):1.4} (took {plotter.format_time(toc - tic)})")
+                            f"val-acc: {(val_acc_hist[hist_count - 1]):6.4f} (took {plotter.format_time(toc - tic)})")
         return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist
 
     def compute_acc(self, net, test=True):

@@ -16,7 +16,7 @@ class Lenet(Net):
     """
     def __init__(self, plan_fc=None):
         super(Lenet, self).__init__()
-        # create Lenet if no plan is given
+        # create Lenet 300-100 if no plan is given
         if plan_fc is None:
             plan_fc = [300, 100]
 
