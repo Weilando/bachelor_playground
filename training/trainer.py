@@ -1,4 +1,3 @@
-import math
 import time
 from copy import deepcopy
 
@@ -6,13 +5,9 @@ import numpy as np
 import torch
 
 from data import plotter
+from experiments.experiment_histories import calc_hist_length_per_net
 from experiments.experiment_settings import VerbosityLevel
 from training.logger import log_from_medium, log_detailed_only
-
-
-def calc_hist_length(batch_count, epoch_count, plot_step):
-    """ Calculate length of history arrays based on batch_count, epoch_count and plot_step. """
-    return math.floor((batch_count * epoch_count) / plot_step)
 
 
 class TrainerAdam(object):
@@ -41,7 +36,7 @@ class TrainerAdam(object):
         Save accuracies and loss every 'plot_step' iterations and after each epoch.
         'reg_factor' adds L1-regularization. """
         # initialize histories (one entry per plot_step iteration)
-        hist_length = calc_hist_length(self.train_loader_len, epoch_count, plot_step)
+        hist_length = calc_hist_length_per_net(self.train_loader_len, epoch_count, plot_step)
         train_loss_hist = np.zeros(hist_length, dtype=float)
         val_loss_hist = np.zeros_like(train_loss_hist, dtype=float)
         val_acc_hist = np.zeros_like(train_loss_hist, dtype=float)

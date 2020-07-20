@@ -5,7 +5,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from training.trainer import TrainerAdam, calc_hist_length
+from experiments.experiment_histories import calc_hist_length_per_net
+from training.trainer import TrainerAdam
 
 
 def generate_single_layer_net():
@@ -35,35 +36,15 @@ class TestTrainer(TestCase):
     def test_calculate_correct_hist_length(self):
         """ Should calculate the correct length for history arrays.
         History is saved at the following combinations of epochs and iterations: 0,4; 1,4. """
-        self.assertEqual(2, calc_hist_length(5, 2, 5))
+        self.assertEqual(2, calc_hist_length_per_net(5, 2, 5))
 
     def test_calculate_correct_hist_length_rounding(self):
         """ Should calculate the correct length for history arrays.
         History is saved at the following combinations of epochs and iterations: 0,3; 1,2; 2,1. """
-        self.assertEqual(3, calc_hist_length(5, 3, 4))
+        self.assertEqual(3, calc_hist_length_per_net(5, 3, 4))
 
     def test_execute_training(self):
         """ The training should be executed without errors and results should have correct shapes.
-        Use a simple net with one linear layer and fake-data_loaders.
-        Inputs have shape (1,4). """
-        net = generate_single_layer_net()
-
-        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
-        fake_loader = generate_fake_data_loader()
-        trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
-
-        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, _, _ = \
-            trainer.train_net(net, epoch_count=2, plot_step=3)
-        zero_history = np.zeros(2, dtype=float)  # has expected shape (2,) and is used to check for positive entries
-
-        self.assertIs(net is not None, True)
-        np.testing.assert_array_less(zero_history, train_loss_hist)
-        np.testing.assert_array_less(zero_history, val_loss_hist)
-        np.testing.assert_array_less(zero_history, val_acc_hist)
-        np.testing.assert_array_less(zero_history, test_acc_hist)
-
-    def test_execute_training_rounding(self):
-        """ Should execute training without errors and save results with correct shapes.
         Use a simple net with one linear layer and fake-data_loaders.
         Inputs have shape (1,4). """
         net = generate_single_layer_net()
