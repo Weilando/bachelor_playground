@@ -1,5 +1,6 @@
 import math
 import time
+from copy import deepcopy
 
 import numpy as np
 import torch
@@ -17,16 +18,19 @@ def calc_hist_length(batch_count, epoch_count, plot_step):
 class TrainerAdam(object):
     """ Class for training a neural network 'net' with the adam-optimizer.
     The network is trained on batches from 'train_loader'.
-    They are evaluated with batches from val_loader or test_loader. """
+    Performance is evaluated with batches from 'val_loader' or 'test_loader'.
+    'save_early_stop' specifies, if the early-stopping criterion should be evaluated during training.
+    If 'save_early_stop' is True, a checkpoint of net is saved at the iteration with minimal validation-loss. """
 
     def __init__(self, learning_rate, train_loader, val_loader, test_loader, device=torch.device('cpu'),
-                 verbosity=VerbosityLevel.SILENT):
+                 save_early_stop=False, verbosity=VerbosityLevel.SILENT):
         super(TrainerAdam, self).__init__()
         self.learning_rate = learning_rate
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
         self.device = device
+        self.save_early_stop = save_early_stop
         self.verbosity = verbosity
 
         self.train_loader_len = len(train_loader)
@@ -36,9 +40,6 @@ class TrainerAdam(object):
         """ Train the given model 'net' with optimizer 'opt' for given epochs.
         Save accuracies and loss every 'plot_step' iterations and after each epoch.
         'reg_factor' adds L1-regularization. """
-        net.to(self.device)  # push model to device
-        net.train(True)  # set model to training mode (important for batch-norm/dropout)
-
         # initialize histories (one entry per plot_step iteration)
         hist_length = calc_hist_length(self.train_loader_len, epoch_count, plot_step)
         train_loss_hist = np.zeros(hist_length, dtype=float)
@@ -47,9 +48,15 @@ class TrainerAdam(object):
         test_acc_hist = np.zeros_like(train_loss_hist, dtype=float)
 
         # setup training
+        net.to(self.device)  # push model to device
+        net.train(True)  # set model to training mode (important for batch-norm/dropout)
         opt = torch.optim.Adam(net.parameters(), lr=self.learning_rate)  # instantiate optimizer
         running_train_loss = 0
         hist_count = 0
+
+        early_stop_checkpoint = None
+        early_stop_index = -1
+        min_val_loss = float('inf')
 
         for e in range(0, epoch_count):
             log_from_medium(self.verbosity, f"epoch: {(e + 1):3d} ", False)
@@ -76,16 +83,19 @@ class TrainerAdam(object):
                     val_acc_hist[hist_count] = self.compute_acc(net, test=False)
                     test_acc_hist[hist_count] = self.compute_acc(net, test=True)
 
+                    net.train(True)  # set model to training mode (important for batch-norm/dropout)
+                    if self.should_save_early_stop_checkpoint(val_loss_hist[hist_count], min_val_loss):
+                        early_stop_index = j
+                        early_stop_checkpoint = deepcopy(net.state_dict())
                     hist_count += 1
                     running_train_loss = 0
-                    net.train(True)  # set model to training mode (important for batch-norm/dropout)
 
             toc = time.time()
             log_detailed_only(self.verbosity, f"train-loss: {(train_loss_hist[hist_count - 1]):6.4f} "
                                               f"val-loss: {(val_loss_hist[hist_count - 1]):6.4f} ", False)
             log_from_medium(self.verbosity,
                             f"val-acc: {(val_acc_hist[hist_count - 1]):6.4f} (took {plotter.format_time(toc - tic)})")
-        return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist
+        return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, early_stop_index, early_stop_checkpoint
 
     def compute_acc(self, net, test=True):
         """ Compute the given net's accuracy.
@@ -121,3 +131,8 @@ class TrainerAdam(object):
                 running_val_loss += val_loss.item()
 
         return running_val_loss / self.val_loader_len
+
+    def should_save_early_stop_checkpoint(self, val_loss, min_val_loss):
+        """ Evaluate if the early-stopping criterion is active and return False if inactive.
+        If it is active, return if the validation-loss reached a new minimum. """
+        return self.save_early_stop and (val_loss < min_val_loss)

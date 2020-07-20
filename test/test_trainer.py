@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest import main as unittest_main
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -17,7 +18,8 @@ def generate_single_layer_net():
 
 
 def generate_fake_data_loader():
-    """" Generate fake-DataLoader with four batches, i.e. a list with sub-lists of samples and labels. """
+    """" Generate fake-DataLoader with four batches, i.e. a list with sub-lists of samples and labels.
+    It has four batches with three samples each. """
     samples1 = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
     samples2 = torch.tensor([[1., 2., 3., 4.], [1., 1., 2., 2.], [2., 2., 2., 2.]])
     labels1 = torch.tensor([0, 0, 1])
@@ -50,20 +52,15 @@ class TestTrainer(TestCase):
         fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
-        expected_hist_shape = (2,)
-
-        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist = \
+        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, _, _ = \
             trainer.train_net(net, epoch_count=2, plot_step=3)
+        zero_history = np.zeros(2, dtype=float)  # has expected shape (2,) and is used to check for positive entries
 
-        self.assertTrue(net is not None)
-        self.assertEqual(expected_hist_shape, train_loss_hist.shape)
-        self.assertEqual(expected_hist_shape, val_loss_hist.shape)
-        self.assertEqual(expected_hist_shape, val_acc_hist.shape)
-        self.assertEqual(expected_hist_shape, test_acc_hist.shape)
-        self.assertTrue(all(train_loss_hist > 0))
-        self.assertTrue(all(val_loss_hist > 0))
-        self.assertTrue(all(val_acc_hist > 0))
-        self.assertTrue(all(test_acc_hist > 0))
+        self.assertIs(net is not None, True)
+        np.testing.assert_array_less(zero_history, train_loss_hist)
+        np.testing.assert_array_less(zero_history, val_loss_hist)
+        np.testing.assert_array_less(zero_history, val_acc_hist)
+        np.testing.assert_array_less(zero_history, test_acc_hist)
 
     def test_execute_training_rounding(self):
         """ Should execute training without errors and save results with correct shapes.
@@ -75,22 +72,43 @@ class TestTrainer(TestCase):
         fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
-        expected_hist_shape = (2,)
-
-        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist = \
+        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, _, _ = \
             trainer.train_net(net, epoch_count=2, plot_step=4)
+        zero_history = np.zeros(2, dtype=float)  # has expected shape (2,) and is used to check for positive entries
 
-        self.assertTrue(net is not None)
-        self.assertEqual(expected_hist_shape, train_loss_hist.shape)
-        self.assertEqual(expected_hist_shape, val_loss_hist.shape)
-        self.assertEqual(expected_hist_shape, val_acc_hist.shape)
-        self.assertEqual(expected_hist_shape, test_acc_hist.shape)
-        self.assertTrue(all(train_loss_hist > 0))
-        self.assertTrue(all(val_loss_hist > 0))
-        self.assertTrue(all(val_acc_hist > 0))
-        self.assertTrue(all(test_acc_hist > 0))
+        self.assertIs(net is not None, True)
+        np.testing.assert_array_less(zero_history, train_loss_hist)
+        np.testing.assert_array_less(zero_history, val_loss_hist)
+        np.testing.assert_array_less(zero_history, val_acc_hist)
+        np.testing.assert_array_less(zero_history, test_acc_hist)
 
-    def test_compute_correct_test_acc(self):
+    def test_execute_training_with_early_stopping(self):
+        """ Should execute training without errors and save results with correct shapes.
+        It should also return a valid checkpoint and early-stopping index.
+        Use a simple net with one linear layer and fake-data_loaders.
+        Inputs have shape (1,4). """
+        net = generate_single_layer_net()
+
+        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
+        fake_loader = generate_fake_data_loader()
+        trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader, save_early_stop=True)
+
+        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, early_stop_index, early_stop_checkpoint = \
+            trainer.train_net(net, epoch_count=1, plot_step=3)
+        zero_history = np.zeros(1, dtype=float)  # has expected shape (1,) and is used to check for positive entries
+
+        self.assertIs(net is not None, True)
+
+        self.assertIs(early_stop_checkpoint is not None, True)
+        self.assertIn(early_stop_index, [0, 1, 2])  # training runs for one epoch, i.e. three iterations
+        net.load_state_dict(early_stop_checkpoint)  # check if the checkpoint can be loaded without errors
+
+        np.testing.assert_array_less(zero_history, train_loss_hist)
+        np.testing.assert_array_less(zero_history, val_loss_hist)
+        np.testing.assert_array_less(zero_history, val_acc_hist)
+        np.testing.assert_array_less(zero_history, test_acc_hist)
+
+    def test_compute_test_acc(self):
         """ Should calculate the correct test-accuracy.
         The fake-net with one linear layer classifies half of the fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. """
@@ -105,7 +123,7 @@ class TestTrainer(TestCase):
 
         self.assertEqual(0.5, trainer.compute_acc(net, test=True))
 
-    def test_compute_correct_val_acc(self):
+    def test_compute_val_acc(self):
         """ Should calculate the correct validation-accuracy.
         The fake-net with one linear layer classifies all fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. """
@@ -129,6 +147,26 @@ class TestTrainer(TestCase):
 
         val_loss = trainer.compute_val_loss(net)
         self.assertGreater(val_loss, 0.0)
+
+    def test_should_save_early_stop_checkpoint_no_evaluation(self):
+        """ Should return False, because the early-stopping criterion should not be evaluated. """
+        trainer = TrainerAdam(0., [], [], [], save_early_stop=False)
+        self.assertIs(trainer.should_save_early_stop_checkpoint(0.5, 0.2), False)
+
+    def test_should_save_early_stop_checkpoint_no_new_minimum_greater(self):
+        """ Should return False, because the current validation-loss is greater than the minimum. """
+        trainer = TrainerAdam(0., [], [], [], save_early_stop=True)
+        self.assertIs(trainer.should_save_early_stop_checkpoint(0.5, 0.2), False)
+
+    def test_should_save_early_stop_checkpoint_no_new_minimum_equal(self):
+        """ Should return False, because the current validation-loss is equal to the the minimum. """
+        trainer = TrainerAdam(0., [], [], [], save_early_stop=True)
+        self.assertIs(trainer.should_save_early_stop_checkpoint(0.2, 0.2), False)
+
+    def test_should_save_early_stop_checkpoint_new_checkpoint(self):
+        """ Should return True, because the validation-accuracy reached a new minimum. """
+        trainer = TrainerAdam(0., [], [], [], save_early_stop=True)
+        self.assertIs(trainer.should_save_early_stop_checkpoint(0.1, 0.2), True)
 
 
 if __name__ == '__main__':
