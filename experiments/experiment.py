@@ -4,7 +4,8 @@ import torch
 
 from data import result_saver as rs, plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
-from experiments.experiment_histories import ExperimentHistories, EarlyStopHistories
+from experiments.early_stop_histories import EarlyStopHistoryList
+from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
@@ -32,7 +33,7 @@ class Experiment(object):
 
         # setup history-arrays in create_histories()
         self.hists = ExperimentHistories()
-        self.stop_hists = EarlyStopHistories()
+        self.stop_hists = EarlyStopHistoryList()
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
@@ -101,6 +102,8 @@ class Experiment(object):
 
         results_path = rs.setup_and_get_result_path(self.result_path)
         rs.save_specs(results_path, file_prefix, self.args)
-        rs.save_histories(results_path, file_prefix, self.hists)
+        rs.save_experiment_histories(results_path, file_prefix, self.hists)
         rs.save_nets(results_path, file_prefix, self.nets)
+        if self.args.save_early_stop:
+            rs.save_early_stop_history_list(results_path, file_prefix, self.stop_hists)
         log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")

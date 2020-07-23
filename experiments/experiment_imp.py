@@ -30,7 +30,8 @@ class ExperimentIMP(Experiment):
                 log_from_medium(self.args.verbosity, f"Train network #{n} (sparsity {self.hists.sparsity[p]:6.4f}).")
 
                 self.nets[n], self.hists.train_loss[n, p], self.hists.val_loss[n, p], self.hists.val_acc[n, p], \
-                self.hists.test_acc[n, p], self.stop_hists.indices[n, p], self.stop_hists.checkpoints[n, p] \
+                self.hists.test_acc[n, p], self.stop_hists.histories[n].indices[p], \
+                self.stop_hists.histories[n].state_dicts[p] \
                     = self.trainer.train_net(self.nets[n], self.args.epoch_count, self.args.plot_step)
 
                 log_from_medium(self.args.verbosity,

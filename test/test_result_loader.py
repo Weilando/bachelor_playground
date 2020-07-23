@@ -161,7 +161,7 @@ class TestResultLoader(TestCase):
         histories = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_histories(tmp_dir_name, 'prefix', histories)
+            result_saver.save_experiment_histories(tmp_dir_name, 'prefix', histories)
 
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"

@@ -26,28 +26,8 @@ class ExperimentHistories:
         self.sparsity = np.ones((prune_count + 1), dtype=float)
 
     def __eq__(self, other):
-        """ Checks if all fields (each is np.array) are equal. """
+        """ Check if all fields (each is np.array) are equal. """
         assert isinstance(other, ExperimentHistories), f"other must have type ExperimentSettings, but is {type(other)}."
-
-        self_tuple, other_tuple = astuple(self), astuple(other)
-        return all(np.array_equal(self_arr, other_arr) for self_arr, other_arr in zip(self_tuple, other_tuple))
-
-
-@dataclass
-class EarlyStopHistories:
-    """ Stores checkpoints (i.e. state_dicts) and indices at early-stopping for one model. """
-    checkpoints: np.array = None
-    indices: np.array = None
-
-    def setup(self, net_count, prune_count):
-        """ Setup histories with correct shapes.
-        Checkpoints and indices are saved once per net and level of pruning. """
-        self.checkpoints = np.empty((net_count, prune_count + 1), dtype=dict)
-        self.indices = np.full((net_count, prune_count + 1), fill_value=-1, dtype=int)
-
-    def __eq__(self, other):
-        """ Checks if all fields (each is np.array) are equal. """
-        assert isinstance(other, EarlyStopHistories), f"other must have type ExperimentSettings, but is {type(other)}."
 
         self_tuple, other_tuple = astuple(self), astuple(other)
         return all(np.array_equal(self_arr, other_arr) for self_arr, other_arr in zip(self_tuple, other_tuple))
