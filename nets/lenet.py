@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 from nets.net import Net
-from nets.plan_check import is_numerical_spec
+from nets.plan_check import is_numerical_spec, get_number_from_numerical_spec
 from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
@@ -26,10 +26,11 @@ class Lenet(Net):
 
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
-            fc_layers.append(nn.Linear(input_features, spec))
+            spec_number = get_number_from_numerical_spec(spec)
+            fc_layers.append(nn.Linear(input_features, spec_number))
             fc_layers.append(nn.Tanh())
-            self.init_weight_count_net['fc'] += input_features * spec
-            input_features = spec
+            self.init_weight_count_net['fc'] += input_features * spec_number
+            input_features = spec_number
 
         self.conv = []
         self.fc = nn.Sequential(*fc_layers)

@@ -13,7 +13,7 @@ class TestLenet(TestCase):
 
     def test_forward_pass_simple_architecture(self):
         """ The neural network with one hidden layer should perform a forward pass for without exceptions. """
-        net = Lenet(plan_fc=[5, 10])
+        net = Lenet(plan_fc=[5, '10'])
         input_sample = torch.rand(28, 28)
         net(input_sample)
 

@@ -19,7 +19,7 @@ Both options allow execution on CPU or GPU (with CUDA).
 One can find implemented experiments in the package `experiments`.
 For details on experiment settings have a look at `~/experiments/experiment_settings.py`).
 
-The following predefined experiment settings are available:
+#### Predefined experiment settings
 
 Experiment | Architecture | Dataset
 --- | --- | ---
@@ -27,6 +27,12 @@ Experiment | Architecture | Dataset
 `conv2_cifar10` | conv: 64-64-M, fc: 256-256-10 | CIFAR-10
 `conv4_cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | CIFAR-10
 `conv6_cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | CIFAR-10
+
+It is possible to specify other architectures by using the `--plan_conv` for convolutional layers and `--plan_fc` for fully-connected layers.
+The `plan_fc`-option takes a list of numbers (either `int` or `str`) and interprets them as output-features of linear layers.
+The networks automatically generate dimensions and inputs to achieve a working architecture.
+It is not possible to alter the output-layer, i.e. it is always a fully-connected layer with ten output-features.
+Additionally, the option `plan_conv` takes the options `A` for average-pooling, `M` for max-pooling and `iB` (with `i` integer) for a convolution followed by a batch-norm layer.
 
 #### Results
 Experiments write their results into files in the subdirectory `~/data/results`, whereas `~/data/datasets` contains cached datasets.

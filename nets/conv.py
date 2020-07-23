@@ -1,7 +1,8 @@
 import torch.nn as nn
 
 from nets.net import Net
-from nets.plan_check import is_numerical_spec, is_batch_norm_spec, get_number_from_batch_norm_spec
+from nets.plan_check import is_numerical_spec, is_batch_norm_spec, get_number_from_batch_norm_spec, \
+    get_number_from_numerical_spec
 from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
@@ -46,9 +47,10 @@ class Conv(Net):
                 self.init_weight_count_net['conv'] += filters * spec_number * 9
                 filters = spec_number
             elif is_numerical_spec(spec):
-                conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
+                spec_number = get_number_from_numerical_spec(spec)
+                conv_layers.append(nn.Conv2d(filters, spec_number, kernel_size=3, padding=1))
                 conv_layers.append(nn.ReLU())
-                self.init_weight_count_net['conv'] += filters * spec * 9
+                self.init_weight_count_net['conv'] += filters * spec_number * 9
                 filters = spec
             else:
                 raise AssertionError(f"{spec} from plan_conv is an invalid spec.")
@@ -57,10 +59,11 @@ class Conv(Net):
         filters = filters * round(1024 / (4 ** pooling_count))
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
-            fc_layers.append(nn.Linear(filters, spec))
+            spec_number = get_number_from_numerical_spec(spec)
+            fc_layers.append(nn.Linear(filters, spec_number))
             fc_layers.append(nn.Tanh())
-            self.init_weight_count_net['fc'] += filters * spec
-            filters = spec
+            self.init_weight_count_net['fc'] += filters * spec_number
+            filters = spec_number
 
         self.conv = nn.Sequential(*conv_layers)
         self.fc = nn.Sequential(*fc_layers)
