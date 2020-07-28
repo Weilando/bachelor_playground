@@ -44,6 +44,7 @@ Suffix | Content | Previous format
 `-specs.json` | hyper-parameters and meta-data | `ExperimentSettings`
 `-histories.npz` | histories of training-loss, validation-loss, validation-accuracy, test-accuracy and sparsity for several networks and pruning stages | `ExperimentHistories`
 `-net<number>.pth`| trained models (each stored in a single file) | `torch.nn.Module` (often subclasses like `Lenet` or `Conv`)
+`-early-stop<number>.pth`| early-stop iterations and state_dicts (each stored in a single file) | `EarlyStopHistoryList`
 
 The dataclass `experiments.experiment_settings.ExperimentSettings` contains all hyper-parameters like epoch count or initialization plans for networks.
 Furthermore, it contains the absolute execution time and information about the used cuda-device.
@@ -51,6 +52,9 @@ Furthermore, it contains the absolute execution time and information about the u
 The dataclass `experiments.experiment_histories.ExperimentHistories` contains an `np.array` per history and stores the measurements from one experiment.
 All histories for training-loss, validation-loss, validation-accuracy and test-accuracy have the shape `(net_count, prune_count+1, data_length)`, which makes it easy to plot and evaluate them in arbitrary combinations.
 The sparsity-history has shape `(prune_count+1)`.
+
+The dataclass `experiments.early_stop_histories.EarlyStopHistoryList` contains an `np.array` with one `EarlyStopHistory` per net.
+These store early-stop iterations and state_dicts per pruning level, if the `save_early_stop`-flag was set during training.
 
 ### Evaluate experiments
 It is possible to load the stored results into their original data-structure by using methods from the module `experiments.result_loader`.

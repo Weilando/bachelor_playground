@@ -72,7 +72,7 @@ class TestResultSaver(TestCase):
     def test_generate_histories_file_name(self):
         """ Should append '-histories.npz' to given prefix. """
         prefix = 'prefix'
-        self.assertEqual('prefix-histories.npz', result_saver.generate_histories_file_name(prefix))
+        self.assertEqual('prefix-histories.npz', result_saver.generate_experiment_histories_file_name(prefix))
 
     def test_generate_early_stop_file_name(self):
         """ Should append '-early-stop42.pth' to given prefix. """
@@ -95,7 +95,7 @@ class TestResultSaver(TestCase):
             with open(result_file_path, 'r') as result_file:
                 self.assertEqual(j_load(result_file), asdict(specs))
 
-    def test_save_histories(self):
+    def test_save_experiment_histories(self):
         """ Should save fake histories into npz file. """
         histories = ExperimentHistories()
         histories.setup(2, 1, 3, 2, 3)

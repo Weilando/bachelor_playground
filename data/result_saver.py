@@ -28,7 +28,7 @@ def generate_specs_file_name(file_prefix):
     return f"{file_prefix}-specs.json"
 
 
-def generate_histories_file_name(file_prefix):
+def generate_experiment_histories_file_name(file_prefix):
     """ Generate file name and suffix for histories-file (.npz). """
     return f"{file_prefix}-histories.npz"
 
@@ -73,7 +73,7 @@ def save_experiment_histories(results_path, file_prefix, histories):
     assert isinstance(histories, ExperimentHistories), \
         f"'histories' must have type ExperimentHistories, but is {type(histories)}."
 
-    file_name = generate_histories_file_name(file_prefix)
+    file_name = generate_experiment_histories_file_name(file_prefix)
     file_path = os.path.join(results_path, file_name)
 
     with open(file_path, "wb") as f:

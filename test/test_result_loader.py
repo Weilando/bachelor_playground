@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from dataclasses import asdict
 from tempfile import TemporaryDirectory
 from unittest import main as unittest_main
@@ -8,6 +9,7 @@ import numpy as np
 
 import data.result_loader as result_loader
 from data import result_saver
+from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import get_settings_lenet_toy, get_settings_conv_toy
 from nets.conv import Conv
@@ -66,12 +68,25 @@ class TestResultLoader(TestCase):
         result_path = result_loader.generate_experiment_path_prefix(absolute_path)
         self.assertEqual(expected_prefix, result_path)
 
-    def test_generate_histories_file_path(self):
+    def test_generate_experiment_histories_file_path(self):
         """ Should generate histories file path, i.e. append '-histories.npz'. """
         experiment_path_prefix = "results/prefix"
         expected_path = "results/prefix-histories.npz"
-        result_path = result_loader.generate_histories_file_path(experiment_path_prefix)
+        result_path = result_loader.generate_experiment_histories_file_path(experiment_path_prefix)
         self.assertEqual(expected_path, result_path)
+
+    def test_generate_early_stop_file_paths(self):
+        """ Should generate a list of early-stop file paths, i.e. append '-early-stop#.pth' with # number. """
+        experiment_path_prefix = "results/prefix"
+        expected_paths = ["results/prefix-early-stop0.pth", "results/prefix-early-stop1.pth"]
+        result_paths = result_loader.generate_early_stop_file_paths(experiment_path_prefix, 2)
+        self.assertEqual(expected_paths, result_paths)
+
+    def test_generate_early_stop_file_paths_invalid_net_count(self):
+        """ Should not generate a list of early-stop file paths, because 'net_count' is not positive. """
+        experiment_path_prefix = "results/prefix"
+        with self.assertRaises(AssertionError):
+            result_loader.generate_early_stop_file_paths(experiment_path_prefix, 0)
 
     def test_generate_net_file_paths(self):
         """ Should generate a list of net file paths, i.e. append '-net#.pth' with # number. """
@@ -81,7 +96,7 @@ class TestResultLoader(TestCase):
         self.assertEqual(expected_paths, result_paths)
 
     def test_generate_net_file_paths_invalid_net_count(self):
-        """ Should generate a list of net file paths, i.e. append '-net#.pth' with # number. """
+        """ Should not generate a list of net file paths, because 'net_count' is not positive. """
         experiment_path_prefix = "results/prefix"
         with self.assertRaises(AssertionError):
             result_loader.generate_net_file_paths(experiment_path_prefix, 0)
@@ -156,7 +171,7 @@ class TestResultLoader(TestCase):
             loaded_experiment_settings = result_loader.get_specs_from_file(result_file_path, as_dict=False)
             self.assertEqual(loaded_experiment_settings, experiment_settings)
 
-    def test_get_histories_from_file(self):
+    def test_get_experiment_histories_from_file(self):
         """ Should load fake histories from npz file. """
         histories = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))
 
@@ -165,8 +180,48 @@ class TestResultLoader(TestCase):
 
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_histories = result_loader.get_histories_from_file(experiment_path_prefix)
+            loaded_histories = result_loader.get_experiment_histories_from_file(experiment_path_prefix)
             self.assertEqual(loaded_histories, histories)
+
+    def test_get_early_stop_history_list_from_file(self):
+        """ Should load fake EarlyStopHistoryList from pth file. """
+        plan_fc = [2]
+        net0 = Lenet(plan_fc)
+        net1 = Lenet(plan_fc)
+        history_list = EarlyStopHistoryList()
+        history_list.setup(2, 0)
+        history_list.histories[0].state_dicts[0] = deepcopy(net0.state_dict())
+        history_list.histories[1].state_dicts[0] = deepcopy(net1.state_dict())
+        history_list.histories[0].indices[0] = 3
+        history_list.histories[1].indices[0] = 42
+
+        specs = get_settings_lenet_toy()
+        specs.save_early_stop = True
+        specs.net_count = 2
+        specs.prune_count = 1
+
+        with TemporaryDirectory() as tmp_dir_name:
+            # save checkpoints
+            result_saver.save_early_stop_history_list(tmp_dir_name, 'prefix', history_list)
+
+            # load and validate histories from file
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            loaded_history_list = result_loader.get_early_stop_history_list_from_file(experiment_path_prefix, specs)
+            self.assertEqual(loaded_history_list, history_list)
+            net0.load_state_dict(history_list.histories[0].state_dicts[0])
+            net1.load_state_dict(history_list.histories[1].state_dicts[0])
+
+    def test_get_early_stop_history_list_from_file_invalid_specs(self):
+        """ Should raise assertion error if specs do not have type ExperimentSettings. """
+        with self.assertRaises(AssertionError):
+            result_loader.get_early_stop_history_list_from_file("some_path", dict())
+
+    def test_get_early_stop_history_list_from_file_no_save_early_stop(self):
+        """ Should raise assertion error if specs do not have type ExperimentSettings. """
+        experiment_settings = get_settings_lenet_toy()
+        experiment_settings.save_early_stop = False
+        with self.assertRaises(AssertionError):
+            result_loader.get_early_stop_history_list_from_file("some_path", experiment_settings)
 
     def test_get_lenet_from_file(self):
         """ Should load two small Lenet instances from pth files. """
