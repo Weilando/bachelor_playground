@@ -47,8 +47,8 @@ def setup_cuda(cuda_wanted):
     return device, device_name
 
 
-def main(experiment, epochs, nets, prunes, prune_rate_conv, prune_rate_fc, plan_conv, plan_fc, cuda, verbose, listing,
-         early_stop):
+def main(experiment, epochs, nets, prunes, learn_rate, prune_rate_conv, prune_rate_fc, plan_conv, plan_fc, cuda,
+         verbose, listing, early_stop):
     assert verbose in VerbosityLevel.__members__.values()
     log_from_medium(verbose, "Welcome to bachelor_playground.")
 
@@ -63,6 +63,8 @@ def main(experiment, epochs, nets, prunes, prune_rate_conv, prune_rate_fc, plan_
         settings.net_count = nets
     if should_override_arg_positive_int(prunes, 'Prune count'):
         settings.prune_count = prunes
+    if should_override_arg_rate(learn_rate, 'Learning-rate'):
+        settings.learning_rate = learn_rate
     if should_override_arg_rate(prune_rate_conv, 'Pruning-rate for convolutional layers'):
         settings.prune_rate_conv = prune_rate_conv
     if should_override_arg_rate(prune_rate_fc, 'Pruning-rate for fully-connected layers'):
@@ -96,6 +98,7 @@ if __name__ == '__main__':
     p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help="specify number of epochs")
     p.add_argument('-n', '--nets', type=int, default=None, metavar='N', help="specify number of trained networks")
     p.add_argument('-p', '--prunes', type=int, default=None, metavar='P', help="specify number of pruning steps")
+    p.add_argument('-lr', '--learn_rate', type=float, default=None, metavar='R', help="specify learning-rate")
     p.add_argument('-prc', '--prune_rate_conv', type=float, default=None, metavar='R',
                    help="specify pruning-rate for convolutional layers")
     p.add_argument('-prf', '--prune_rate_fc', type=float, default=None, metavar='R',

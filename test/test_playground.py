@@ -5,8 +5,8 @@ from unittest import main as unittest_main
 
 from experiments.experiment_settings import ExperimentNames, VerbosityLevel, get_settings_lenet_mnist, \
     get_settings_conv2_cifar10
-from playground import main as playground_main, should_override_arg_plan, should_override_arg_positive_int, setup_cuda, \
-    should_override_arg_rate
+from playground import main as playground_main, setup_cuda, should_override_arg_plan, should_override_arg_rate, \
+    should_override_arg_positive_int
 
 
 class TestPlayground(TestCase):
@@ -93,7 +93,7 @@ class TestPlayground(TestCase):
         """ Playground should start the experiment with correct standard settings. """
         expected_settings = get_settings_lenet_mnist()
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, False,
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -105,7 +105,7 @@ class TestPlayground(TestCase):
                 old_stdout = sys.stdout
                 sys.stdout = interception
 
-                playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, False,
+                playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
                                 VerbosityLevel.SILENT, True, False)
 
                 sys.stdout = old_stdout
@@ -118,7 +118,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.epoch_count = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, 42, None, None, None, None, None, None, False,
+            playground_main(ExperimentNames.LENET_MNIST, 42, None, None, None, None, None, None, None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -127,7 +127,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.net_count = 1
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, 1, None, None, None, None, None, False,
+            playground_main(ExperimentNames.LENET_MNIST, None, 1, None, None, None, None, None, None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -136,7 +136,16 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.prune_count = 4
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, 4, None, None, None, None, False,
+            playground_main(ExperimentNames.LENET_MNIST, None, None, 4, None, None, None, None, None, False,
+                            VerbosityLevel.SILENT, False, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_modified_learning_rate_parameter(self):
+        """ Playground should start the experiment with modified learning_rate. """
+        expected_settings = get_settings_conv2_cifar10()
+        expected_settings.learning_rate = 0.5
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, 0.5, None, None, None, None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -145,7 +154,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_conv2_cifar10()
         expected_settings.prune_rate_conv = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, 0.5, None, None, None, False,
+            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, 0.5, None, None, None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -154,7 +163,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.prune_rate_fc = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, 0.5, None, None, False,
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, 0.5, None, None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -163,7 +172,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_conv2_cifar10()
         expected_settings.plan_conv = [1]
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, [1], None, False,
+            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, [1], None, False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -172,7 +181,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_conv2_cifar10()
         expected_settings.plan_fc = [1]
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, [1], False,
+            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, None, [1], False,
                             VerbosityLevel.SILENT, False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
@@ -181,7 +190,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.save_early_stop = True
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, False,
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
                             VerbosityLevel.SILENT, False, True)
             mocked_experiment.assert_called_once_with(expected_settings)
 
