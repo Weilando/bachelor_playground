@@ -55,6 +55,19 @@ class TestConv(TestCase):
         sparsity_report = net.sparsity_report()
         self.assertTrue(np.allclose([0.801, 0.9, 0.9, 0.8, 0.8, 0.9], sparsity_report, atol=1e-03, rtol=1e-03))
 
+    def test_get_untrained_instance(self):
+        """ The pruned and trained network should return an untrained copy of itself, i.e. with initial values. """
+        net = Conv([3, 'M', 'M'], [5])
+        net.conv[0].weight.add_(0.5)
+        net.fc[0].weight.add_(0.5)
+        net.prune_net(prune_rate_conv=0.0, prune_rate_fc=0.1, reset=False)
+
+        new_net = net.get_untrained_instance()
+
+        self.assertListEqual(net.sparsity_report().tolist(), new_net.sparsity_report().tolist())
+        self.assertIs(torch.equal(new_net.conv[0].weight, net.conv[0].weight_init.mul(net.conv[0].weight_mask)), True)
+        self.assertIs(torch.equal(new_net.fc[0].weight, net.fc[0].weight_init.mul(net.fc[0].weight_mask)), True)
+
 
 if __name__ == '__main__':
     unittest_main()

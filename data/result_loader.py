@@ -104,11 +104,6 @@ def get_models_from_files(experiment_path_prefix, specs):
 
         checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
         net.load_state_dict(checkpoint)
-
-        if specs.net == NetNames.LENET:
-            net.prune_net(0.)  # apply pruned masks, but do not modify the masks
-        elif specs.net == NetNames.CONV:
-            net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
-
+        net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
         nets.append(net)
     return nets

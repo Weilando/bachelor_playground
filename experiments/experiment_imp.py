@@ -1,19 +1,10 @@
 from experiments.experiment import Experiment
-from nets.conv import Conv
-from nets.lenet import Lenet
 from training.logger import log_from_medium
 
 
 class ExperimentIMP(Experiment):
     def __init__(self, args, result_path='../data/results'):
         super(ExperimentIMP, self).__init__(args, result_path)
-
-    def prune_net(self, net):
-        """ Prune given net via its 'prune_net' method. """
-        if isinstance(net, Lenet):
-            net.prune_net(self.args.prune_rate_fc)
-        elif isinstance(net, Conv):
-            net.prune_net(self.args.prune_rate_conv, self.args.prune_rate_fc)
 
     def execute_experiment(self):
         """ Perform iterative magnitude pruning and save accuracy- and loss-histories after each training.
@@ -22,7 +13,7 @@ class ExperimentIMP(Experiment):
             for p in range(0, self.args.prune_count + 1):
                 if p > 0:
                     log_from_medium(self.args.verbosity, f"Prune network #{n} in round {p}. ", False)
-                    self.prune_net(self.nets[n])
+                    self.nets[n].prune_net(self.args.prune_rate_conv, self.args.prune_rate_fc, reset=True)
 
                 if n == 0:
                     self.hists.sparsity[p] = self.nets[0].sparsity_report()[0]
