@@ -91,21 +91,35 @@ class TestPruning(TestCase):
 
     def test_apply_init_weight_after_pruning_linear_layer(self):
         """ Generate, modify and prune an unpruned linear layer.
-        Its weights should be equal to the initial values.. """
+        Its weights should be reset to the initial values. """
         # Initialize linear layer with 6 given weights and unpruned mask
         initial_weights = torch.tensor([[1., -2., 3.], [-4., 5., -6.]])
         test_layer = nn.Linear(2, 3)
-        test_layer.weight = nn.Parameter(initial_weights.clone())
+        test_layer.weight = nn.Parameter(2 * initial_weights.clone())  # Fake training, i.e. save modify weights
         test_layer.register_buffer('weight_init', initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
 
-        # Fake training, i.e. modify weights
-        test_layer.weight *= 2.
         # Apply pruning
         mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([[0., -0., 3.], [-4., 5., -6.]])
-        self.assertTrue(test_layer.weight.equal(expected_weights))
+        self.assertIs(test_layer.weight.equal(expected_weights), True)
+
+    def test_do_not_apply_init_weight_after_pruning_linear_layer(self):
+        """ Generate, modify and prune an unpruned linear layer.
+        Its weights should not be reset. """
+        # Initialize linear layer with 6 given weights and unpruned mask
+        initial_weights = torch.tensor([[1., -2., 3.], [-4., 5., -6.]])
+        test_layer = nn.Linear(2, 3)
+        test_layer.weight = nn.Parameter(2 * initial_weights.clone())  # Fake training, i.e. save modify weights
+        test_layer.register_buffer('weight_init', initial_weights.clone())
+        test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
+
+        # Apply pruning
+        mp.prune_layer(layer=test_layer, prune_rate=0.2, reset=False)
+
+        expected_weights = torch.tensor([[0., -0., 6.], [-8., 10., -12.]])
+        self.assertIs(test_layer.weight.equal(expected_weights), True)
 
     def test_prune_mask_raise_error_on_invalid_layer_type(self):
         """ Should raise an assertion error, because no pruning procedure is defined. """

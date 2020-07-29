@@ -1,17 +1,17 @@
 import time
 
-import numpy as np
 import torch
 
 from data import result_saver as rs, plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
+from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import DatasetNames, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
 from nets.net import Net
 from training.logger import log_from_medium, log_detailed_only
-from training.trainer import TrainerAdam, calc_hist_length
+from training.trainer import TrainerAdam
 
 
 class Experiment(object):
@@ -33,11 +33,14 @@ class Experiment(object):
 
         # setup history-arrays in create_histories()
         self.hists = ExperimentHistories()
+        self.stop_hists = EarlyStopHistoryList()
 
     def setup_experiment(self):
         """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
         self.load_data_and_setup_trainer()
-        self.create_histories()
+        self.hists.setup(self.args.net_count, self.args.prune_count, self.epoch_length, self.args.epoch_count,
+                         self.args.plot_step)
+        self.stop_hists.setup(self.args.net_count, self.args.prune_count)
         self.init_nets()
 
     def load_data_and_setup_trainer(self):
@@ -59,20 +62,7 @@ class Experiment(object):
 
         # initialize trainer
         self.trainer = TrainerAdam(self.args.learning_rate, train_loader, val_loader, test_loader, self.device,
-                                   self.args.verbosity)
-
-    def create_histories(self):
-        """ Create np-arrays containing values from the training process.
-        Loss and accuracies are saved at each plot_step iteration.
-        Accuracies and the nets' sparsity are saved after each epoch. """
-        # calculate amount of iterations to save at
-        history_length = calc_hist_length(self.epoch_length, self.args.epoch_count, self.args.plot_step)
-        self.hists.train_loss = np.zeros((self.args.net_count, self.args.prune_count + 1, history_length), dtype=float)
-        self.hists.val_loss = np.zeros_like(self.hists.train_loss, dtype=float)
-        self.hists.val_acc = np.zeros_like(self.hists.train_loss, dtype=float)
-        self.hists.test_acc = np.zeros_like(self.hists.train_loss, dtype=float)
-
-        self.hists.sparsity = np.ones((self.args.prune_count + 1), dtype=float)
+                                   self.args.save_early_stop, self.args.verbosity)
 
     # noinspection PyTypeChecker
     def init_nets(self):
@@ -112,6 +102,8 @@ class Experiment(object):
 
         results_path = rs.setup_and_get_result_path(self.result_path)
         rs.save_specs(results_path, file_prefix, self.args)
-        rs.save_histories(results_path, file_prefix, self.hists)
+        rs.save_experiment_histories(results_path, file_prefix, self.hists)
         rs.save_nets(results_path, file_prefix, self.nets)
+        if self.args.save_early_stop:
+            rs.save_early_stop_history_list(results_path, file_prefix, self.stop_hists)
         log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")

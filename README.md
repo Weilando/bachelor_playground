@@ -19,7 +19,7 @@ Both options allow execution on CPU or GPU (with CUDA).
 One can find implemented experiments in the package `experiments`.
 For details on experiment settings have a look at `~/experiments/experiment_settings.py`).
 
-The following predefined experiment settings are available:
+#### Predefined experiment settings
 
 Experiment | Architecture | Dataset
 --- | --- | ---
@@ -27,6 +27,12 @@ Experiment | Architecture | Dataset
 `conv2_cifar10` | conv: 64-64-M, fc: 256-256-10 | CIFAR-10
 `conv4_cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | CIFAR-10
 `conv6_cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | CIFAR-10
+
+It is possible to specify other architectures by using the `--plan_conv` for convolutional layers and `--plan_fc` for fully-connected layers.
+The `plan_fc`-option takes a list of numbers (either `int` or `str`) and interprets them as output-features of linear layers.
+The networks automatically generate dimensions and inputs to achieve a working architecture.
+It is not possible to alter the output-layer, i.e. it is always a fully-connected layer with ten output-features.
+Additionally, the option `plan_conv` takes the options `A` for average-pooling, `M` for max-pooling and `iB` (with `i` integer) for a convolution followed by a batch-norm layer.
 
 #### Results
 Experiments write their results into files in the subdirectory `~/data/results`, whereas `~/data/datasets` contains cached datasets.
@@ -38,6 +44,7 @@ Suffix | Content | Previous format
 `-specs.json` | hyper-parameters and meta-data | `ExperimentSettings`
 `-histories.npz` | histories of training-loss, validation-loss, validation-accuracy, test-accuracy and sparsity for several networks and pruning stages | `ExperimentHistories`
 `-net<number>.pth`| trained models (each stored in a single file) | `torch.nn.Module` (often subclasses like `Lenet` or `Conv`)
+`-early-stop<number>.pth`| early-stop iterations and state_dicts (each stored in a single file) | `EarlyStopHistoryList`
 
 The dataclass `experiments.experiment_settings.ExperimentSettings` contains all hyper-parameters like epoch count or initialization plans for networks.
 Furthermore, it contains the absolute execution time and information about the used cuda-device.
@@ -45,6 +52,9 @@ Furthermore, it contains the absolute execution time and information about the u
 The dataclass `experiments.experiment_histories.ExperimentHistories` contains an `np.array` per history and stores the measurements from one experiment.
 All histories for training-loss, validation-loss, validation-accuracy and test-accuracy have the shape `(net_count, prune_count+1, data_length)`, which makes it easy to plot and evaluate them in arbitrary combinations.
 The sparsity-history has shape `(prune_count+1)`.
+
+The dataclass `experiments.early_stop_histories.EarlyStopHistoryList` contains an `np.array` with one `EarlyStopHistory` per net.
+These store early-stop iterations and state_dicts per pruning level, if the `save_early_stop`-flag was set during training.
 
 ### Evaluate experiments
 It is possible to load the stored results into their original data-structure by using methods from the module `experiments.result_loader`.

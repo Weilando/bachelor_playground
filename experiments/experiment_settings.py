@@ -68,6 +68,8 @@ class ExperimentSettings:
     device: str = "cpu"
     device_name: str = "cpu"
 
+    save_early_stop = False
+
 
 def get_settings(experiment):
     """ Load ExperimentSettings for experiment specified by ExperimentName. """

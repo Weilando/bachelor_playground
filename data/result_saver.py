@@ -5,6 +5,7 @@ from dataclasses import asdict
 import numpy as np
 import torch
 
+from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import ExperimentSettings
 
@@ -27,9 +28,14 @@ def generate_specs_file_name(file_prefix):
     return f"{file_prefix}-specs.json"
 
 
-def generate_histories_file_name(file_prefix):
+def generate_experiment_histories_file_name(file_prefix):
     """ Generate file name and suffix for histories-file (.npz). """
     return f"{file_prefix}-histories.npz"
+
+
+def generate_early_stop_file_name(file_prefix, net_number):
+    """ Generate file name and suffix for EarlyStopHistory-file (.pth). """
+    return f"{file_prefix}-early-stop{net_number}.pth"
 
 
 def generate_net_file_name(file_prefix, net_number):
@@ -38,7 +44,7 @@ def generate_net_file_name(file_prefix, net_number):
 
 
 def save_specs(results_path, file_prefix, specs):
-    """ Save experiment's specs as dict in json-file. """
+    """ Save experiment's 'specs' as dict in json-file. """
     assert isinstance(specs, ExperimentSettings), f"specs must have type ExperimentSettings, but is {type(specs)}."
 
     file_name = generate_specs_file_name(file_prefix)
@@ -50,26 +56,39 @@ def save_specs(results_path, file_prefix, specs):
 
 
 def save_nets(results_path, file_prefix, net_list):
-    """ Save state_dicts from trained networks in single pth-files. """
+    """ Save state_dicts from trained networks in 'net_list' in single pth-files. """
     for net_number, net in enumerate(net_list):
         net.train(True)
         net.to(torch.device("cpu"))
 
         file_name = generate_net_file_name(file_prefix, net_number)
-        net_path = os.path.join(results_path, file_name)
+        file_path = os.path.join(results_path, file_name)
 
-        with open(net_path, "wb") as f:
+        with open(file_path, "wb") as f:
             torch.save(net.state_dict(), f)
 
 
-def save_histories(results_path, file_prefix, histories):
-    """ Save all np.arrays from histories in one npz-file. """
+def save_experiment_histories(results_path, file_prefix, histories):
+    """ Save all np.arrays from 'histories' in one npz-file. """
     assert isinstance(histories, ExperimentHistories), \
-        f"histories must have type ExperimentSettings, but is {type(histories)}."
+        f"'histories' must have type ExperimentHistories, but is {type(histories)}."
 
-    file_name = generate_histories_file_name(file_prefix)
-    histories_path = os.path.join(results_path, file_name)
+    file_name = generate_experiment_histories_file_name(file_prefix)
+    file_path = os.path.join(results_path, file_name)
 
-    with open(histories_path, "wb") as f:
+    with open(file_path, "wb") as f:
         histories_dict = asdict(histories)  # generate key-value pairs of names and np.arrays
         np.savez(f, **histories_dict)  # unpack key-value pairs to save named arrays
+
+
+def save_early_stop_history_list(results_path, file_prefix, history_list):
+    """ Save each EarlyStopHistory from 'history_list' in a single pth-file. """
+    assert isinstance(history_list, EarlyStopHistoryList), \
+        f"'checkpoints' must have type EarlyStopHistoryList, but is {type(history_list)}."
+
+    for net_number, history in enumerate(history_list.histories):
+        file_name = generate_early_stop_file_name(file_prefix, net_number)
+        file_path = os.path.join(results_path, file_name)
+
+        with open(file_path, "wb") as f:
+            torch.save(history, f)

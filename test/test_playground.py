@@ -3,9 +3,9 @@ from io import StringIO
 from unittest import TestCase, mock
 from unittest import main as unittest_main
 
-from experiments.experiment_settings import ExperimentNames, VerbosityLevel, get_settings_lenet_mnist
-from playground import main as playground_main
-from playground import should_override_epoch_count, should_override_prune_count, should_override_net_count, setup_cuda
+from experiments.experiment_settings import ExperimentNames, VerbosityLevel, get_settings_lenet_mnist, \
+    get_settings_conv2_cifar10
+from playground import main as playground_main, should_override_plan, should_override_arg_positive_int, setup_cuda
 
 
 class TestPlayground(TestCase):
@@ -13,44 +13,31 @@ class TestPlayground(TestCase):
     Call with 'python -m test.test_playground' from project root '~'.
     Call with 'python -m test_playground' from inside '~/test'. """
 
-    def test_should_not_override_epoch_count_as_epochs_flag_not_set(self):
-        """ Should return False, because the 'epochs'-flag was not set. """
-        self.assertIs(should_override_epoch_count(None), False)
+    def test_should_not_override_positive_int_as_flag_not_set(self):
+        """ Should return False, because the flag was not set. """
+        self.assertIs(should_override_arg_positive_int(None, 'Some argument'), False)
 
-    def test_should_override_epoch_count_as_epochs_is_valid(self):
-        """ Should return True, because the 'epochs'-flag was set with a valid value. """
-        self.assertIs(should_override_epoch_count(1), True)
+    def test_should_override_positive_int_as_value_is_valid(self):
+        """ Should return True, because the flag was set with a valid value. """
+        self.assertIs(should_override_arg_positive_int(1, 'Some argument'), True)
 
-    def test_should_raise_exception_as_epochs_is_invalid(self):
-        """ Should throw an assertion error, because the 'epochs'-flag was set with an invalid value. """
+    def test_should_raise_exception_as_value_is_invalid(self):
+        """ Should throw an assertion error, because the flag was set with an invalid value. """
         with self.assertRaises(AssertionError):
-            should_override_epoch_count(0)
+            should_override_arg_positive_int(0, 'Some Argument')
 
-    def test_should_not_override_net_count_as_nets_flag_not_set(self):
-        """ Should return False, because the 'nets'-flag was not set. """
-        self.assertIs(should_override_net_count(None), False)
+    def test_should_not_override_plan_as_flag_not_set(self):
+        """ Should return False, because the flag was not set. """
+        self.assertIs(should_override_plan(None, 'Some plan'), False)
 
-    def test_should_override_net_count_as_nets_is_valid(self):
-        """ Should return True, because the 'nets'-flag was set with a valid value. """
-        self.assertIs(should_override_net_count(1), True)
-
-    def test_should_raise_exception_as_nets_is_invalid(self):
-        """ Should throw an assertion error, because the 'nets'-flag was set with an invalid value. """
-        with self.assertRaises(AssertionError):
-            should_override_net_count(0)
-
-    def test_should_not_override_prune_count_as_prunes_flag_not_set(self):
-        """ Should return False, because the 'prunes'-flag was not set. """
-        self.assertIs(should_override_prune_count(None), False)
-
-    def test_should_override_prune_count_as_prunes_is_valid(self):
-        """ Should return True, because the 'prunes'-flag was set with a valid value. """
-        self.assertIs(should_override_prune_count(0), True)
+    def test_should_override_plan_as_it_is_valid(self):
+        """ Should return True, because the flag was set with a valid value. """
+        self.assertIs(should_override_plan([1, 2], 'Some plan'), True)
 
     def test_should_raise_exception_as_prunes_is_invalid(self):
-        """ Should throw an assertion error, because the 'prunes'-flag was set with an invalid value. """
+        """ Should throw an assertion error, because the flag was set with an invalid value. """
         with self.assertRaises(AssertionError):
-            should_override_prune_count(-1)
+            should_override_plan(3, 'Some plan')
 
     def test_should_setup_gpu_as_wanted_and_available(self):
         """ Should return 'cuda:0' as cuda device and its name as device_name, because cuda is wanted and available. """
@@ -87,7 +74,8 @@ class TestPlayground(TestCase):
         """ Playground should start the experiment with correct standard settings. """
         expected_settings = get_settings_lenet_mnist()
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, False, VerbosityLevel.SILENT, False)
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, False, VerbosityLevel.SILENT,
+                            False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_print_experiment_settings(self):
@@ -98,7 +86,8 @@ class TestPlayground(TestCase):
                 old_stdout = sys.stdout
                 sys.stdout = interception
 
-                playground_main(ExperimentNames.LENET_MNIST, None, None, None, False, VerbosityLevel.SILENT, True)
+                playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, False, VerbosityLevel.SILENT,
+                                True, False)
 
                 sys.stdout = old_stdout
 
@@ -110,7 +99,8 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.epoch_count = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, 42, None, None, False, VerbosityLevel.SILENT, False)
+            playground_main(ExperimentNames.LENET_MNIST, 42, None, None, None, None, False, VerbosityLevel.SILENT,
+                            False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_nets_parameter(self):
@@ -118,7 +108,8 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.net_count = 1
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, 1, None, False, VerbosityLevel.SILENT, False)
+            playground_main(ExperimentNames.LENET_MNIST, None, 1, None, None, None, False, VerbosityLevel.SILENT,
+                            False, False)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prunes_parameter(self):
@@ -126,7 +117,35 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.prune_count = 4
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, 4, False, VerbosityLevel.SILENT, False)
+            playground_main(ExperimentNames.LENET_MNIST, None, None, 4, None, None, False, VerbosityLevel.SILENT,
+                            False, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_modified_plan_conv(self):
+        """ Playground should start the experiment with modified plan_conv. """
+        expected_settings = get_settings_conv2_cifar10()
+        expected_settings.plan_conv = [1]
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, [1], None, False, VerbosityLevel.SILENT,
+                            False, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_modified_plan_fc(self):
+        """ Playground should start the experiment with modified plan_conv. """
+        expected_settings = get_settings_conv2_cifar10()
+        expected_settings.plan_fc = [1]
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, [1], False, VerbosityLevel.SILENT,
+                            False, False)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_early_stop(self):
+        """ Playground should start the experiment with flag for early-stopping-checkpoints during training. """
+        expected_settings = get_settings_lenet_mnist()
+        expected_settings.save_early_stop = True
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, False, VerbosityLevel.SILENT,
+                            False, True)
             mocked_experiment.assert_called_once_with(expected_settings)
 
 

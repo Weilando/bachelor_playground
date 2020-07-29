@@ -5,6 +5,7 @@ import os
 import numpy as np
 import torch
 
+from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import NetNames, ExperimentSettings
 from nets import lenet, conv
@@ -26,14 +27,19 @@ def generate_experiment_path_prefix(absolute_specs_path):
     return absolute_specs_path.replace('-specs.json', '')
 
 
-def generate_histories_file_path(experiment_path_prefix):
+def generate_experiment_histories_file_path(experiment_path_prefix):
     """ Given an experiment path prefix, append '-histories.npz'. """
     return f"{experiment_path_prefix}-histories.npz"
 
 
+def generate_early_stop_file_paths(experiment_path_prefix, net_count):
+    assert net_count > 0, f"'net_count' needs to be greater than zero, but was {net_count}."
+    return [f"{experiment_path_prefix}-early-stop{n}.pth" for n in range(net_count)]
+
+
 def generate_net_file_paths(experiment_path_prefix, net_count):
     """ Given an experiment path prefix, return an array of net-file paths. """
-    assert net_count > 0, f"Net count needs to be greater than zero, but was {net_count}."
+    assert net_count > 0, f"'net_count' needs to be greater than zero, but was {net_count}."
     return [f"{experiment_path_prefix}-net{n}.pth" for n in range(net_count)]
 
 
@@ -61,11 +67,25 @@ def get_specs_from_file(absolute_specs_path, as_dict=False):
     return ExperimentSettings(**specs_dict)
 
 
-def get_histories_from_file(experiment_path_prefix):
+def get_experiment_histories_from_file(experiment_path_prefix):
     """ Read histories from the npz-file specified by the given experiment_path_prefix and return them as np.arrays. """
-    histories_file_path = generate_histories_file_path(experiment_path_prefix)
+    histories_file_path = generate_experiment_histories_file_path(experiment_path_prefix)
     with np.load(histories_file_path) as histories_file:
         return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
+
+
+def get_early_stop_history_list_from_file(experiment_path_prefix, specs):
+    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
+    assert specs.save_early_stop, f"'save_early_stop' is false in given 'specs', i.e. no EarlyStopHistoryList exists."
+
+    early_stop_history_list = EarlyStopHistoryList()
+    early_stop_history_list.setup(specs.net_count, specs.prune_count)
+
+    early_stop_file_paths = generate_early_stop_file_paths(experiment_path_prefix, specs.net_count)
+    for net_number, early_stop_file in enumerate(early_stop_file_paths):
+        early_stop_history_list.histories[net_number] = torch.load(early_stop_file, map_location=torch.device("cpu"))
+
+    return early_stop_history_list
 
 
 def get_models_from_files(experiment_path_prefix, specs):
@@ -75,17 +95,15 @@ def get_models_from_files(experiment_path_prefix, specs):
     nets = []
     net_file_paths = generate_net_file_paths(experiment_path_prefix, specs.net_count)
     for model_file in net_file_paths:
-        checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
         if specs.net == NetNames.LENET:
             net = lenet.Lenet(specs.plan_fc)
-            net.load_state_dict(checkpoint)
-            net.prune_net(0.)  # apply pruned masks, but do not modify the masks
         elif specs.net == NetNames.CONV:
             net = conv.Conv(specs.plan_conv, specs.plan_fc)
-            net.load_state_dict(checkpoint)
-            net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
         else:
             raise AssertionError(f"Could not rebuild net because name {specs.net} is invalid.")
 
+        checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
+        net.load_state_dict(checkpoint)
+        net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
         nets.append(net)
     return nets

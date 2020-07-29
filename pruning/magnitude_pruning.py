@@ -32,15 +32,18 @@ def prune_mask(layer, prune_rate):
     return new_mask
 
 
-def prune_layer(layer, prune_rate):
-    """ Prune given layer with certain prune_rate and reset surviving weights to their initial values. """
+def prune_layer(layer, prune_rate, reset=True):
+    """ Prune given 'layer' with 'prune_rate'.
+    Reset surviving weights to their initial values, if 'reset' is True.
+    Calls with 'prune_rate'=0.0 do not  """
     if isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d):
         pruned_mask = prune_mask(layer, prune_rate)
 
-        # temporarily remove pruning
-        prune.remove(layer, name='weight')
-        # set weights to initial weights
-        layer.weight = nn.Parameter(layer.weight_init.clone())
+        if reset:
+            # temporarily remove pruning
+            prune.remove(layer, name='weight')
+            # set weights to initial weights
+            layer.weight = nn.Parameter(layer.weight_init.clone())
 
         # apply pruned mask
-        prune.custom_from_mask(layer, name='weight',  mask=pruned_mask)
+        prune.custom_from_mask(layer, name='weight', mask=pruned_mask)

@@ -16,7 +16,7 @@ class TestConv(TestCase):
 
     def test_forward_pass_simple_conv(self):
         """ The neural network with small Conv architecture should perform a forward pass without exceptions. """
-        net = Conv(plan_conv=[8, 'M', '16B', 'A'], plan_fc=[32, 16])
+        net = Conv(plan_conv=[8, 'M', '16B', 'A'], plan_fc=['32', 16])
         input_sample = torch.rand(1, 3, 32, 32)
         net(input_sample)
 
@@ -54,6 +54,19 @@ class TestConv(TestCase):
         net.prune_net(prune_rate_conv=0.1, prune_rate_fc=0.2)
         sparsity_report = net.sparsity_report()
         self.assertTrue(np.allclose([0.801, 0.9, 0.9, 0.8, 0.8, 0.9], sparsity_report, atol=1e-03, rtol=1e-03))
+
+    def test_get_untrained_instance(self):
+        """ The pruned and trained network should return an untrained copy of itself, i.e. with initial values. """
+        net = Conv([3, 'M', 'M'], [5])
+        net.conv[0].weight.add_(0.5)
+        net.fc[0].weight.add_(0.5)
+        net.prune_net(prune_rate_conv=0.0, prune_rate_fc=0.1, reset=False)
+
+        new_net = net.get_untrained_instance()
+
+        self.assertListEqual(net.sparsity_report().tolist(), new_net.sparsity_report().tolist())
+        self.assertIs(torch.equal(new_net.conv[0].weight, net.conv[0].weight_init.mul(net.conv[0].weight_mask)), True)
+        self.assertIs(torch.equal(new_net.fc[0].weight, net.fc[0].weight_init.mul(net.fc[0].weight_mask)), True)
 
 
 if __name__ == '__main__':

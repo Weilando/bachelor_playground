@@ -1,9 +1,10 @@
 import torch.nn as nn
 
 from nets.net import Net
-from nets.plan_check import is_numerical_spec, is_batch_norm_spec, get_number_from_batch_norm_spec
+from nets.plan_check import is_numerical_spec, is_batch_norm_spec, get_number_from_batch_norm_spec, \
+    get_number_from_numerical_spec
 from nets.weight_initializer import gaussian_glorot
-from pruning.magnitude_pruning import prune_layer, setup_masks
+from pruning.magnitude_pruning import setup_masks
 
 
 class Conv(Net):
@@ -46,9 +47,10 @@ class Conv(Net):
                 self.init_weight_count_net['conv'] += filters * spec_number * 9
                 filters = spec_number
             elif is_numerical_spec(spec):
-                conv_layers.append(nn.Conv2d(filters, spec, kernel_size=3, padding=1))
+                spec_number = get_number_from_numerical_spec(spec)
+                conv_layers.append(nn.Conv2d(filters, spec_number, kernel_size=3, padding=1))
                 conv_layers.append(nn.ReLU())
-                self.init_weight_count_net['conv'] += filters * spec * 9
+                self.init_weight_count_net['conv'] += filters * spec_number * 9
                 filters = spec
             else:
                 raise AssertionError(f"{spec} from plan_conv is an invalid spec.")
@@ -57,11 +59,14 @@ class Conv(Net):
         filters = filters * round(1024 / (4 ** pooling_count))
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
-            fc_layers.append(nn.Linear(filters, spec))
+            spec_number = get_number_from_numerical_spec(spec)
+            fc_layers.append(nn.Linear(filters, spec_number))
             fc_layers.append(nn.Tanh())
-            self.init_weight_count_net['fc'] += filters * spec
-            filters = spec
+            self.init_weight_count_net['fc'] += filters * spec_number
+            filters = spec_number
 
+        self.plan_conv = plan_conv
+        self.plan_fc = plan_fc
         self.conv = nn.Sequential(*conv_layers)
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(filters, 10)
@@ -87,15 +92,11 @@ class Conv(Net):
         x = self.conv(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
-        x = self.out(x)
-        return x
+        return self.out(x)
 
-    def prune_net(self, prune_rate_conv, prune_rate_fc):
-        """ Prune all layers with the given prune rate (use half of it for the output layer).
-        Use weight masks and reset the unpruned weights to their initial values after pruning. """
-        for layer in self.conv:
-            prune_layer(layer, prune_rate_conv)
-        for layer in self.fc:
-            prune_layer(layer, prune_rate_fc)
-        # prune output-layer with half of the fc pruning rate
-        prune_layer(self.out, prune_rate_fc / 2)
+    def get_untrained_instance(self):
+        """ Return a pruned, untrained version of this net, i.e. return this net with initial weights. """
+        new_net = Conv(self.plan_conv, self.plan_fc)
+        new_net.load_state_dict(self.state_dict())
+        new_net.prune_net(prune_rate_conv=0.0, prune_rate_fc=0.0, reset=True)  # reapply pruned mask
+        return new_net

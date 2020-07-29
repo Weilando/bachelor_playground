@@ -64,10 +64,28 @@ class TestPlanCheck(TestCase):
         input_string = '-1B'
         self.assertFalse(plan_check.is_batch_norm_spec(input_string))
 
+    def test_get_number_from_numerical_spec_int(self):
+        """ Should return number from numerical spec, i.e. return it, as it is an int. """
+        self.assertEqual(plan_check.get_number_from_numerical_spec(42), 42)
+
+    def test_get_number_from_numerical_spec_string(self):
+        """ Should return number from numerical spec, i.e. parse it, as it is a str. """
+        self.assertEqual(plan_check.get_number_from_numerical_spec('42'), 42)
+
     def test_get_number_from_batch_norm_spec(self):
         """ Should return number from batch-norm spec. """
         input_string = '42B'
         self.assertEqual(plan_check.get_number_from_batch_norm_spec(input_string), 42)
+
+    def test_should_raise_error_on_failed_numerical_parse(self):
+        """ Should raise a ValueError, as the string cannot be parsed into an int. """
+        with self.assertRaises(ValueError):
+            plan_check.get_number_from_numerical_spec('not a number')
+
+    def test_should_raise_error_on_failed_batch_norm_parse(self):
+        """ Should raise a ValueError, as the string cannot be parsed into an int. """
+        with self.assertRaises(ValueError):
+            plan_check.get_number_from_batch_norm_spec('not a numberB')
 
 
 if __name__ == '__main__':
