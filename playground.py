@@ -90,7 +90,7 @@ if __name__ == '__main__':
                    help="choose experiment")
     p.add_argument('-c', '--cuda', action='store_true', default=False, help="use cuda, if available")
     p.add_argument('-v', '--verbose', action='count', default=0,
-                   help="activate output, use twice for more detailed output (i.e. -vv)")
+                   help="activate output, use twice for more detailed output at higher frequency (i.e. -vv)")
     p.add_argument('-l', '--listing', action='store_true', default=False,
                    help="list loaded settings, but do not run the experiment")
     p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help="specify number of epochs")
