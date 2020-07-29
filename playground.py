@@ -12,16 +12,26 @@ os.chdir(os.path.join(current_path, 'experiments'))
 
 
 def should_override_arg_positive_int(value, debug_name):
-    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid.
+    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. positive integer).
     The error message contains 'debug_name', if 'value' is invalid. """
     if value is not None:
-        assert value > 0, f"{debug_name} needs to be a positive number, but is {value}."
+        assert isinstance(value, int) and (value > 0), f"{debug_name} needs to be a positive integer, but is {value}."
         return True
     return False
 
 
-def should_override_plan(plan, debug_name):
-    """ Check if the flag was set (i.e. 'plan'!=None) and if the given plan is valid. """
+def should_override_arg_rate(value, debug_name):
+    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. float from zero to one).
+    The error message contains 'debug_name', if 'value' is invalid. """
+    if value is not None:
+        assert isinstance(value, float) and (value >= 0) and (value <= 1), \
+            f"{debug_name} needs to be a float between zero and one, but is {value}."
+        return True
+    return False
+
+
+def should_override_arg_plan(plan, debug_name):
+    """ Check if the flag was set (i.e. 'plan'!=None) and if the given plan is valid (i.e. list). """
     if plan is not None:
         assert isinstance(plan, list), f"{debug_name} needs to be list, but is of type {type(plan)}."
         return True
@@ -37,7 +47,8 @@ def setup_cuda(cuda_wanted):
     return device, device_name
 
 
-def main(experiment, epochs, nets, prunes, plan_conv, plan_fc, cuda, verbose, listing, early_stop):
+def main(experiment, epochs, nets, prunes, prune_rate_conv, prune_rate_fc, plan_conv, plan_fc, cuda, verbose, listing,
+         early_stop):
     assert verbose in VerbosityLevel.__members__.values()
     log_from_medium(verbose, "Welcome to bachelor_playground.")
 
@@ -52,9 +63,13 @@ def main(experiment, epochs, nets, prunes, plan_conv, plan_fc, cuda, verbose, li
         settings.net_count = nets
     if should_override_arg_positive_int(prunes, 'Prune count'):
         settings.prune_count = prunes
-    if should_override_plan(plan_conv, 'Convolutional plan'):
+    if should_override_arg_rate(prune_rate_conv, 'Pruning-rate for convolutional layers'):
+        settings.prune_rate_conv = prune_rate_conv
+    if should_override_arg_rate(prune_rate_fc, 'Pruning-rate for fully-connected layers'):
+        settings.prune_rate_fc = prune_rate_fc
+    if should_override_arg_plan(plan_conv, 'Convolutional plan'):
         settings.plan_conv = plan_conv
-    if should_override_plan(plan_fc, 'Fully connected plan'):
+    if should_override_arg_plan(plan_fc, 'Fully connected plan'):
         settings.plan_fc = plan_fc
     settings.verbosity = VerbosityLevel(verbose)
     settings.save_early_stop = early_stop
@@ -81,6 +96,10 @@ if __name__ == '__main__':
     p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help="specify number of epochs")
     p.add_argument('-n', '--nets', type=int, default=None, metavar='N', help="specify number of trained networks")
     p.add_argument('-p', '--prunes', type=int, default=None, metavar='P', help="specify number of pruning steps")
+    p.add_argument('-prc', '--prune_rate_conv', type=float, default=None, metavar='R',
+                   help="specify pruning-rate for convolutional layers")
+    p.add_argument('-prf', '--prune_rate_fc', type=float, default=None, metavar='R',
+                   help="specify pruning-rate for fully-connected layers")
     p.add_argument('-es', '--early_stop', action='store_true', default=False,
                    help="evaluate early-stopping criterion during training "
                         "and save checkpoints per net and level of pruning")
