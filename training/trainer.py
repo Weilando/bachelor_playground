@@ -7,7 +7,7 @@ import torch
 from data import plotter
 from experiments.experiment_histories import calc_hist_length_per_net
 from experiments.experiment_settings import VerbosityLevel
-from training.logger import log_from_medium, log_detailed_only
+from training.logger import log_detailed_only
 
 
 class TrainerAdam(object):
@@ -54,7 +54,7 @@ class TrainerAdam(object):
         min_val_loss = float('inf')
 
         for e in range(0, epoch_count):
-            log_from_medium(self.verbosity, f"epoch: {(e + 1):3d} ", False)
+            log_detailed_only(self.verbosity, f"epoch: {(e + 1):3d} ", False)
             tic = time.time()
             epoch_base = e * self.train_loader_len
 
@@ -87,9 +87,9 @@ class TrainerAdam(object):
 
             toc = time.time()
             log_detailed_only(self.verbosity, f"train-loss: {(train_loss_hist[hist_count - 1]):6.4f} "
-                                              f"val-loss: {(val_loss_hist[hist_count - 1]):6.4f} ", False)
-            log_from_medium(self.verbosity,
-                            f"val-acc: {(val_acc_hist[hist_count - 1]):6.4f} (took {plotter.format_time(toc - tic)})")
+                                              f"val-loss: {(val_loss_hist[hist_count - 1]):6.4f} "
+                                              f"val-acc: {(val_acc_hist[hist_count - 1]):6.4f} "
+                                              f"(took {plotter.format_time(toc - tic)})", True)
         return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, early_stop_index, early_stop_checkpoint
 
     def compute_acc(self, net, test=True):
