@@ -93,7 +93,7 @@ def get_settings_lenet_mnist():
         plan_conv=[],
         plan_fc=[300, 100],
         dataset=DatasetNames.MNIST,
-        epoch_count=60,  # 55000 iterations / 917 batches ~ 60 epochs
+        epoch_count=60,  # 55000 iterations / 916 batches ~ 60 epochs
         learning_rate=1.2e-3,  # page 3, figure 2
         plot_step=100,
         verbosity=VerbosityLevel.SILENT,

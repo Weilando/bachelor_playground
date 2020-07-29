@@ -94,7 +94,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_print_experiment_settings(self):
@@ -106,7 +106,7 @@ class TestPlayground(TestCase):
                 sys.stdout = interception
 
                 playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                                VerbosityLevel.SILENT, True, False)
+                                VerbosityLevel.SILENT, True, False, None)
 
                 sys.stdout = old_stdout
 
@@ -119,7 +119,7 @@ class TestPlayground(TestCase):
         expected_settings.epoch_count = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.LENET_MNIST, 42, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_nets_parameter(self):
@@ -128,7 +128,7 @@ class TestPlayground(TestCase):
         expected_settings.net_count = 1
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.LENET_MNIST, None, 1, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prunes_parameter(self):
@@ -137,7 +137,7 @@ class TestPlayground(TestCase):
         expected_settings.prune_count = 4
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.LENET_MNIST, None, None, 4, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_learning_rate_parameter(self):
@@ -146,7 +146,7 @@ class TestPlayground(TestCase):
         expected_settings.learning_rate = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, 0.5, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prune_rate_conv_parameter(self):
@@ -155,7 +155,7 @@ class TestPlayground(TestCase):
         expected_settings.prune_rate_conv = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, 0.5, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prune_rate_fc_parameter(self):
@@ -164,7 +164,7 @@ class TestPlayground(TestCase):
         expected_settings.prune_rate_fc = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, 0.5, None, None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_plan_conv(self):
@@ -173,7 +173,7 @@ class TestPlayground(TestCase):
         expected_settings.plan_conv = [1]
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, [1], None, False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_plan_fc(self):
@@ -182,7 +182,7 @@ class TestPlayground(TestCase):
         expected_settings.plan_fc = [1]
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, None, [1], False,
-                            VerbosityLevel.SILENT, False, False)
+                            VerbosityLevel.SILENT, False, False, None)
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_early_stop(self):
@@ -191,7 +191,16 @@ class TestPlayground(TestCase):
         expected_settings.save_early_stop = True
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, True)
+                            VerbosityLevel.SILENT, False, True, None)
+            mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_modified_plot_step_parameter(self):
+        """ Playground should start the experiment with modified plot_step. """
+        expected_settings = get_settings_lenet_mnist()
+        expected_settings.plot_step = 42
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
+                            VerbosityLevel.SILENT, False, False, 42)
             mocked_experiment.assert_called_once_with(expected_settings)
 
 
