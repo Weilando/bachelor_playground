@@ -68,7 +68,7 @@ class ExperimentSettings:
     device: str = "cpu"
     device_name: str = "cpu"
 
-    save_early_stop = False
+    save_early_stop: bool = False
 
 
 def get_settings(experiment):
