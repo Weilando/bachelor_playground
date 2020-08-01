@@ -9,7 +9,7 @@ import numpy as np
 
 import data.result_loader as result_loader
 from data import result_saver
-from experiments.early_stop_histories import EarlyStopHistoryList
+from experiments.early_stop_histories import EarlyStopHistoryList, EarlyStopHistory
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_settings import get_settings_lenet_toy, get_settings_conv_toy
 from nets.conv import Conv
@@ -75,18 +75,12 @@ class TestResultLoader(TestCase):
         result_path = result_loader.generate_experiment_histories_file_path(experiment_path_prefix)
         self.assertEqual(expected_path, result_path)
 
-    def test_generate_early_stop_file_paths(self):
-        """ Should generate a list of early-stop file paths, i.e. append '-early-stop#.pth' with # number. """
+    def test_generate_early_stop_file_path(self):
+        """ Should an early-stop file path, i.e. append '-early-stop#.pth' with # number. """
         experiment_path_prefix = "results/prefix"
-        expected_paths = ["results/prefix-early-stop0.pth", "results/prefix-early-stop1.pth"]
-        result_paths = result_loader.generate_early_stop_file_paths(experiment_path_prefix, 2)
-        self.assertEqual(expected_paths, result_paths)
-
-    def test_generate_early_stop_file_paths_invalid_net_count(self):
-        """ Should not generate a list of early-stop file paths, because 'net_count' is not positive. """
-        experiment_path_prefix = "results/prefix"
-        with self.assertRaises(AssertionError):
-            result_loader.generate_early_stop_file_paths(experiment_path_prefix, 0)
+        expected_path = "results/prefix-early-stop42.pth"
+        result_path = result_loader.generate_early_stop_file_path(experiment_path_prefix, 42)
+        self.assertEqual(expected_path, result_path)
 
     def test_generate_net_file_paths(self):
         """ Should generate a list of net file paths, i.e. append '-net#.pth' with # number. """
@@ -183,8 +177,63 @@ class TestResultLoader(TestCase):
             loaded_histories = result_loader.get_experiment_histories_from_file(experiment_path_prefix)
             self.assertEqual(loaded_histories, histories)
 
-    def test_get_early_stop_history_list_from_file(self):
-        """ Should load fake EarlyStopHistoryList from pth file. """
+    def test_get_early_stop_history_from_file(self):
+        """ Should load fake EarlyStopHistory from pth file. """
+        plan_fc = [2]
+        net0 = Lenet(plan_fc)
+        history = EarlyStopHistory()
+        history.setup(0)
+        history.state_dicts[0] = deepcopy(net0.state_dict())
+        history.indices[0] = 3
+
+        specs = get_settings_lenet_toy()
+        specs.save_early_stop = True
+        specs.net_count = 2
+        specs.prune_count = 1
+
+        with TemporaryDirectory() as tmp_dir_name:
+            # save checkpoints
+            history_list = EarlyStopHistoryList()
+            history_list.setup(1, 0)
+            history_list.histories[0] = history
+            result_saver.save_early_stop_history_list(tmp_dir_name, 'prefix', history_list)
+
+            # load and validate histories from file
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            loaded_history = result_loader.get_early_stop_history_from_file(experiment_path_prefix, specs, 0)
+            self.assertEqual(loaded_history, history)
+            net0.load_state_dict(history.state_dicts[0])
+
+    def test_get_early_stop_history_from_file_invalid_specs(self):
+        """ Should raise assertion error as specs do not have type ExperimentSettings. """
+        with self.assertRaises(AssertionError):
+            result_loader.get_early_stop_history_from_file("some_path", dict(), 42)
+
+    def test_get_early_stop_history_from_file_no_save_early_stop(self):
+        """ Should raise assertion error as 'save_early_stop' flag is not set in specs. """
+        experiment_settings = get_settings_lenet_toy()
+        experiment_settings.save_early_stop = False
+        with self.assertRaises(AssertionError):
+            result_loader.get_early_stop_history_from_file("some_path", experiment_settings, 42)
+
+    def test_get_early_stop_history_from_file_invalid_number_small(self):
+        """ Should raise assertion error as 'number' is too small. """
+        experiment_settings = get_settings_lenet_toy()
+        experiment_settings.save_early_stop = True
+        experiment_settings.net_count = 3
+        with self.assertRaises(AssertionError):
+            result_loader.get_early_stop_history_from_file("some_path", experiment_settings, -1)
+
+    def test_get_early_stop_history_from_file_invalid_number_tall(self):
+        """ Should raise assertion error as 'number' is too tall. """
+        experiment_settings = get_settings_lenet_toy()
+        experiment_settings.save_early_stop = True
+        experiment_settings.net_count = 3
+        with self.assertRaises(AssertionError):
+            result_loader.get_early_stop_history_from_file("some_path", experiment_settings, 3)
+
+    def test_get_early_stop_history_list_from_files(self):
+        """ Should load fake EarlyStopHistoryList from pth files. """
         plan_fc = [2]
         net0 = Lenet(plan_fc)
         net1 = Lenet(plan_fc)
@@ -198,7 +247,7 @@ class TestResultLoader(TestCase):
         specs = get_settings_lenet_toy()
         specs.save_early_stop = True
         specs.net_count = 2
-        specs.prune_count = 1
+        specs.prune_count = 0
 
         with TemporaryDirectory() as tmp_dir_name:
             # save checkpoints
@@ -206,22 +255,22 @@ class TestResultLoader(TestCase):
 
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_history_list = result_loader.get_early_stop_history_list_from_file(experiment_path_prefix, specs)
+            loaded_history_list = result_loader.get_early_stop_history_list_from_files(experiment_path_prefix, specs)
             self.assertEqual(loaded_history_list, history_list)
             net0.load_state_dict(history_list.histories[0].state_dicts[0])
             net1.load_state_dict(history_list.histories[1].state_dicts[0])
 
-    def test_get_early_stop_history_list_from_file_invalid_specs(self):
-        """ Should raise assertion error if specs do not have type ExperimentSettings. """
+    def test_get_early_stop_history_list_from_files_invalid_specs(self):
+        """ Should raise assertion error as specs do not have type ExperimentSettings. """
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_list_from_file("some_path", dict())
+            result_loader.get_early_stop_history_list_from_files("some_path", dict())
 
-    def test_get_early_stop_history_list_from_file_no_save_early_stop(self):
-        """ Should raise assertion error if specs do not have type ExperimentSettings. """
+    def test_get_early_stop_history_list_from_files_no_save_early_stop(self):
+        """ Should raise assertion error as 'save_early_stop' flag is not set in specs. """
         experiment_settings = get_settings_lenet_toy()
         experiment_settings.save_early_stop = False
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_list_from_file("some_path", experiment_settings)
+            result_loader.get_early_stop_history_list_from_files("some_path", experiment_settings)
 
     def test_get_lenet_from_file(self):
         """ Should load two small Lenet instances from pth files. """

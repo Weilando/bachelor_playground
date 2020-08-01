@@ -1,5 +1,4 @@
 import time
-
 import torch
 
 from data import result_saver as rs, plotter
@@ -15,6 +14,10 @@ from training.trainer import TrainerAdam
 
 
 class Experiment(object):
+    """
+    Superclass for experiments, providing logic for setup, execution and result storing.
+    """
+
     def __init__(self, args, result_path='../data/results'):
         super(Experiment, self).__init__()
         self.args = args

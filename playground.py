@@ -86,8 +86,8 @@ def main(experiment, epochs, nets, prunes, learn_rate, prune_rate_conv, prune_ra
 
 
 if __name__ == '__main__':
-    p = ArgumentParser(description="bachelor_playground is a framework for pruning-experiments."
-                                   "Please choose an available experiment and specify options via flags."
+    p = ArgumentParser(description="bachelor_playground is a framework for pruning-experiments. "
+                                   "Please choose an available experiment and specify options via flags. "
                                    "You can find further information in the README.")
 
     p.add_argument('experiment', choices=ExperimentNames.get_value_list(),
@@ -98,14 +98,14 @@ if __name__ == '__main__':
                         "and save checkpoints per net and level of pruning")
     p.add_argument('-l', '--listing', action='store_true', default=False,
                    help="list loaded settings, but do not run the experiment")
-    p.add_argument('-ps', '--plot_step', type=int, default=None, metavar='PS',
+    p.add_argument('-ps', '--plot_step', type=int, default=None, metavar='N',
                    help="specify the number of iterations between history-entries")
     p.add_argument('-v', '--verbose', action='count', default=0,
                    help="activate output, use twice for more detailed output at higher frequency (i.e. -vv)")
 
-    p.add_argument('-e', '--epochs', type=int, default=None, metavar='E', help="specify number of epochs")
+    p.add_argument('-e', '--epochs', type=int, default=None, metavar='N', help="specify number of epochs")
     p.add_argument('-n', '--nets', type=int, default=None, metavar='N', help="specify number of trained networks")
-    p.add_argument('-p', '--prunes', type=int, default=None, metavar='P', help="specify number of pruning steps")
+    p.add_argument('-p', '--prunes', type=int, default=None, metavar='N', help="specify number of pruning steps")
     p.add_argument('-lr', '--learn_rate', type=float, default=None, metavar='R', help="specify learning-rate")
     p.add_argument('-prc', '--prune_rate_conv', type=float, default=None, metavar='R',
                    help="specify pruning-rate for convolutional layers")

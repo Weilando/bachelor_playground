@@ -3,6 +3,10 @@ from training.logger import log_from_medium
 
 
 class ExperimentIMP(Experiment):
+    """
+    Experiment with iterative magnitude pruning with resetting (IMP).
+    """
+
     def __init__(self, args, result_path='../data/results'):
         super(ExperimentIMP, self).__init__(args, result_path)
 

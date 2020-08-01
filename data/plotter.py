@@ -72,7 +72,7 @@ def gen_labels_on_ax(ax, plot_type: PlotType, iteration=True):
 
 def gen_new_single_ax():
     """ Generates a new axes from new figure. """
-    fig = plt.figure(None, (7, 6))
+    fig = plt.figure(None, figsize=(7, 6))
     return fig.subplots(1, 1, sharex=False)
 
 
@@ -211,7 +211,7 @@ def plot_two_average_hists(hists_left, hists_right, sparsity_hist, plot_step, ty
     The x-axis is labeled with iterations, which are reconstructed from plot_step.
     The baseline (i.e. the lowest sparsity) is a dashed line, all further pruning-levels are solid lines. """
     # setup and plot
-    fig = plt.figure(None, (14, 6))
+    fig = plt.figure(None, figsize=(14, 6))
     ax_left, ax_right = fig.subplots(1, 2, sharex=False)
     plot_averages_on_ax(ax_left, hists_left, sparsity_hist, plot_step)
     plot_averages_on_ax(ax_right, hists_right, sparsity_hist, plot_step)
