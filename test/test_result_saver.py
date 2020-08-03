@@ -74,6 +74,12 @@ class TestResultSaver(TestCase):
         prefix = 'prefix'
         self.assertEqual('prefix-histories.npz', result_saver.generate_experiment_histories_file_name(prefix))
 
+    def test_generate_random_histories_file_name(self):
+        """ Should append '-random-histories.npz' to given prefix and append net_number. """
+        prefix = 'prefix'
+        expected_file_name = 'prefix-random-histories42.npz'
+        self.assertEqual(expected_file_name, result_saver.generate_random_experiment_histories_file_name(prefix, 42))
+
     def test_generate_early_stop_file_name(self):
         """ Should append '-early-stop42.pth' to given prefix. """
         prefix = 'prefix'
@@ -106,6 +112,21 @@ class TestResultSaver(TestCase):
 
             # load and validate histories from file
             result_file_path = os.path.join(tmp_dir_name, 'prefix-histories.npz')
+            with np.load(result_file_path) as result_file:
+                reconstructed_histories = ExperimentHistories(**result_file)
+                self.assertEqual(histories, reconstructed_histories)
+
+    def test_save_experiment_histories_random_retrain(self):
+        """ Should save fake histories into npz file. """
+        histories = ExperimentHistories()
+        histories.setup(2, 1, 3, 2, 3)
+
+        with TemporaryDirectory() as tmp_dir_name:
+            # save histories
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 42, histories)
+
+            # load and validate histories from file
+            result_file_path = os.path.join(tmp_dir_name, 'prefix-random-histories42.npz')
             with np.load(result_file_path) as result_file:
                 reconstructed_histories = ExperimentHistories(**result_file)
                 self.assertEqual(histories, reconstructed_histories)

@@ -19,6 +19,7 @@ class TestExperimentIMP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(settings, tmp_dir_name)
             experiment.run_experiment()
+            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), 1)
 
     def test_perform_toy_conv_experiment(self):
         """ Should run IMP-Experiment with small Conv and toy-dataset without errors. """
@@ -26,6 +27,7 @@ class TestExperimentIMP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(settings, tmp_dir_name)
             experiment.run_experiment()
+            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), 1)
 
     def test_raise_error_on_invalid_dataset(self):
         """ Should raise an assertion error, because the given dataset-name is invalid. """

@@ -33,6 +33,11 @@ def generate_experiment_histories_file_name(file_prefix):
     return f"{file_prefix}-histories.npz"
 
 
+def generate_random_experiment_histories_file_name(file_prefix, net_number):
+    """ Generate file name and suffix for histories-file (.npz). """
+    return f"{file_prefix}-random-histories{net_number}.npz"
+
+
 def generate_early_stop_file_name(file_prefix, net_number):
     """ Generate file name and suffix for EarlyStopHistory-file (.pth). """
     return f"{file_prefix}-early-stop{net_number}.pth"
@@ -74,6 +79,19 @@ def save_experiment_histories(results_path, file_prefix, histories):
         f"'histories' must have type ExperimentHistories, but is {type(histories)}."
 
     file_name = generate_experiment_histories_file_name(file_prefix)
+    file_path = os.path.join(results_path, file_name)
+
+    with open(file_path, "wb") as f:
+        histories_dict = asdict(histories)  # generate key-value pairs of names and np.arrays
+        np.savez(f, **histories_dict)  # unpack key-value pairs to save named arrays
+
+
+def save_experiment_histories_random_retrain(results_path, file_prefix, net_number, histories):
+    """ Save all np.arrays from 'histories' in one npz-file. """
+    assert isinstance(histories, ExperimentHistories), \
+        f"'histories' must have type ExperimentHistories, but is {type(histories)}."
+
+    file_name = generate_random_experiment_histories_file_name(file_prefix, net_number)
     file_path = os.path.join(results_path, file_name)
 
     with open(file_path, "wb") as f:

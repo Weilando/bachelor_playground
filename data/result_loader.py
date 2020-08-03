@@ -24,12 +24,18 @@ def generate_absolute_specs_path(relative_specs_path):
 
 def generate_experiment_path_prefix(absolute_specs_path):
     """ Given a relative path to a specs-file, extract the experiment's absolute path prefix. """
+    assert absolute_specs_path.endswith('-specs.json') and (absolute_specs_path.count('specs.json') == 1)
     return absolute_specs_path.replace('-specs.json', '')
 
 
 def generate_experiment_histories_file_path(experiment_path_prefix):
     """ Given an experiment path prefix, append '-histories.npz'. """
     return f"{experiment_path_prefix}-histories.npz"
+
+
+def generate_random_experiment_histories_file_path(experiment_path_prefix, net_number):
+    """ Given an experiment path prefix, return random-histories-file path with 'net_number'. """
+    return f"{experiment_path_prefix}-random-histories{net_number}.npz"
 
 
 def generate_early_stop_file_path(experiment_path_prefix, net_number):
@@ -122,3 +128,9 @@ def get_models_from_files(experiment_path_prefix, specs):
         net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
         nets.append(net)
     return nets
+
+
+def random_histories_file_exists(experiment_path_prefix, net_number):
+    """ Indicates of a random-histories-file exists for 'net_number'. """
+    file_path = generate_random_experiment_histories_file_path(experiment_path_prefix, net_number)
+    return len(glob.glob(file_path)) > 0

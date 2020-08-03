@@ -75,6 +75,13 @@ class TestResultLoader(TestCase):
         result_path = result_loader.generate_experiment_histories_file_path(experiment_path_prefix)
         self.assertEqual(expected_path, result_path)
 
+    def test_generate_random_experiment_histories_file_path(self):
+        """ Should generate histories file path, i.e. append '-random-histories#.npz' with #=net_number. """
+        experiment_path_prefix = "results/prefix"
+        expected_path = "results/prefix-random-histories42.npz"
+        result_path = result_loader.generate_random_experiment_histories_file_path(experiment_path_prefix, 42)
+        self.assertEqual(expected_path, result_path)
+
     def test_generate_early_stop_file_path(self):
         """ Should an early-stop file path, i.e. append '-early-stop#.pth' with # number. """
         experiment_path_prefix = "results/prefix"
@@ -314,6 +321,30 @@ class TestResultLoader(TestCase):
         """ Should raise assertion error if specs do not have type ExperimentSettings. """
         with self.assertRaises(AssertionError):
             result_loader.get_models_from_files("some_path", dict())
+
+    def test_random_histories_file_exists(self):
+        """ Should return true, because a random-histories-file exists for 42. """
+        histories = ExperimentHistories()
+        histories.setup(2, 2, 2, 2, 2)
+        with TemporaryDirectory() as tmp_dir_name:
+            # save nets
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 42, histories)
+
+            # load and reconstruct nets from their files
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            self.assertIs(result_loader.random_histories_file_exists(experiment_path_prefix, 42), True)
+
+    def test_random_histories_file_does_not_exist(self):
+        """ Should return true, because no random-histories-file exists for 42. """
+        histories = ExperimentHistories()
+        histories.setup(2, 2, 2, 2, 2)
+        with TemporaryDirectory() as tmp_dir_name:
+            # save nets
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 7, histories)
+
+            # load and reconstruct nets from their files
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            self.assertIs(result_loader.random_histories_file_exists(experiment_path_prefix, 42), False)
 
 
 if __name__ == '__main__':
