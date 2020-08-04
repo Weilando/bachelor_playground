@@ -32,6 +32,17 @@ class PruningMethodNames(str, Enum):
     # IMP_GLOBAL = "IMP-global"
 
 
+class ExperimentNames(str, Enum):
+    """ Enum to define available experiments. """
+    IMP = "imp"
+    RANDOM_RETRAIN = "random_retrain"
+
+    @staticmethod
+    def get_value_list():
+        # noinspection PyUnresolvedReferences
+        return [name.value for name in ExperimentNames]
+
+
 class ExperimentIMPNames(str, Enum):
     """ Enum to define available IMP-experiments. """
     LENET_MNIST = "lenet-mnist"

@@ -23,6 +23,8 @@ class ExperimentRandomRetrain(Experiment):
         original_specs = get_specs_from_file(absolute_path_specs_path)
         self.early_stop_history = get_early_stop_history_from_file(self.experiment_path_prefix, original_specs,
                                                                    original_net_number)
+
+        assert original_specs.save_early_stop, "No EarlyStopHistory was created by the original IMP-experiment."
         assert not random_histories_file_exists(self.experiment_path_prefix, original_net_number), \
             f"A random-histories file exists for net_number {original_net_number} and would be overwritten."
 
