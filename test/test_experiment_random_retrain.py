@@ -6,7 +6,7 @@ from unittest import main as unittest_main
 
 import torch
 
-import experiments.experiment_settings as experiment_settings
+import experiments.experiment_specs as experiment_specs
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistory, EarlyStopHistoryList
 from experiments.experiment_random_retrain import ExperimentRandomRetrain
@@ -20,7 +20,7 @@ class TestExperimentRandomRetrain(TestCase):
 
     def test_generate_randomly_reinitialized_net(self):
         """ Should generate a network with equal masks but different weights. """
-        specs = experiment_settings.get_settings_lenet_mnist()
+        specs = experiment_specs.get_specs_lenet_mnist()
         specs.plan_fc = [5]
         specs.save_early_stop = True
         torch.manual_seed(0)
@@ -36,7 +36,7 @@ class TestExperimentRandomRetrain(TestCase):
 
     def test_perform_toy_lenet_experiment(self):
         """ Should run IMP-Experiment with small Lenet and toy-dataset without errors. """
-        specs = experiment_settings.get_settings_lenet_toy()
+        specs = experiment_specs.get_specs_lenet_toy()
         specs.prune_count = 1
         specs.save_early_stop = True
 

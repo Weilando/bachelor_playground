@@ -5,7 +5,7 @@ from data import plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import DatasetNames
+from experiments.experiment_specs import DatasetNames
 from training.logger import log_from_medium
 from training.trainer import TrainerAdam
 

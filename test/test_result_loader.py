@@ -11,7 +11,7 @@ import data.result_loader as result_loader
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList, EarlyStopHistory
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import get_settings_lenet_toy, get_settings_conv_toy
+from experiments.experiment_specs import get_specs_lenet_toy, get_specs_conv_toy
 from nets.conv import Conv
 from nets.lenet import Lenet
 
@@ -152,25 +152,25 @@ class TestResultLoader(TestCase):
 
     def test_get_specs_from_file_as_dict(self):
         """ Should load toy_specs from json file as dict. """
-        experiment_settings = get_settings_lenet_toy()
+        experiment_specs = get_specs_lenet_toy()
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_specs(tmp_dir_name, 'prefix', experiment_settings)
+            result_saver.save_specs(tmp_dir_name, 'prefix', experiment_specs)
 
             result_file_path = f"{tmp_dir_name}/prefix-specs.json"
             loaded_dict = result_loader.get_specs_from_file(result_file_path, as_dict=True)
-            self.assertEqual(loaded_dict, asdict(experiment_settings))
+            self.assertEqual(loaded_dict, asdict(experiment_specs))
 
-    def test_get_specs_from_file_as_experiment_settings(self):
-        """ Should load toy_specs from json file as ExperimentSettings. """
-        experiment_settings = get_settings_lenet_toy()
+    def test_get_specs_from_file_as_experiment_specs(self):
+        """ Should load toy_specs from json file as ExperimentSpecs. """
+        experiment_specs = get_specs_lenet_toy()
 
         with TemporaryDirectory() as tmp_dir_name:
-            result_saver.save_specs(tmp_dir_name, 'prefix', experiment_settings)
+            result_saver.save_specs(tmp_dir_name, 'prefix', experiment_specs)
 
             result_file_path = f"{tmp_dir_name}/prefix-specs.json"
-            loaded_experiment_settings = result_loader.get_specs_from_file(result_file_path, as_dict=False)
-            self.assertEqual(loaded_experiment_settings, experiment_settings)
+            loaded_experiment_specs = result_loader.get_specs_from_file(result_file_path, as_dict=False)
+            self.assertEqual(loaded_experiment_specs, experiment_specs)
 
     def test_get_experiment_histories_from_file(self):
         """ Should load fake histories from npz file. """
@@ -193,7 +193,7 @@ class TestResultLoader(TestCase):
         history.state_dicts[0] = deepcopy(net0.state_dict())
         history.indices[0] = 3
 
-        specs = get_settings_lenet_toy()
+        specs = get_specs_lenet_toy()
         specs.save_early_stop = True
         specs.net_count = 2
         specs.prune_count = 1
@@ -212,32 +212,32 @@ class TestResultLoader(TestCase):
             net0.load_state_dict(history.state_dicts[0])
 
     def test_get_early_stop_history_from_file_invalid_specs(self):
-        """ Should raise assertion error as specs do not have type ExperimentSettings. """
+        """ Should raise assertion error as specs do not have type ExperimentSpecs. """
         with self.assertRaises(AssertionError):
             result_loader.get_early_stop_history_from_file("some_path", dict(), 42)
 
     def test_get_early_stop_history_from_file_no_save_early_stop(self):
         """ Should raise assertion error as 'save_early_stop' flag is not set in specs. """
-        experiment_settings = get_settings_lenet_toy()
-        experiment_settings.save_early_stop = False
+        experiment_specs = get_specs_lenet_toy()
+        experiment_specs.save_early_stop = False
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_from_file("some_path", experiment_settings, 42)
+            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, 42)
 
     def test_get_early_stop_history_from_file_invalid_number_small(self):
         """ Should raise assertion error as 'number' is too small. """
-        experiment_settings = get_settings_lenet_toy()
-        experiment_settings.save_early_stop = True
-        experiment_settings.net_count = 3
+        experiment_specs = get_specs_lenet_toy()
+        experiment_specs.save_early_stop = True
+        experiment_specs.net_count = 3
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_from_file("some_path", experiment_settings, -1)
+            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, -1)
 
     def test_get_early_stop_history_from_file_invalid_number_tall(self):
         """ Should raise assertion error as 'number' is too tall. """
-        experiment_settings = get_settings_lenet_toy()
-        experiment_settings.save_early_stop = True
-        experiment_settings.net_count = 3
+        experiment_specs = get_specs_lenet_toy()
+        experiment_specs.save_early_stop = True
+        experiment_specs.net_count = 3
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_from_file("some_path", experiment_settings, 3)
+            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, 3)
 
     def test_get_early_stop_history_list_from_files(self):
         """ Should load fake EarlyStopHistoryList from pth files. """
@@ -251,7 +251,7 @@ class TestResultLoader(TestCase):
         history_list.histories[0].indices[0] = 3
         history_list.histories[1].indices[0] = 42
 
-        specs = get_settings_lenet_toy()
+        specs = get_specs_lenet_toy()
         specs.save_early_stop = True
         specs.net_count = 2
         specs.prune_count = 0
@@ -268,21 +268,21 @@ class TestResultLoader(TestCase):
             net1.load_state_dict(history_list.histories[1].state_dicts[0])
 
     def test_get_early_stop_history_list_from_files_invalid_specs(self):
-        """ Should raise assertion error as specs do not have type ExperimentSettings. """
+        """ Should raise assertion error as specs do not have type ExperimentSpecs. """
         with self.assertRaises(AssertionError):
             result_loader.get_early_stop_history_list_from_files("some_path", dict())
 
     def test_get_early_stop_history_list_from_files_no_save_early_stop(self):
         """ Should raise assertion error as 'save_early_stop' flag is not set in specs. """
-        experiment_settings = get_settings_lenet_toy()
-        experiment_settings.save_early_stop = False
+        experiment_specs = get_specs_lenet_toy()
+        experiment_specs.save_early_stop = False
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_list_from_files("some_path", experiment_settings)
+            result_loader.get_early_stop_history_list_from_files("some_path", experiment_specs)
 
     def test_get_lenet_from_file(self):
         """ Should load two small Lenet instances from pth files. """
-        experiment_settings = get_settings_lenet_toy()
-        net_list = [Lenet(experiment_settings.plan_fc), Lenet(experiment_settings.plan_fc)]
+        experiment_specs = get_specs_lenet_toy()
+        net_list = [Lenet(experiment_specs.plan_fc), Lenet(experiment_specs.plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
             # save nets
@@ -290,15 +290,15 @@ class TestResultLoader(TestCase):
 
             # load and reconstruct nets from their files
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
+            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_specs)
             self.assertIsInstance(loaded_nets[0], Lenet)
             self.assertIsInstance(loaded_nets[1], Lenet)
 
     def test_get_conv_from_file(self):
         """ Should load two small Conv instances from pth files. """
-        experiment_settings = get_settings_conv_toy()
-        net_list = [Conv(experiment_settings.plan_conv, experiment_settings.plan_fc),
-                    Conv(experiment_settings.plan_conv, experiment_settings.plan_fc)]
+        experiment_specs = get_specs_conv_toy()
+        net_list = [Conv(experiment_specs.plan_conv, experiment_specs.plan_fc),
+                    Conv(experiment_specs.plan_conv, experiment_specs.plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
             # save nets
@@ -306,19 +306,19 @@ class TestResultLoader(TestCase):
 
             # load and reconstruct nets from their files
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_settings)
+            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_specs)
             self.assertIsInstance(loaded_nets[0], Conv)
             self.assertIsInstance(loaded_nets[1], Conv)
 
     def test_get_models_from_file_invalid_model_name(self):
         """ Should raise assertion error if specs contain an invalid entry for 'net'. """
-        experiment_settings = get_settings_lenet_toy()
-        experiment_settings.net = "Some invalid name"
+        experiment_specs = get_specs_lenet_toy()
+        experiment_specs.net = "Some invalid name"
         with self.assertRaises(AssertionError):
-            result_loader.get_models_from_files("some_path", experiment_settings)
+            result_loader.get_models_from_files("some_path", experiment_specs)
 
     def test_get_models_from_file_invalid_specs(self):
-        """ Should raise assertion error if specs do not have type ExperimentSettings. """
+        """ Should raise assertion error if specs do not have type ExperimentSpecs. """
         with self.assertRaises(AssertionError):
             result_loader.get_models_from_files("some_path", dict())
 

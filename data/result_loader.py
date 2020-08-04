@@ -7,7 +7,7 @@ import torch
 
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import NetNames, ExperimentSettings
+from experiments.experiment_specs import NetNames, ExperimentSpecs
 from nets import lenet, conv
 
 
@@ -65,12 +65,12 @@ def extract_experiment_path_prefix(relative_specs_path):
 
 def get_specs_from_file(absolute_specs_path, as_dict=False):
     """ Read the specs-file (.json) specified by 'absolute_specs_path'.
-    Return result as dict or ExperimentSettings object. """
+    Return result as dict or ExperimentSpecs object. """
     with open(absolute_specs_path, 'r') as specs_file:
         specs_dict = json.load(specs_file)
     if as_dict:
         return specs_dict
-    return ExperimentSettings(**specs_dict)
+    return ExperimentSpecs(**specs_dict)
 
 
 def get_experiment_histories_from_file(experiment_path_prefix):
@@ -84,7 +84,7 @@ def get_experiment_histories_from_file(experiment_path_prefix):
 def get_early_stop_history_from_file(experiment_path_prefix, specs, net_number):
     """ Read EarlyStopHistory from file specified by 'experiment_path_prefix', 'specs' and the corresponding
     'net_number'. """
-    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
+    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
     assert specs.save_early_stop, f"'save_early_stop' is False in given 'specs', i.e. no EarlyStopHistoryList exists."
     assert 0 <= net_number < specs.net_count, \
         f"'net_number' needs to be between 0 and {specs.net_count - 1}, but is {net_number}."
@@ -96,7 +96,7 @@ def get_early_stop_history_from_file(experiment_path_prefix, specs, net_number):
 def get_early_stop_history_list_from_files(experiment_path_prefix, specs):
     """ Read all EarlyStopHistory objects corresponding to 'specs' from their files and return them as one
     EarlyStopHistoryList. """
-    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
+    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
     assert specs.save_early_stop, f"'save_early_stop' is False in given 'specs', i.e. no EarlyStopHistoryList exists."
 
     history_list = EarlyStopHistoryList()
@@ -112,7 +112,7 @@ def get_early_stop_history_list_from_files(experiment_path_prefix, specs):
 def get_models_from_files(experiment_path_prefix, specs):
     """ Read models' state_dicts from pth-files specified by the given experiment_path_prefix.
     Return an array of nets with the loaded states. """
-    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
+    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
     nets = []
     net_file_paths = generate_net_file_paths(experiment_path_prefix, specs.net_count)
     for model_file in net_file_paths:

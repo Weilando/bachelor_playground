@@ -7,7 +7,7 @@ import torch
 
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import ExperimentSettings
+from experiments.experiment_specs import ExperimentSpecs
 
 
 def setup_and_get_result_path(relative_result_path='../data/results'):
@@ -50,7 +50,7 @@ def generate_net_file_name(file_prefix, net_number):
 
 def save_specs(results_path, file_prefix, specs):
     """ Save experiment's 'specs' as dict in json-file. """
-    assert isinstance(specs, ExperimentSettings), f"specs must have type ExperimentSettings, but is {type(specs)}."
+    assert isinstance(specs, ExperimentSpecs), f"specs must have type ExperimentSpecs, but is {type(specs)}."
 
     file_name = generate_specs_file_name(file_prefix)
     json_path = os.path.join(results_path, file_name)

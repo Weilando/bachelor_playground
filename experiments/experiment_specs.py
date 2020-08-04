@@ -32,8 +32,8 @@ class PruningMethodNames(str, Enum):
     # IMP_GLOBAL = "IMP-global"
 
 
-class ExperimentNames(str, Enum):
-    """ Enum to define available experiments. """
+class ExperimentIMPNames(str, Enum):
+    """ Enum to define available IMP-experiments. """
     LENET_MNIST = "lenet-mnist"
     CONV2_CIFAR10 = "conv2-cifar10"
     CONV4_CIFAR10 = "conv4-cifar10"
@@ -42,11 +42,11 @@ class ExperimentNames(str, Enum):
     @staticmethod
     def get_value_list():
         # noinspection PyUnresolvedReferences
-        return [name.value for name in ExperimentNames]
+        return [name.value for name in ExperimentIMPNames]
 
 
 @dataclass
-class ExperimentSettings:
+class ExperimentSpecs:
     net: NetNames
     plan_conv: list
     plan_fc: list
@@ -71,29 +71,29 @@ class ExperimentSettings:
     save_early_stop: bool = False
 
 
-def get_settings(experiment):
-    """ Load ExperimentSettings for experiment specified by ExperimentName. """
-    if experiment == ExperimentNames.LENET_MNIST:
-        return get_settings_lenet_mnist()
-    elif experiment == ExperimentNames.CONV2_CIFAR10:
-        return get_settings_conv2_cifar10()
-    elif experiment == ExperimentNames.CONV4_CIFAR10:
-        return get_settings_conv4_cifar10()
-    elif experiment == ExperimentNames.CONV6_CIFAR10:
-        return get_settings_conv6_cifar10()
+def get_specs(experiment_name):
+    """ Load ExperimentSpecs for experiment_name specified by ExperimentName. """
+    if experiment_name == ExperimentIMPNames.LENET_MNIST:
+        return get_specs_lenet_mnist()
+    elif experiment_name == ExperimentIMPNames.CONV2_CIFAR10:
+        return get_specs_conv2_cifar10()
+    elif experiment_name == ExperimentIMPNames.CONV4_CIFAR10:
+        return get_specs_conv4_cifar10()
+    elif experiment_name == ExperimentIMPNames.CONV6_CIFAR10:
+        return get_specs_conv6_cifar10()
     else:
-        raise AssertionError(f"{experiment} is an invalid experiment name.")
+        raise AssertionError(f"{experiment_name} is an invalid 'experiment_name'.")
 
 
-def get_settings_lenet_mnist():
+def get_specs_lenet_mnist():
     """ Original experiment with Lenet 300-100 on MNIST. """
-    return ExperimentSettings(
+    return ExperimentSpecs(
         net=NetNames.LENET,
         net_count=3,
         plan_conv=[],
         plan_fc=[300, 100],
         dataset=DatasetNames.MNIST,
-        epoch_count=60,  # 55000 iterations / 916 batches ~ 60 epochs
+        epoch_count=55,  # 50000 iterations / 916 batches ~ 55 epochs
         learning_rate=1.2e-3,  # page 3, figure 2
         plot_step=100,
         verbosity=VerbosityLevel.SILENT,
@@ -104,9 +104,9 @@ def get_settings_lenet_mnist():
     )
 
 
-def get_settings_conv2_cifar10():
-    """ Original experiment with Conv-6 on CIFAR-10. """
-    return ExperimentSettings(
+def get_specs_conv2_cifar10():
+    """ Original experiment with Conv-2 on CIFAR-10. """
+    return ExperimentSpecs(
         net=NetNames.CONV,
         net_count=3,
         plan_conv=[64, 64, 'M'],
@@ -123,34 +123,34 @@ def get_settings_conv2_cifar10():
     )
 
 
-def get_settings_conv4_cifar10():
-    """ Original experiment with Conv-4 on CIFAR-10. """
-    experiment_settings = get_settings_conv2_cifar10()
-    experiment_settings.plan_conv = [64, 64, 'M', 128, 128, 'M']
-    experiment_settings.plan_fc = [256, 256]
-    experiment_settings.epoch_count = 34  # 25000 iterations / 750 batches ~ 33.3 epochs
-    experiment_settings.learning_rate = 3e-4  # page 3, figure 2
-    experiment_settings.prune_rate_conv = 0.1  # page 3, figure 2
-    experiment_settings.prune_rate_fc = 0.2  # page 3, figure 2
-    return experiment_settings
+def get_specs_conv4_cifar10():
+    """ Original experiment_name with Conv-4 on CIFAR-10. """
+    experiment_specs = get_specs_conv2_cifar10()
+    experiment_specs.plan_conv = [64, 64, 'M', 128, 128, 'M']
+    experiment_specs.plan_fc = [256, 256]
+    experiment_specs.epoch_count = 34  # 25000 iterations / 750 batches ~ 33.3 epochs
+    experiment_specs.learning_rate = 3e-4  # page 3, figure 2
+    experiment_specs.prune_rate_conv = 0.1  # page 3, figure 2
+    experiment_specs.prune_rate_fc = 0.2  # page 3, figure 2
+    return experiment_specs
 
 
-def get_settings_conv6_cifar10():
+def get_specs_conv6_cifar10():
     """ Original experiment with Conv-6 on CIFAR-10. """
-    experiment_settings = get_settings_conv2_cifar10()
-    experiment_settings.net_count = 3
-    experiment_settings.plan_conv = [64, 64, 'M', 128, 128, 'M', 256, 256, 'M']
-    experiment_settings.plan_fc = [256, 256]
-    experiment_settings.epoch_count = 40  # 30000 iterations / 750 batches = 40 epochs
-    experiment_settings.learning_rate = 3e-4  # page 3, figure 2
-    experiment_settings.prune_rate_conv = 0.15  # page 3, figure 2
-    experiment_settings.prune_rate_fc = 0.2  # page 3, figure 2
-    return experiment_settings
+    experiment_specs = get_specs_conv2_cifar10()
+    experiment_specs.net_count = 3
+    experiment_specs.plan_conv = [64, 64, 'M', 128, 128, 'M', 256, 256, 'M']
+    experiment_specs.plan_fc = [256, 256]
+    experiment_specs.epoch_count = 40  # 30000 iterations / 750 batches = 40 epochs
+    experiment_specs.learning_rate = 3e-4  # page 3, figure 2
+    experiment_specs.prune_rate_conv = 0.15  # page 3, figure 2
+    experiment_specs.prune_rate_fc = 0.2  # page 3, figure 2
+    return experiment_specs
 
 
-def get_settings_lenet_toy():
-    """ Toy settings for a toy Lenet on a toy-MNIST dataset. """
-    return ExperimentSettings(
+def get_specs_lenet_toy():
+    """ Toy specs for a toy Lenet on a toy-MNIST dataset. """
+    return ExperimentSpecs(
         net=NetNames.LENET,
         net_count=2,
         plan_conv=[],
@@ -167,9 +167,9 @@ def get_settings_lenet_toy():
     )
 
 
-def get_settings_conv_toy():
-    """ Toy settings for a toy Conv on a toy-CIFAR-10 dataset. """
-    return ExperimentSettings(
+def get_specs_conv_toy():
+    """ Toy specs for a toy Conv on a toy-CIFAR-10 dataset. """
+    return ExperimentSpecs(
         net=NetNames.CONV,
         net_count=2,
         plan_conv=[4, 'M', 'A'],

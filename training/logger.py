@@ -1,4 +1,4 @@
-from experiments.experiment_settings import VerbosityLevel
+from experiments.experiment_specs import VerbosityLevel
 
 
 def print_message(message, new_line):

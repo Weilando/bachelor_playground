@@ -12,7 +12,7 @@ from torch import load as t_load
 import data.result_saver as result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import get_settings_lenet_toy
+from experiments.experiment_specs import get_specs_lenet_toy
 from nets.lenet import Lenet
 
 
@@ -57,7 +57,7 @@ class TestResultSaver(TestCase):
 
     def test_generate_file_prefix_for_toy_experiment(self):
         """ Should generate the correct file_prefix for toy specs and a fake time-string. """
-        specs = get_settings_lenet_toy()
+        specs = get_specs_lenet_toy()
         time_string = 'Time'
 
         expected_file_prefix = 'Time-Lenet-Toy-MNIST'
@@ -92,7 +92,7 @@ class TestResultSaver(TestCase):
 
     def test_save_specs(self):
         """ Should save toy_specs into json file. """
-        specs = get_settings_lenet_toy()
+        specs = get_specs_lenet_toy()
 
         with TemporaryDirectory() as tmp_dir_name:
             result_saver.save_specs(tmp_dir_name, 'prefix', specs)

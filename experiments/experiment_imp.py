@@ -2,7 +2,7 @@ import time
 
 from data import result_saver as rs
 from experiments.experiment import Experiment
-from experiments.experiment_settings import NetNames
+from experiments.experiment_specs import NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
 from nets.net import Net

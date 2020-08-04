@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest import main as unittest_main
 
 from data.data_loaders import get_toy_data_loaders
-from experiments.experiment_settings import DatasetNames
+from experiments.experiment_specs import DatasetNames
 
 
 class TestDataLoaders(TestCase):

@@ -4,7 +4,7 @@ from data import result_saver as rs
 from data.result_loader import extract_experiment_path_prefix, generate_absolute_specs_path, get_specs_from_file, \
     get_early_stop_history_from_file, random_histories_file_exists
 from experiments.experiment import Experiment
-from experiments.experiment_settings import ExperimentSettings, NetNames
+from experiments.experiment_specs import ExperimentSpecs, NetNames
 from nets.conv import Conv
 from nets.lenet import Lenet
 from nets.weight_initializer import gaussian_glorot
@@ -42,7 +42,7 @@ class ExperimentRandomRetrain(Experiment):
     def generate_randomly_reinitialized_net(specs, state_dict):
         """ Build a net from 'state_dict' and randomly reinitialize its weights.
         The net has the same masks like the net specified by 'state_dict'. """
-        assert isinstance(specs, ExperimentSettings), f"'specs' needs to be ExperimentSettings, but is {type(specs)}."
+        assert isinstance(specs, ExperimentSpecs), f"'specs' needs to be ExperimentSpecs, but is {type(specs)}."
 
         if specs.net == NetNames.LENET:
             net = Lenet(specs.plan_fc)

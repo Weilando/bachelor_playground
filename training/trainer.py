@@ -6,7 +6,7 @@ import torch
 
 from data import plotter
 from experiments.experiment_histories import calc_hist_length_per_net
-from experiments.experiment_settings import VerbosityLevel
+from experiments.experiment_specs import VerbosityLevel
 from training.logger import log_detailed_only
 
 

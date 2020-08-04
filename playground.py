@@ -5,7 +5,7 @@ import sys
 import torch.cuda
 
 from experiments.experiment_imp import ExperimentIMP
-from experiments.experiment_settings import get_settings, ExperimentNames, VerbosityLevel
+from experiments.experiment_specs import get_specs, ExperimentIMPNames, VerbosityLevel
 from training.logger import log_from_medium
 
 current_path = os.path.dirname(__file__)
@@ -51,17 +51,17 @@ def setup_cuda(cuda_wanted):
 def parse_arguments(args):
     """ Creates an ArgumentParser with help messages. """
     p = ArgumentParser(description="bachelor_playground is a framework for pruning-experiments. "
-                                   "Please choose an available experiment and specify options via flags. "
+                                   "Please choose an available experiment_name and specify options via flags. "
                                    "You can find further information in the README.")
 
-    p.add_argument('experiment', choices=ExperimentNames.get_value_list(),
-                   help="choose experiment")
+    p.add_argument('experiment_name', choices=ExperimentIMPNames.get_value_list(),
+                   help="choose a preset")
     p.add_argument('-c', '--cuda', action='store_true', default=False, help="use cuda, if available")
     p.add_argument('-es', '--early_stop', action='store_true', default=False,
                    help="evaluate early-stopping criterion during training "
                         "and save checkpoints per net and level of pruning")
     p.add_argument('-l', '--listing', action='store_true', default=False,
-                   help="list loaded settings, but do not run the experiment")
+                   help="list loaded settings, but do not run the experiment_name")
     p.add_argument('-ps', '--plot_step', type=int, default=None, metavar='N',
                    help="specify the number of iterations between history-entries")
     p.add_argument('-v', '--verbose', action='count', default=0,
@@ -90,36 +90,36 @@ def main(args):
     assert parsed_args.verbose in VerbosityLevel.__members__.values()
     log_from_medium(parsed_args.verbose, "Welcome to bachelor_playground.")
 
-    settings = get_settings(parsed_args.experiment)
+    specs = get_specs(parsed_args.experiment_name)
 
-    settings.device, settings.device_name = setup_cuda(parsed_args.cuda)
-    log_from_medium(parsed_args.verbose, settings.device_name)
+    specs.device, specs.device_name = setup_cuda(parsed_args.cuda)
+    log_from_medium(parsed_args.verbose, specs.device_name)
 
     if should_override_arg_positive_int(parsed_args.epochs, 'Epoch count'):
-        settings.epoch_count = parsed_args.epochs
+        specs.epoch_count = parsed_args.epochs
     if should_override_arg_positive_int(parsed_args.nets, 'Net count'):
-        settings.net_count = parsed_args.nets
+        specs.net_count = parsed_args.nets
     if should_override_arg_positive_int(parsed_args.prunes, 'Prune count'):
-        settings.prune_count = parsed_args.prunes
+        specs.prune_count = parsed_args.prunes
     if should_override_arg_rate(parsed_args.learn_rate, 'Learning-rate'):
-        settings.learning_rate = parsed_args.learn_rate
+        specs.learning_rate = parsed_args.learn_rate
     if should_override_arg_rate(parsed_args.prune_rate_conv, 'Pruning-rate for convolutional layers'):
-        settings.prune_rate_conv = parsed_args.prune_rate_conv
+        specs.prune_rate_conv = parsed_args.prune_rate_conv
     if should_override_arg_rate(parsed_args.prune_rate_fc, 'Pruning-rate for fully-connected layers'):
-        settings.prune_rate_fc = parsed_args.prune_rate_fc
+        specs.prune_rate_fc = parsed_args.prune_rate_fc
     if should_override_arg_plan(parsed_args.plan_conv, 'Convolutional plan'):
-        settings.plan_conv = parsed_args.plan_conv
+        specs.plan_conv = parsed_args.plan_conv
     if should_override_arg_plan(parsed_args.plan_fc, 'Fully connected plan'):
-        settings.plan_fc = parsed_args.plan_fc
+        specs.plan_fc = parsed_args.plan_fc
     if should_override_arg_positive_int(parsed_args.plot_step, 'Plot-step'):
-        settings.plot_step = parsed_args.plot_step
-    settings.verbosity = VerbosityLevel(parsed_args.verbose)
-    settings.save_early_stop = parsed_args.early_stop
+        specs.plot_step = parsed_args.plot_step
+    specs.verbosity = VerbosityLevel(parsed_args.verbose)
+    specs.save_early_stop = parsed_args.early_stop
 
     if parsed_args.listing:
-        print(settings)
+        print(specs)
     else:
-        experiment = ExperimentIMP(settings)
+        experiment = ExperimentIMP(specs)
         experiment.run_experiment()
 
 
