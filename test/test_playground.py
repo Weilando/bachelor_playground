@@ -1,12 +1,13 @@
-import sys
 from io import StringIO
 from unittest import TestCase, mock
 from unittest import main as unittest_main
 
+import sys
+
 from experiments.experiment_settings import ExperimentNames, VerbosityLevel, get_settings_lenet_mnist, \
     get_settings_conv2_cifar10
 from playground import main as playground_main, setup_cuda, should_override_arg_plan, should_override_arg_rate, \
-    should_override_arg_positive_int
+    should_override_arg_positive_int, parse_arguments
 
 
 class TestPlayground(TestCase):
@@ -89,12 +90,44 @@ class TestPlayground(TestCase):
         self.assertEqual(device, 'cpu')
         self.assertEqual(device_name, 'cpu')
 
+    def test_should_show_help_on_missing_args(self):
+        """ Should print help message to stderr, if args is empty. """
+        with StringIO() as interception:
+            old_stderr = sys.stderr
+            sys.stderr = interception
+
+            with self.assertRaises(SystemExit):
+                parse_arguments([])
+
+            sys.stderr = old_stderr
+
+            self.assertIn("usage", interception.getvalue())
+
+    def test_should_parse_arguments(self):
+        """ Should parse all given arguments correctly. """
+        parsed_args = parse_arguments([ExperimentNames.LENET_MNIST, '-c', '-es', '-l', '-ps', '42', '-v', '-e', '1',
+                                       '-n', '2', '-p', '3', '-lr', '0.01', '-prc', '0.2', '-prf', '0.3', '--plan_conv',
+                                       '16', 'M', '--plan_fc', '300', '200'])
+
+        self.assertEqual(parsed_args.cuda, True)
+        self.assertEqual(parsed_args.early_stop, True)
+        self.assertEqual(parsed_args.listing, True)
+        self.assertEqual(parsed_args.plot_step, 42)
+        self.assertEqual(parsed_args.verbose, VerbosityLevel.MEDIUM)
+        self.assertEqual(parsed_args.epochs, 1)
+        self.assertEqual(parsed_args.nets, 2)
+        self.assertEqual(parsed_args.prunes, 3)
+        self.assertEqual(parsed_args.learn_rate, 0.01)
+        self.assertEqual(parsed_args.prune_rate_conv, 0.2)
+        self.assertEqual(parsed_args.prune_rate_fc, 0.3)
+        self.assertEqual(parsed_args.plan_conv, ['16', 'M'])
+        self.assertEqual(parsed_args.plan_fc, ['300', '200'])
+
     def test_should_start_experiment(self):
         """ Playground should start the experiment with correct standard settings. """
         expected_settings = get_settings_lenet_mnist()
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.LENET_MNIST])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_print_experiment_settings(self):
@@ -105,8 +138,7 @@ class TestPlayground(TestCase):
                 old_stdout = sys.stdout
                 sys.stdout = interception
 
-                playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                                VerbosityLevel.SILENT, True, False, None)
+                playground_main([ExperimentNames.LENET_MNIST, '-l'])
 
                 sys.stdout = old_stdout
 
@@ -118,8 +150,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.epoch_count = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, 42, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.LENET_MNIST, '-e', '42'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_nets_parameter(self):
@@ -127,8 +158,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.net_count = 1
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, 1, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.LENET_MNIST, '-n', '1'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prunes_parameter(self):
@@ -136,8 +166,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.prune_count = 4
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, 4, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.LENET_MNIST, '-p', '4'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_learning_rate_parameter(self):
@@ -145,8 +174,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_conv2_cifar10()
         expected_settings.learning_rate = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, 0.5, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.CONV2_CIFAR10, '-lr', '0.5'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prune_rate_conv_parameter(self):
@@ -154,8 +182,7 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_conv2_cifar10()
         expected_settings.prune_rate_conv = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, 0.5, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.CONV2_CIFAR10, '-prc', '0.5'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_prune_rate_fc_parameter(self):
@@ -163,26 +190,23 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.prune_rate_fc = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, 0.5, None, None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.LENET_MNIST, '-prf', '0.5'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_plan_conv(self):
         """ Playground should start the experiment with modified plan_conv. """
         expected_settings = get_settings_conv2_cifar10()
-        expected_settings.plan_conv = [1]
+        expected_settings.plan_conv = ['1']
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, [1], None, False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.CONV2_CIFAR10, '--plan_conv', '1'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_plan_fc(self):
         """ Playground should start the experiment with modified plan_conv. """
         expected_settings = get_settings_conv2_cifar10()
-        expected_settings.plan_fc = [1]
+        expected_settings.plan_fc = ['1']
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.CONV2_CIFAR10, None, None, None, None, None, None, None, [1], False,
-                            VerbosityLevel.SILENT, False, False, None)
+            playground_main([ExperimentNames.CONV2_CIFAR10, '--plan_fc', '1'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_early_stop(self):
@@ -190,17 +214,31 @@ class TestPlayground(TestCase):
         expected_settings = get_settings_lenet_mnist()
         expected_settings.save_early_stop = True
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, True, None)
+            playground_main([ExperimentNames.LENET_MNIST, '-es'])
             mocked_experiment.assert_called_once_with(expected_settings)
+
+    def test_should_start_experiment_with_detailed_logging(self):
+        """ Playground should start the experiment with detailed logging. """
+        expected_settings = get_settings_lenet_mnist()
+        expected_settings.verbosity = VerbosityLevel.DETAILED
+        with mock.patch('playground.ExperimentIMP') as mocked_experiment:
+            with StringIO() as interception:
+                old_stdout = sys.stdout
+                sys.stdout = interception
+
+                playground_main([ExperimentNames.LENET_MNIST, '-vv'])
+
+                sys.stdout = old_stdout
+
+                self.assertEqual(interception.getvalue(), "Welcome to bachelor_playground.\ncpu\n")
+                mocked_experiment.assert_called_once_with(expected_settings)
 
     def test_should_start_experiment_with_modified_plot_step_parameter(self):
         """ Playground should start the experiment with modified plot_step. """
         expected_settings = get_settings_lenet_mnist()
         expected_settings.plot_step = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main(ExperimentNames.LENET_MNIST, None, None, None, None, None, None, None, None, False,
-                            VerbosityLevel.SILENT, False, False, 42)
+            playground_main([ExperimentNames.LENET_MNIST, '-ps', '42'])
             mocked_experiment.assert_called_once_with(expected_settings)
 
 

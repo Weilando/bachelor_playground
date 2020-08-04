@@ -1,6 +1,7 @@
 import os
 from argparse import ArgumentParser
 
+import sys
 import torch.cuda
 
 from experiments.experiment_imp import ExperimentIMP
@@ -47,45 +48,8 @@ def setup_cuda(cuda_wanted):
     return device, device_name
 
 
-def main(experiment, epochs, nets, prunes, learn_rate, prune_rate_conv, prune_rate_fc, plan_conv, plan_fc, cuda,
-         verbose, listing, early_stop, plot_step):
-    assert verbose in VerbosityLevel.__members__.values()
-    log_from_medium(verbose, "Welcome to bachelor_playground.")
-
-    settings = get_settings(experiment)
-
-    settings.device, settings.device_name = setup_cuda(cuda)
-    log_from_medium(verbose, settings.device_name)
-
-    if should_override_arg_positive_int(epochs, 'Epoch count'):
-        settings.epoch_count = epochs
-    if should_override_arg_positive_int(nets, 'Net count'):
-        settings.net_count = nets
-    if should_override_arg_positive_int(prunes, 'Prune count'):
-        settings.prune_count = prunes
-    if should_override_arg_rate(learn_rate, 'Learning-rate'):
-        settings.learning_rate = learn_rate
-    if should_override_arg_rate(prune_rate_conv, 'Pruning-rate for convolutional layers'):
-        settings.prune_rate_conv = prune_rate_conv
-    if should_override_arg_rate(prune_rate_fc, 'Pruning-rate for fully-connected layers'):
-        settings.prune_rate_fc = prune_rate_fc
-    if should_override_arg_plan(plan_conv, 'Convolutional plan'):
-        settings.plan_conv = plan_conv
-    if should_override_arg_plan(plan_fc, 'Fully connected plan'):
-        settings.plan_fc = plan_fc
-    if should_override_arg_positive_int(plot_step, 'Plot-step'):
-        settings.plot_step = plot_step
-    settings.verbosity = VerbosityLevel(verbose)
-    settings.save_early_stop = early_stop
-
-    if listing:
-        print(settings)
-    else:
-        experiment = ExperimentIMP(settings)
-        experiment.run_experiment()
-
-
-if __name__ == '__main__':
+def parse_arguments(args):
+    """ Creates an ArgumentParser with help messages. """
     p = ArgumentParser(description="bachelor_playground is a framework for pruning-experiments. "
                                    "Please choose an available experiment and specify options via flags. "
                                    "You can find further information in the README.")
@@ -117,5 +81,47 @@ if __name__ == '__main__':
     p.add_argument('--plan_fc', type=str, nargs='+', default=None, metavar='SPEC',
                    help="specify fully-connected layers as list of output-sizes (as int or string)")
 
-    args = p.parse_args()
-    main(**vars(args))
+    return p.parse_args(args)
+
+
+def main(args):
+    parsed_args = parse_arguments(args)
+
+    assert parsed_args.verbose in VerbosityLevel.__members__.values()
+    log_from_medium(parsed_args.verbose, "Welcome to bachelor_playground.")
+
+    settings = get_settings(parsed_args.experiment)
+
+    settings.device, settings.device_name = setup_cuda(parsed_args.cuda)
+    log_from_medium(parsed_args.verbose, settings.device_name)
+
+    if should_override_arg_positive_int(parsed_args.epochs, 'Epoch count'):
+        settings.epoch_count = parsed_args.epochs
+    if should_override_arg_positive_int(parsed_args.nets, 'Net count'):
+        settings.net_count = parsed_args.nets
+    if should_override_arg_positive_int(parsed_args.prunes, 'Prune count'):
+        settings.prune_count = parsed_args.prunes
+    if should_override_arg_rate(parsed_args.learn_rate, 'Learning-rate'):
+        settings.learning_rate = parsed_args.learn_rate
+    if should_override_arg_rate(parsed_args.prune_rate_conv, 'Pruning-rate for convolutional layers'):
+        settings.prune_rate_conv = parsed_args.prune_rate_conv
+    if should_override_arg_rate(parsed_args.prune_rate_fc, 'Pruning-rate for fully-connected layers'):
+        settings.prune_rate_fc = parsed_args.prune_rate_fc
+    if should_override_arg_plan(parsed_args.plan_conv, 'Convolutional plan'):
+        settings.plan_conv = parsed_args.plan_conv
+    if should_override_arg_plan(parsed_args.plan_fc, 'Fully connected plan'):
+        settings.plan_fc = parsed_args.plan_fc
+    if should_override_arg_positive_int(parsed_args.plot_step, 'Plot-step'):
+        settings.plot_step = parsed_args.plot_step
+    settings.verbosity = VerbosityLevel(parsed_args.verbose)
+    settings.save_early_stop = parsed_args.early_stop
+
+    if parsed_args.listing:
+        print(settings)
+    else:
+        experiment = ExperimentIMP(settings)
+        experiment.run_experiment()
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
