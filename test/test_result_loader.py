@@ -5,8 +5,6 @@ from tempfile import TemporaryDirectory
 from unittest import main as unittest_main
 from unittest import mock, TestCase
 
-import numpy as np
-
 import data.result_loader as result_loader
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList, EarlyStopHistory
@@ -174,7 +172,8 @@ class TestResultLoader(TestCase):
 
     def test_get_experiment_histories_from_file(self):
         """ Should load fake histories from npz file. """
-        histories = ExperimentHistories(np.zeros(3), np.zeros(3), np.zeros(3), np.zeros(3), np.ones(2))
+        histories = ExperimentHistories()
+        histories.setup(1, 1, 1, 1, 1)
 
         with TemporaryDirectory() as tmp_dir_name:
             result_saver.save_experiment_histories(tmp_dir_name, 'prefix', histories)
@@ -183,6 +182,51 @@ class TestResultLoader(TestCase):
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
             loaded_histories = result_loader.get_experiment_histories_from_file(experiment_path_prefix)
             self.assertEqual(loaded_histories, histories)
+
+    def test_get_random_experiment_histories_from_file(self):
+        """ Should load fake random_histories from npz file. """
+        histories = ExperimentHistories()
+        histories.setup(1, 1, 1, 1, 1)
+
+        with TemporaryDirectory() as tmp_dir_name:
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 42, histories)
+
+            # load and validate histories from file
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            loaded_histories = result_loader.get_random_experiment_histories_from_file(experiment_path_prefix, 42)
+            self.assertEqual(loaded_histories, histories)
+
+    def test_get_all_random_experiment_histories_from_files(self):
+        """ Should load two fake random_histories from npz files. """
+        histories = ExperimentHistories()
+        histories.setup(1, 1, 1, 1, 1)
+
+        with TemporaryDirectory() as tmp_dir_name:
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 0, histories)
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 1, histories)
+
+            # load and validate histories from file
+            experiment_path_prefix = f"{tmp_dir_name}/prefix"
+            loaded_histories = result_loader.get_all_random_experiment_histories_from_files(experiment_path_prefix, 2)
+            self.assertEqual(loaded_histories, histories.stack_histories(histories))
+
+    def test_get_all_random_experiment_histories_from_files_invalid_net_count(self):
+        """ Should raise an AssertionError, as 'net_count' is zero. """
+        with self.assertRaises(AssertionError):
+            result_loader.get_all_random_experiment_histories_from_files('some/path', 0)
+
+    def test_get_all_random_experiment_histories_from_files_missing_file(self):
+        """ Should raise an error, as a file does not exist. """
+        histories = ExperimentHistories()
+        histories.setup(1, 1, 1, 1, 1)
+
+        with TemporaryDirectory() as tmp_dir_name:
+            # do not create npz file with index '0'
+            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 1, histories)
+
+            with self.assertRaises(FileNotFoundError):
+                experiment_path_prefix = f"{tmp_dir_name}/prefix"
+                result_loader.get_all_random_experiment_histories_from_files(experiment_path_prefix, 2)
 
     def test_get_early_stop_history_from_file(self):
         """ Should load fake EarlyStopHistory from pth file. """

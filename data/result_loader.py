@@ -75,10 +75,32 @@ def get_specs_from_file(absolute_specs_path, as_dict=False):
 
 def get_experiment_histories_from_file(experiment_path_prefix):
     """ Read history-arrays from the npz-file specified by 'experiment_path_prefix' and return them as
-    ExperimentHistory object. """
+    ExperimentHistories object. """
     histories_file_path = generate_experiment_histories_file_path(experiment_path_prefix)
     with np.load(histories_file_path) as histories_file:
         return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
+
+
+def get_random_experiment_histories_from_file(experiment_path_prefix, net_number):
+    """ Read history-arrays from the npz-file specified by 'experiment_path_prefix' and 'net_number' and return them as
+    ExperimentHistories object. """
+    histories_file_path = generate_random_experiment_histories_file_path(experiment_path_prefix, net_number)
+    with np.load(histories_file_path) as histories_file:
+        return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
+
+
+def get_all_random_experiment_histories_from_files(experiment_path_prefix, net_count):
+    """ Read history-arrays from all npz-files specified by 'experiment_path_prefix' and net_number from zero to
+    'net_count' and return them as a single ExperimentHistories object. """
+    assert net_count > 0, f"'net_count' needs to be greater than 0, but is {net_count}."
+
+    histories = get_random_experiment_histories_from_file(experiment_path_prefix, 0)
+
+    for net_number in range(1, net_count):
+        current_histories = get_random_experiment_histories_from_file(experiment_path_prefix, net_number)
+        histories = histories.stack_histories(current_histories)
+
+    return histories
 
 
 def get_early_stop_history_from_file(experiment_path_prefix, specs, net_number):

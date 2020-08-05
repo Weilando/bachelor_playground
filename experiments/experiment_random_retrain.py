@@ -60,13 +60,19 @@ class ExperimentRandomRetrain(Experiment):
         return net
 
     def execute_experiment(self):
-        """ Retrain in the end to check the last nets' accuracies. """
+        """ Randomly reinitialize and train 'retrain_net_count' instances per level of pruning.
+        Do not retrain the original network with sparsity 100%.
+        Generate nets with correct architecture and masks from parameters in specs and state_dicts. """
         for prune_level, state_dict in enumerate(self.early_stop_history.state_dicts[1:]):
-            log_from_medium(self.specs.verbosity,
-                            f"Pruning level {prune_level + 1} (sparsity {self.hists.sparsity[prune_level]:6.4f}).")
             for net_number in range(self.retrain_net_count):
-                log_from_medium(self.specs.verbosity, f"Train network #{net_number} / {self.retrain_net_count}.")
                 net = ExperimentRandomRetrain.generate_randomly_reinitialized_net(self.specs, state_dict)
+
+                if net_number == 0:
+                    self.hists.sparsity[prune_level] = net.sparsity_report()[0]
+                    log_from_medium(self.specs.verbosity,
+                                    f"Level of pruning: {prune_level + 1} "
+                                    f"(sparsity {self.hists.sparsity[prune_level]:6.4f}).")
+                log_from_medium(self.specs.verbosity, f"Train network #{net_number + 1}/{self.retrain_net_count}.")
 
                 _, self.hists.train_loss[net_number, prune_level], self.hists.val_loss[net_number, prune_level], \
                 self.hists.val_acc[net_number, prune_level], self.hists.test_acc[net_number, prune_level], _, _ \

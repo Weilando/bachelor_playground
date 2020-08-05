@@ -83,7 +83,7 @@ class ExperimentSpecs:
 
 
 def get_specs(experiment_name):
-    """ Load ExperimentSpecs for experiment_name specified by ExperimentName. """
+    """ Load ExperimentSpecs for experiment_name (options specified by ExperimentIMPNames). """
     if experiment_name == ExperimentIMPNames.LENET_MNIST:
         return get_specs_lenet_mnist()
     elif experiment_name == ExperimentIMPNames.CONV2_CIFAR10:

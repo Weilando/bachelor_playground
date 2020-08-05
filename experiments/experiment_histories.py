@@ -1,6 +1,7 @@
-import math
+from copy import deepcopy
 from dataclasses import dataclass, astuple
 
+import math
 import numpy as np
 
 
@@ -27,10 +28,28 @@ class ExperimentHistories:
 
     def __eq__(self, other):
         """ Check if all fields (each is np.array) are equal. """
-        assert isinstance(other, ExperimentHistories), f"other must have type ExperimentSettings, but is {type(other)}."
+        assert isinstance(other,
+                          ExperimentHistories), f"other must have type ExperimentHistories, but is {type(other)}."
 
         self_tuple, other_tuple = astuple(self), astuple(other)
         return all(np.array_equal(self_arr, other_arr) for self_arr, other_arr in zip(self_tuple, other_tuple))
+
+    def stack_histories(self, other):
+        """ Generate a new ExperimentHistories object, which contains joined arrays for losses and accuracies.
+        Add arrays from 'other' to corresponding arrays from 'self' (basically on nets-dimension).
+        Levels of sparsity and all dimensions need to match. """
+        assert isinstance(other,
+                          ExperimentHistories), f"other must have type ExperimentHistories, but is {type(other)}."
+        np.testing.assert_array_almost_equal(self.sparsity, other.sparsity)
+
+        new_history = ExperimentHistories()
+        new_history.sparsity = deepcopy(self.sparsity)
+        new_history.train_loss = np.vstack([self.train_loss, other.train_loss])
+        new_history.val_loss = np.vstack([self.val_loss, other.val_loss])
+        new_history.val_acc = np.vstack([self.val_acc, other.val_acc])
+        new_history.test_acc = np.vstack([self.test_acc, other.test_acc])
+
+        return new_history
 
 
 def calc_hist_length_per_net(batch_count, epoch_count, plot_step):
