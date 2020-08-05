@@ -156,6 +156,13 @@ class TestPlotter(TestCase):
         sparsity = np.ones(2)
         plotter.plot_average_hists(hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS)
 
+    def test_plot_average_hists_with_random_hists(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 2, 2))
+        hists_random = np.ones((2, 1, 2))
+        sparsity = np.ones(2)
+        plotter.plot_average_hists(hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS, hists_random)
+
     def test_plot_early_stop_iterations(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
@@ -167,6 +174,14 @@ class TestPlotter(TestCase):
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS)
+
+    def test_plot_two_average_hists_with_random_hists(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 2, 2))
+        hists_random = np.ones((2, 1, 2))
+        sparsity = np.ones(2)
+        plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS,
+                                       True, True, hists_random, hists_random)
 
 
 if __name__ == '__main__':
