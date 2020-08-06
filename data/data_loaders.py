@@ -2,7 +2,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split, Subset
 
-from experiments.experiment_settings import VerbosityLevel, DatasetNames
+from experiments.experiment_specs import VerbosityLevel, DatasetNames
 from training.logger import log_from_medium
 
 

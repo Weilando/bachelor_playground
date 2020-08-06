@@ -1,9 +1,10 @@
-import sys
 from io import StringIO
 from unittest import TestCase
 from unittest import main as unittest_main
 
-from experiments.experiment_settings import VerbosityLevel
+import sys
+
+from experiments.experiment_specs import VerbosityLevel
 from training import logger
 
 

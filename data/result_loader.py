@@ -7,7 +7,7 @@ import torch
 
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import NetNames, ExperimentSettings
+from experiments.experiment_specs import NetNames, ExperimentSpecs
 from nets import lenet, conv
 
 
@@ -24,6 +24,7 @@ def generate_absolute_specs_path(relative_specs_path):
 
 def generate_experiment_path_prefix(absolute_specs_path):
     """ Given a relative path to a specs-file, extract the experiment's absolute path prefix. """
+    assert absolute_specs_path.endswith('-specs.json') and (absolute_specs_path.count('specs.json') == 1)
     return absolute_specs_path.replace('-specs.json', '')
 
 
@@ -32,9 +33,14 @@ def generate_experiment_histories_file_path(experiment_path_prefix):
     return f"{experiment_path_prefix}-histories.npz"
 
 
-def generate_early_stop_file_paths(experiment_path_prefix, net_count):
-    assert net_count > 0, f"'net_count' needs to be greater than zero, but was {net_count}."
-    return [f"{experiment_path_prefix}-early-stop{n}.pth" for n in range(net_count)]
+def generate_random_experiment_histories_file_path(experiment_path_prefix, net_number):
+    """ Given an experiment path prefix, return random-histories-file path with 'net_number'. """
+    return f"{experiment_path_prefix}-random-histories{net_number}.npz"
+
+
+def generate_early_stop_file_path(experiment_path_prefix, net_number):
+    """ Given an experiment path prefix, return an early-stop-file path with 'net_number'. """
+    return f"{experiment_path_prefix}-early-stop{net_number}.pth"
 
 
 def generate_net_file_paths(experiment_path_prefix, net_count):
@@ -51,47 +57,84 @@ def get_relative_spec_file_paths(sub_dir='results'):
 
 
 def extract_experiment_path_prefix(relative_specs_path):
-    """ Get and verify experiment_path_prefix from relative path to specs. """
+    """ Generate and verify experiment_path_prefix from 'relative_specs_path'. """
     absolute_specs_path = generate_absolute_specs_path(relative_specs_path)
     assert is_valid_specs_path(absolute_specs_path), "The given specs path is invalid."
     return generate_experiment_path_prefix(absolute_specs_path)
 
 
 def get_specs_from_file(absolute_specs_path, as_dict=False):
-    """ Read the specs-file (.json) specified by the given relative path.
-     Return result as dict or ExperimentSettings object. """
+    """ Read the specs-file (.json) specified by 'absolute_specs_path'.
+    Return result as dict or ExperimentSpecs object. """
     with open(absolute_specs_path, 'r') as specs_file:
         specs_dict = json.load(specs_file)
     if as_dict:
         return specs_dict
-    return ExperimentSettings(**specs_dict)
+    return ExperimentSpecs(**specs_dict)
 
 
 def get_experiment_histories_from_file(experiment_path_prefix):
-    """ Read histories from the npz-file specified by the given experiment_path_prefix and return them as np.arrays. """
+    """ Read history-arrays from the npz-file specified by 'experiment_path_prefix' and return them as
+    ExperimentHistories object. """
     histories_file_path = generate_experiment_histories_file_path(experiment_path_prefix)
     with np.load(histories_file_path) as histories_file:
         return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
 
 
-def get_early_stop_history_list_from_file(experiment_path_prefix, specs):
-    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
-    assert specs.save_early_stop, f"'save_early_stop' is false in given 'specs', i.e. no EarlyStopHistoryList exists."
+def get_random_experiment_histories_from_file(experiment_path_prefix, net_number):
+    """ Read history-arrays from the npz-file specified by 'experiment_path_prefix' and 'net_number' and return them as
+    ExperimentHistories object. """
+    histories_file_path = generate_random_experiment_histories_file_path(experiment_path_prefix, net_number)
+    with np.load(histories_file_path) as histories_file:
+        return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
 
-    early_stop_history_list = EarlyStopHistoryList()
-    early_stop_history_list.setup(specs.net_count, specs.prune_count)
 
-    early_stop_file_paths = generate_early_stop_file_paths(experiment_path_prefix, specs.net_count)
-    for net_number, early_stop_file in enumerate(early_stop_file_paths):
-        early_stop_history_list.histories[net_number] = torch.load(early_stop_file, map_location=torch.device("cpu"))
+def get_all_random_experiment_histories_from_files(experiment_path_prefix, net_count):
+    """ Read history-arrays from all npz-files specified by 'experiment_path_prefix' and net_number from zero to
+    'net_count' and return them as a single ExperimentHistories object. """
+    assert net_count > 0, f"'net_count' needs to be greater than 0, but is {net_count}."
 
-    return early_stop_history_list
+    histories = get_random_experiment_histories_from_file(experiment_path_prefix, 0)
+
+    for net_number in range(1, net_count):
+        current_histories = get_random_experiment_histories_from_file(experiment_path_prefix, net_number)
+        histories = histories.stack_histories(current_histories)
+
+    return histories
+
+
+def get_early_stop_history_from_file(experiment_path_prefix, specs, net_number):
+    """ Read EarlyStopHistory from file specified by 'experiment_path_prefix', 'specs' and the corresponding
+    'net_number'. """
+    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
+    assert specs.save_early_stop, f"'save_early_stop' is False in given 'specs', i.e. no EarlyStopHistoryList exists."
+    assert 0 <= net_number < specs.net_count, \
+        f"'net_number' needs to be between 0 and {specs.net_count - 1}, but is {net_number}."
+
+    early_stop_file_path = generate_early_stop_file_path(experiment_path_prefix, net_number)
+    return torch.load(early_stop_file_path, map_location=torch.device("cpu"))
+
+
+def get_early_stop_history_list_from_files(experiment_path_prefix, specs):
+    """ Read all EarlyStopHistory objects corresponding to 'specs' from their files and return them as one
+    EarlyStopHistoryList. """
+    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
+    assert specs.save_early_stop, f"'save_early_stop' is False in given 'specs', i.e. no EarlyStopHistoryList exists."
+
+    history_list = EarlyStopHistoryList()
+    history_list.setup(specs.net_count, specs.prune_count)
+
+    for net_number in range(specs.net_count):
+        early_stop_file_path = generate_early_stop_file_path(experiment_path_prefix, net_number)
+        history_list.histories[net_number] = torch.load(early_stop_file_path, map_location=torch.device("cpu"))
+
+    return history_list
 
 
 def get_models_from_files(experiment_path_prefix, specs):
     """ Read models' state_dicts from pth-files specified by the given experiment_path_prefix.
     Return an array of nets with the loaded states. """
-    assert isinstance(specs, ExperimentSettings), f"Expected specs of type ExperimentSettings, but got {type(specs)}."
+    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
     nets = []
     net_file_paths = generate_net_file_paths(experiment_path_prefix, specs.net_count)
     for model_file in net_file_paths:
@@ -107,3 +150,9 @@ def get_models_from_files(experiment_path_prefix, specs):
         net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
         nets.append(net)
     return nets
+
+
+def random_histories_file_exists(experiment_path_prefix, net_number):
+    """ Indicates of a random-histories-file exists for 'net_number'. """
+    file_path = generate_random_experiment_histories_file_path(experiment_path_prefix, net_number)
+    return len(glob.glob(file_path)) > 0

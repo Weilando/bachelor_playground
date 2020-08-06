@@ -1,81 +1,60 @@
 import time
-
 import torch
 
-from data import result_saver as rs, plotter
+from data import plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_settings import DatasetNames, NetNames
-from nets.conv import Conv
-from nets.lenet import Lenet
-from nets.net import Net
-from training.logger import log_from_medium, log_detailed_only
+from experiments.experiment_specs import DatasetNames
+from training.logger import log_from_medium
 from training.trainer import TrainerAdam
 
 
 class Experiment(object):
-    def __init__(self, args, result_path='../data/results'):
+    """
+    Superclass for experiments, providing logic for setup, execution and result storing.
+    """
+
+    def __init__(self, specs):
         super(Experiment, self).__init__()
-        self.args = args
-        self.result_path = result_path
+        self.specs = specs
 
-        log_from_medium(self.args.verbosity, args)
+        log_from_medium(self.specs.verbosity, specs)
 
-        self.device = torch.device(args.device)
-
-        # setup nets in init_nets()
-        self.nets = [Net] * self.args.net_count
+        self.device = torch.device(specs.device)
 
         # setup epoch_length and trainer in load_data_and_setup_trainer()
         self.trainer = None
         self.epoch_length = 0
 
-        # setup history-arrays in create_histories()
+        # setup history-arrays in setup_experiment()
         self.hists = ExperimentHistories()
         self.stop_hists = EarlyStopHistoryList()
 
     def setup_experiment(self):
-        """ Load dataset, initialize trainer, create np.arrays for histories and initialize nets. """
-        self.load_data_and_setup_trainer()
-        self.hists.setup(self.args.net_count, self.args.prune_count, self.epoch_length, self.args.epoch_count,
-                         self.args.plot_step)
-        self.stop_hists.setup(self.args.net_count, self.args.prune_count)
-        self.init_nets()
+        """ Load dataset, initialize trainer and setup histories. """
+        pass
 
     def load_data_and_setup_trainer(self):
         """ Load dataset and initialize trainer.
         Store the length of the training-loader into 'self.epoch_length' to initialize histories. """
         # load dataset
-        if self.args.dataset == DatasetNames.MNIST:
-            train_loader, val_loader, test_loader = get_mnist_data_loaders(device=self.args.device,
-                                                                           verbosity=self.args.verbosity)
-        elif self.args.dataset == DatasetNames.CIFAR10:
-            train_loader, val_loader, test_loader = get_cifar10_data_loaders(device=self.args.device,
-                                                                             verbosity=self.args.verbosity)
-        elif self.args.dataset in [DatasetNames.TOY_MNIST, DatasetNames.TOY_CIFAR10]:
-            train_loader, val_loader, test_loader = get_toy_data_loaders(self.args.dataset)
+        if self.specs.dataset == DatasetNames.MNIST:
+            train_loader, val_loader, test_loader = get_mnist_data_loaders(device=self.specs.device,
+                                                                           verbosity=self.specs.verbosity)
+        elif self.specs.dataset == DatasetNames.CIFAR10:
+            train_loader, val_loader, test_loader = get_cifar10_data_loaders(device=self.specs.device,
+                                                                             verbosity=self.specs.verbosity)
+        elif self.specs.dataset in [DatasetNames.TOY_MNIST, DatasetNames.TOY_CIFAR10]:
+            train_loader, val_loader, test_loader = get_toy_data_loaders(self.specs.dataset)
         else:
-            raise AssertionError(f"Could not load datasets, because the given name {self.args.dataset} is invalid.")
+            raise AssertionError(f"Could not load datasets, because the given name {self.specs.dataset} is invalid.")
 
         self.epoch_length = len(train_loader)
 
         # initialize trainer
-        self.trainer = TrainerAdam(self.args.learning_rate, train_loader, val_loader, test_loader, self.device,
-                                   self.args.save_early_stop, self.args.verbosity)
-
-    # noinspection PyTypeChecker
-    def init_nets(self):
-        """ Initialize nets which are used during the experiment. """
-        for n in range(self.args.net_count):
-            if self.args.net == NetNames.LENET:
-                self.nets[n] = Lenet(self.args.plan_fc)
-            elif self.args.net == NetNames.CONV:
-                self.nets[n] = Conv(self.args.plan_conv, self.args.plan_fc)
-            else:
-                raise AssertionError(f"Could not initialize net, because the given name {self.args.net} is invalid.")
-
-        log_detailed_only(self.args.verbosity, self.nets[0])
+        self.trainer = TrainerAdam(self.specs.learning_rate, train_loader, val_loader, test_loader, self.device,
+                                   self.specs.save_early_stop, self.specs.verbosity)
 
     def execute_experiment(self):
         """ Execute all actions for experiment and save accuracy- and loss-histories. """
@@ -90,20 +69,11 @@ class Experiment(object):
 
         experiment_stop = time.time()  # stop clock for experiment duration
         duration = plotter.format_time(experiment_stop - experiment_start)
-        self.args.duration = duration
-        log_from_medium(self.args.verbosity, f"Experiment duration: {duration}")
+        self.specs.duration = duration
+        log_from_medium(self.specs.verbosity, f"Experiment duration: {duration}")
 
         self.save_results()
 
     def save_results(self):
-        """ Save experiment's specs, histories and models on disk. """
-        save_time = time.strftime("%Y_%m_%d-%H_%M_%S", time.localtime())
-        file_prefix = rs.generate_file_prefix(self.args, save_time)
-
-        results_path = rs.setup_and_get_result_path(self.result_path)
-        rs.save_specs(results_path, file_prefix, self.args)
-        rs.save_experiment_histories(results_path, file_prefix, self.hists)
-        rs.save_nets(results_path, file_prefix, self.nets)
-        if self.args.save_early_stop:
-            rs.save_early_stop_history_list(results_path, file_prefix, self.stop_hists)
-        log_from_medium(self.args.verbosity, "Successfully wrote results on disk.")
+        """ Save experiment's specs and histories on disk. """
+        pass
