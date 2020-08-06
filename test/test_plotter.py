@@ -16,11 +16,30 @@ class TestPlotter(TestCase):
     def test_find_early_stop_indices(self):
         """ Should find the correct indices for the early-stopping criterion.
         The input has shape (1,2,5), thus the result needs to have shape (1,2). """
-        arr = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
-        expected_iterations = np.array([[4, 2]])
+        loss = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
+        expected_indices = np.array([[4, 2]])
 
-        result_iterations = plotter.find_early_stop_indices(arr)
+        result_indices = plotter.find_early_stop_indices(loss)
+        np.testing.assert_array_equal(expected_indices, result_indices)
+
+    def test_find_early_stop_iterations(self):
+        """ Should find the correct iterations for the early-stopping iterations.
+        The input has shape (1,2,5), thus the result needs to have shape (1,2). """
+        loss = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
+        expected_iterations = np.array([[50, 30]])  # indices are 4 and 2, and there is no measurement at start
+
+        result_iterations = plotter.find_early_stop_iterations(loss, 10)
         np.testing.assert_array_equal(expected_iterations, result_iterations)
+
+    def test_find_acc_at_early_stop_indices(self):
+        """ Should find the correct accuracies for the early-stopping iterations.
+        The inputs have shape (1,2,5), thus the result needs to have shape (1,2,1). """
+        loss = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
+        accuracies = np.array([[[0.5, 0.4, 0.3, 0.2, 0.1], [0.9, 0.8, 0.7, 0.8, 0.9]]], dtype=float)
+        expected_accuracies = np.array([[[0.1], [0.7]]])  # indices are 4 and 2
+
+        result_accuracies = plotter.find_acc_at_early_stop_indices(loss, accuracies)
+        np.testing.assert_array_equal(expected_accuracies, result_accuracies)
 
     def test_time_smaller_than_minute_should_be_seconds(self):
         """ If the given time is smaller than one minute, it should be returned as seconds with four digits. """
@@ -150,6 +169,13 @@ class TestPlotter(TestCase):
         sparsity = np.ones(2)
         plotter.plot_acc_at_early_stop(hists, hists, sparsity, plotter.PlotType.TEST_ACC)
 
+    def test_plot_acc_at_early_stop_with_random_hists(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 3, 2))
+        hists_random = np.ones((4, 2, 2))
+        sparsity = np.ones(3)
+        plotter.plot_acc_at_early_stop(hists, hists, sparsity, plotter.PlotType.TEST_ACC, hists_random, hists_random)
+
     def test_plot_average_hists(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
@@ -158,9 +184,9 @@ class TestPlotter(TestCase):
 
     def test_plot_average_hists_with_random_hists(self):
         """ Should run plot routine without errors. """
-        hists = np.ones((2, 2, 2))
-        hists_random = np.ones((2, 1, 2))
-        sparsity = np.ones(2)
+        hists = np.ones((2, 3, 2))
+        hists_random = np.ones((4, 2, 2))
+        sparsity = np.ones(3)
         plotter.plot_average_hists(hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS, hists_random)
 
     def test_plot_early_stop_iterations(self):
@@ -168,6 +194,13 @@ class TestPlotter(TestCase):
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         plotter.plot_early_stop_iterations(hists, sparsity, 10)
+
+    def test_plot_early_stop_iterations_with_random_hists(self):
+        """ Should run plot routine without errors. """
+        hists = np.ones((2, 3, 2))
+        hists_random = np.ones((4, 2, 2))
+        sparsity = np.ones(3)
+        plotter.plot_early_stop_iterations(hists, sparsity, 10, hists_random)
 
     def test_plot_two_average_hists(self):
         """ Should run plot routine without errors. """
@@ -177,9 +210,9 @@ class TestPlotter(TestCase):
 
     def test_plot_two_average_hists_with_random_hists(self):
         """ Should run plot routine without errors. """
-        hists = np.ones((2, 2, 2))
-        hists_random = np.ones((2, 1, 2))
-        sparsity = np.ones(2)
+        hists = np.ones((2, 3, 2))
+        hists_random = np.ones((4, 2, 2))
+        sparsity = np.ones(3)
         plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS,
                                        True, True, hists_random, hists_random)
 
