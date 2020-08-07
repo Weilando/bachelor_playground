@@ -1,6 +1,6 @@
 import time
 
-from data import result_saver as rs
+from data import result_saver as rs, plotter
 from experiments.experiment import Experiment
 from experiments.experiment_specs import NetNames
 from nets.conv import Conv
@@ -47,6 +47,7 @@ class ExperimentIMP(Experiment):
         Retrain in the end to check the last nets' accuracies. """
         for n in range(self.specs.net_count):
             for p in range(0, self.specs.prune_count + 1):
+                tic = time.time()
                 if p > 0:
                     log_from_medium(self.specs.verbosity, f"Prune network #{n} in round {p}. ", False)
                     self.nets[n].prune_net(self.specs.prune_rate_conv, self.specs.prune_rate_fc, reset=True)
@@ -61,8 +62,10 @@ class ExperimentIMP(Experiment):
                 self.stop_hists.histories[n].state_dicts[p] \
                     = self.trainer.train_net(self.nets[n], self.specs.epoch_count, self.specs.plot_step)
 
+                toc = time.time()
                 log_from_medium(self.specs.verbosity,
-                                f"Final test-accuracy: {(self.hists.test_acc[n, p, -1]):6.4f}")
+                                f"Final test-accuracy: {(self.hists.test_acc[n, p, -1]):6.4f} "
+                                f"(took {plotter.format_time(toc - tic)}).")
             log_from_medium(self.specs.verbosity, "")
 
     def save_results(self):

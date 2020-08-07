@@ -1,6 +1,8 @@
 import os
 
-from data import result_saver as rs
+import time
+
+from data import result_saver as rs, plotter
 from data.result_loader import extract_experiment_path_prefix, generate_absolute_specs_path, get_specs_from_file, \
     get_early_stop_history_from_file, random_histories_file_exists
 from experiments.experiment import Experiment
@@ -65,18 +67,23 @@ class ExperimentRandomRetrain(Experiment):
         Generate nets with correct architecture and masks from parameters in specs and state_dicts. """
         for prune_level, state_dict in enumerate(self.early_stop_history.state_dicts[1:]):
             for net_number in range(self.retrain_net_count):
+                tic = time.time()
                 net = ExperimentRandomRetrain.generate_randomly_reinitialized_net(self.specs, state_dict)
 
                 if net_number == 0:
                     self.hists.sparsity[prune_level] = net.sparsity_report()[0]
                     log_from_medium(self.specs.verbosity,
-                                    f"Level of pruning: {prune_level + 1} "
+                                    f"Level of pruning: {prune_level + 1}/{self.specs.prune_count} "
                                     f"(sparsity {self.hists.sparsity[prune_level]:6.4f}).")
-                log_from_medium(self.specs.verbosity, f"Train network #{net_number + 1}/{self.retrain_net_count}.")
+                log_from_medium(self.specs.verbosity, f"Train network #{net_number + 1}/{self.retrain_net_count} ",
+                                False)
 
                 _, self.hists.train_loss[net_number, prune_level], self.hists.val_loss[net_number, prune_level], \
                 self.hists.val_acc[net_number, prune_level], self.hists.test_acc[net_number, prune_level], _, _ \
                     = self.trainer.train_net(net, self.specs.epoch_count, self.specs.plot_step)
+
+                toc = time.time()
+                log_from_medium(self.specs.verbosity, f"(took {plotter.format_time(toc - tic)}).")
 
     def save_results(self):
         """ Save generated histories for randomly reinitialized models on disk. """

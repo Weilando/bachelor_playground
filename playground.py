@@ -118,7 +118,6 @@ def parse_arguments(args):
 
 def setup_imp(args):
     assert args.verbose in VerbosityLevel.__members__.values()
-    log_from_medium(args.verbose, "Welcome to bachelor_playground.")
 
     specs = get_specs(args.experiment_preset)
 
