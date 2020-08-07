@@ -117,11 +117,6 @@ class TestPlotter(TestCase):
         self.assertEqual(ax.get_ylabel(), plotter.PlotType.VAL_ACC)
         self.assertEqual(ax.get_xlabel(), "Sparsity")
 
-    def test_gen_new_single_ax(self):
-        """ Should return a single axes object. """
-        ax = plotter.gen_new_single_ax()
-        self.assertIsInstance(ax, plt.Axes)
-
     def test_gen_title_for_test_acc_on_ax(self):
         """ Should generate the correct title. """
         ax = plt.figure().subplots(1, 1, sharex=False)
@@ -163,58 +158,51 @@ class TestPlotter(TestCase):
         self.assertIsNotNone(ax.get_legend())
 
     # plots
-    def test_plot_acc_at_early_stop(self):
+    def test_plot_acc_at_early_stop_on_ax(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
-        plotter.plot_acc_at_early_stop(hists, hists, sparsity, plotter.PlotType.TEST_ACC)
+        ax = plt.figure().subplots(1, 1)
+        plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, plotter.PlotType.TEST_ACC)
 
-    def test_plot_acc_at_early_stop_with_random_hists(self):
+    def test_plot_acc_at_early_stop_on_ax_with_random_hists(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 3, 2))
         hists_random = np.ones((4, 2, 2))
         sparsity = np.ones(3)
-        plotter.plot_acc_at_early_stop(hists, hists, sparsity, plotter.PlotType.TEST_ACC, hists_random, hists_random)
+        ax = plt.figure().subplots(1, 1)
+        plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, plotter.PlotType.TEST_ACC, hists_random,
+                                             hists_random)
 
-    def test_plot_average_hists(self):
+    def test_plot_average_hists_on_ax(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
-        plotter.plot_average_hists(hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS)
+        ax = plt.figure().subplots(1, 1)
+        plotter.plot_average_hists_on_ax(ax, hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS)
 
-    def test_plot_average_hists_with_random_hists(self):
+    def test_plot_average_hists_on_ax_with_random_hists(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 3, 2))
         hists_random = np.ones((4, 2, 2))
         sparsity = np.ones(3)
-        plotter.plot_average_hists(hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS, hists_random)
+        ax = plt.figure().subplots(1, 1)
+        plotter.plot_average_hists_on_ax(ax, hists, sparsity, 10, plotter.PlotType.TRAIN_LOSS, hists_random)
 
-    def test_plot_early_stop_iterations(self):
+    def test_plot_early_stop_iterations_on_ax(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
-        plotter.plot_early_stop_iterations(hists, sparsity, 10)
+        ax = plt.figure().subplots(1, 1)
+        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10)
 
-    def test_plot_early_stop_iterations_with_random_hists(self):
+    def test_plot_early_stop_iterations_on_ax_with_random_hists(self):
         """ Should run plot routine without errors. """
         hists = np.ones((2, 3, 2))
         hists_random = np.ones((4, 2, 2))
         sparsity = np.ones(3)
-        plotter.plot_early_stop_iterations(hists, sparsity, 10, hists_random)
-
-    def test_plot_two_average_hists(self):
-        """ Should run plot routine without errors. """
-        hists = np.ones((2, 2, 2))
-        sparsity = np.ones(2)
-        plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS)
-
-    def test_plot_two_average_hists_with_random_hists(self):
-        """ Should run plot routine without errors. """
-        hists = np.ones((2, 3, 2))
-        hists_random = np.ones((4, 2, 2))
-        sparsity = np.ones(3)
-        plotter.plot_two_average_hists(hists, hists, sparsity, 10, plotter.PlotType.VAL_ACC, plotter.PlotType.VAL_LOSS,
-                                       True, True, hists_random, hists_random)
+        ax = plt.figure().subplots(1, 1)
+        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10, hists_random)
 
 
 if __name__ == '__main__':
