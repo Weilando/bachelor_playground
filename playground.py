@@ -58,8 +58,7 @@ def parse_arguments(args):
                             epilog="Use 'python -m playground <experiment> -h' to get help for a specific experiment.")
     subparsers = parser.add_subparsers(title='Experiments',
                                        description='These experiments are available as subcommands:',
-                                       dest='experiment_name',
-                                       required=True)
+                                       dest='experiment_name')
 
     # parser for main IMP-experiments
     parser_imp = subparsers.add_parser(ExperimentNames.IMP.value,
@@ -110,12 +109,15 @@ def parse_arguments(args):
     parser_rr.add_argument('net_count', type=int, default=None,
                            help="specify the number of random initializations per level of pruning")
 
+    if len(args) < 1:
+        parser.print_help(sys.stderr)
+        sys.exit()
+
     return parser.parse_args(args)
 
 
 def setup_imp(args):
     assert args.verbose in VerbosityLevel.__members__.values()
-    log_from_medium(args.verbose, "Welcome to bachelor_playground.")
 
     specs = get_specs(args.experiment_preset)
 

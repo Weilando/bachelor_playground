@@ -61,22 +61,23 @@ These store early-stop iterations and state_dicts per pruning level, if the `sav
 
 ## Evaluate experiments
 It is possible to load the stored results into their original data-structure by using methods from the module `experiments.result_loader`.
-The interactive Jupyter notebook `ExperimentEvaluation.ipynb` makes it easy to load and evaluate results from past experiments.
-Furthermore, it showcases the usage of many plot functions.
-
 The module `data.plotter` provides high-level functions to analyze and plot histories in different contexts.
-In most cases there is no need to call low-level functions from the module directly.
-- `plot_average_hists(...)` calculates the means of all networks for a given history and plots them per sparsity.
+The interactive Jupyter notebook `ExperimentEvaluation.ipynb` makes it easy to load and evaluate results from past experiments, as it shows examples for many use cases.
+
+The high-level plot functions take a `matplotlib-axes` object and apply plots, labels and axes. 
+Usually it is not necessary to call low-level functions by hand.
+This design allows highly adaptive plots, as the user can arrange, combine and scale the provided plot types along others.
+It is up to the user to look at the plots in a notebook or to save them to file for further processing. 
+- `plot_average_hists_on_ax(...)` calculates the means of all networks for a given history and plots them per sparsity.
 It plots the baseline, i.e. the run with the lowest sparsity, as dashed line and every further level of sparsity as solid line.
 Iterations index the x-axis.
-- `plot_two_average_hists(...)` works like the previous function, but plots two histories next to each other.
-- `plot_acc_at_early_stop(...)` applies the early-stopping criterion on a given loss and plots averages of a second history (typically an accuracy) per sparsity.
-- `plot_early_stop_iterations(...)` applies the early-stopping criterion on a given loss and plots averages of early-stopping iterations per sparsity.
+- `plot_acc_at_early_stop_on_ax(...)` applies the early-stopping criterion on a given loss and plots averages of a second history (typically an accuracy) per sparsity.
+- `plot_early_stop_iterations_on_ax(...)` applies the early-stopping criterion on a given loss and plots averages of early-stopping iterations per sparsity.
 
 Most high-level plot functions offer arguments of type `data.plotter.PlotType`.
 This enum makes it easy to specify which kind of history a certain plot shows, and is used to generate suitable titles and labels.
 
-The high-level plot functions take histories from randomly reinitialized nets as optional arguments.
+All high-level plot functions take histories from randomly reinitialized nets as optional arguments.
 Original plots have solid lines and random plots dotted lines, but corresponding lines (e.g. the same level of sparsity) have the same colors.
 Baseline plots have dashed lines. 
 

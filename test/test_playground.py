@@ -236,7 +236,7 @@ class TestPlayground(TestCase):
 
                 sys.stdout = old_stdout
 
-                self.assertEqual(interception.getvalue(), "Welcome to bachelor_playground.\ncpu\n")
+                self.assertEqual(interception.getvalue(), "cpu\n")
                 mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_plot_step_parameter(self):

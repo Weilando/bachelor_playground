@@ -88,7 +88,7 @@ class TrainerAdam(object):
             log_detailed_only(self.verbosity, f"train-loss: {(train_loss_hist[hist_count - 1]):6.4f} "
                                               f"val-loss: {(val_loss_hist[hist_count - 1]):6.4f} "
                                               f"val-acc: {(val_acc_hist[hist_count - 1]):6.4f} "
-                                              f"(took {plotter.format_time(toc - tic)})", True)
+                                              f"(took {plotter.format_time(toc - tic)}).", True)
         return net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, early_stop_index, early_stop_checkpoint
 
     def compute_acc(self, net, test=True):

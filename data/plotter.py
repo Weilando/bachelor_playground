@@ -1,6 +1,5 @@
 from enum import Enum
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -84,12 +83,6 @@ def gen_labels_on_ax(ax, plot_type: PlotType, iteration=True):
     ax.set_xlabel(f"{'Iteration' if iteration else 'Sparsity'}")
 
 
-def gen_new_single_ax():
-    """ Generates a new axes from new figure. """
-    fig = plt.figure(None, figsize=(7, 6))
-    return fig.subplots(1, 1, sharex=False)
-
-
 def gen_title_on_ax(ax, net_count, plot_type: PlotType, early_stop=False):
     """ Generates plot-title for 'net_count' nets on given ax.
     'early_stop' defines if early-stopping should be mentioned. """
@@ -119,7 +112,7 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
     """ Plot means and error-bars for given early-stopping iterations or accuracies on ax.
     Suppose 'hists' has shape (net_count, prune_count+1, 1) for accuracies or (net_count, prune_count+1) for iterations.
     Suppose 'sparsity_hist' has shape (prune_count+1).
-    'hists' is a solid line with error bars. """
+    'hists' is a solid line with error bars with the next color from the color cycle. """
     # calculate means
     mean, neg_y_err, pos_y_err = get_means_and_y_errors(hists)
 
@@ -128,17 +121,17 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
     neg_y_err = np.squeeze(neg_y_err)
     pos_y_err = np.squeeze(pos_y_err)
 
-    # plot
-    ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-')
+    # plot and return instance of `ErrorbarContainer` to read its color
+    return ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-')
 
 
-def plot_random_average_at_early_stop_on_ax(ax, random_hists, sparsity_hist):
+def plot_random_average_at_early_stop_on_ax(ax, rnd_hists, sparsity_hist, color):
     """ Plot means and error-bars for given random early-stopping iterations or accuracies on ax.
-    Suppose 'hists' has shape (net_count, prune_count, 1) for accuracies or (net_count, prune_count) for iterations.
+    Suppose 'rnd_hists' has shape (net_count, prune_count, 1) for accuracies or (net_count, prune_count) for iterations.
     Suppose 'sparsity_hist' has shape (prune_count+1).
-    'hists' is a solid line with error bars. """
+    'hists' is a solid line with error bars and a color specified by 'color'. """
     # calculate means
-    mean, neg_y_err, pos_y_err = get_means_and_y_errors(random_hists)
+    mean, neg_y_err, pos_y_err = get_means_and_y_errors(rnd_hists)
 
     # for accuracies each mean and y_err has shape (prune_count+1, 1), so squeeze them to get shape (prune_count+1)
     mean = np.squeeze(mean)
@@ -146,11 +139,11 @@ def plot_random_average_at_early_stop_on_ax(ax, random_hists, sparsity_hist):
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot
-    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':')
+    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':', color=color)
 
 
 def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
-    """ Plot means and error-bars for given hists on ax.
+    """ Plot means and error-bars for 'hists' on ax.
     Suppose hists has shape (net_count, prune_count+1) and 'sparsity_hist' has shape (prune_count+1).
     Plots dashed baseline (unpruned) and a solid line for each pruning step. """
     _, prune_count, _ = hists.shape
@@ -164,13 +157,13 @@ def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
                             prune_count)
 
 
-def plot_random_averages_on_ax(ax, random_hists, sparsity_hist, plot_step):
-    """ Plot means and error-bars for given random hists on ax.
+def plot_random_averages_on_ax(ax, rnd_hists, sparsity_hist, plot_step):
+    """ Plot means and error-bars for 'rnd_hists' on ax.
     Suppose hists has shape (net_count, prune_count) and 'sparsity_hist' has shape (prune_count+1).
     Plots dashed baseline (unpruned) and a solid line for each pruning step. """
-    _, prune_count, _ = random_hists.shape
+    _, prune_count, _ = rnd_hists.shape
 
-    hists_mean, hists_neg_y_err, hists_pos_y_err = get_means_and_y_errors(random_hists)
+    hists_mean, hists_neg_y_err, hists_pos_y_err = get_means_and_y_errors(rnd_hists)
     xs = gen_iteration_space(hists_mean[0], plot_step)
 
     plot_pruned_means_on_ax(ax, xs, hists_mean, hists_neg_y_err, hists_pos_y_err, sparsity_hist, prune_count, ':')
@@ -193,28 +186,28 @@ def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, pru
 
 
 # plots
-def plot_acc_at_early_stop(loss_hists, acc_hists, sparsity_hist, plot_type: PlotType, random_loss_hists=None,
-                           random_acc_hists=None):
+def plot_acc_at_early_stop_on_ax(ax, loss_hists, acc_hists, sparsity_hist, plot_type: PlotType, rnd_loss_hists=None,
+                                 rnd_acc_hists=None, force_zero=False):
     """ Plot means and error bars for the given accuracies at the time an early stopping criterion would end training.
     Use 'loss_hists' to find accuracies from 'acc_hists', analog for random histories, if given.
-    Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), 'random_acc_hists' and
-    'random_loss_hists' have shape (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1)
+    Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), 'rnd_acc_hists' and
+    'rnd_loss_hists' have shape (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1)
     with prune_count > 1.
     The x-axis shows the sparsity at each time.
-    Plot accuracies as solid line with error bars and random accuracies as dotted line with error bars. """
+    Plot accuracies as solid line and random accuracies as dotted line in the same color. """
     assert (sparsity_hist.shape[0] > 1) and (sparsity_hist.shape[0] == loss_hists.shape[1]), \
         f"'prune_count' (dimension of 'sparsity_hist') needs to be greater than one, but is {sparsity_hist.shape}."
 
     # setup and plot
-    ax = gen_new_single_ax()
     early_stop_acc = find_acc_at_early_stop_indices(loss_hists, acc_hists)
-    plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
-    if random_loss_hists is not None and random_acc_hists is not None:
-        random_early_stop_acc = find_acc_at_early_stop_indices(random_loss_hists, random_acc_hists)
-        plot_random_average_at_early_stop_on_ax(ax, random_early_stop_acc, sparsity_hist)
+    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
+    if rnd_loss_hists is not None and rnd_acc_hists is not None:
+        random_early_stop_acc = find_acc_at_early_stop_indices(rnd_loss_hists, rnd_acc_hists)
+        plot_random_average_at_early_stop_on_ax(ax, random_early_stop_acc, sparsity_hist,
+                                                original_plot.lines[0].get_color())
     ax.set_xticks(sparsity_hist)
     ax.invert_xaxis()  # also inverts plot!
-    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
+    setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
 
     # labeling
     net_count, _, _ = acc_hists.shape
@@ -222,73 +215,46 @@ def plot_acc_at_early_stop(loss_hists, acc_hists, sparsity_hist, plot_type: Plot
     gen_labels_on_ax(ax, plot_type, iteration=False)
 
 
-def plot_average_hists(hists, sparsity_hist, plot_step, plot_type: PlotType, random_hists=None):
-    """ Plot means and error bars for the given histories in 'hists' and 'random_hists' (if given).
-    Suppose 'hists' has shape (net_count, prune_count+1, data_length), 'random_hists' has shape
+def plot_average_hists_on_ax(ax, hists, sparsity_hist, plot_step, plot_type: PlotType, rnd_hists=None,
+                             force_zero=False):
+    """ Plot means and error bars for the given histories in 'hists' and 'rnd_hists' (if given).
+    Suppose 'hists' has shape (net_count, prune_count+1, data_length), 'rnd_hists' has shape
     (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1).
     The x-axis is labeled with iterations, which are reconstructed from plot_step.
     The baseline (i.e. the lowest sparsity) is a dashed line, all further pruning-levels from 'hists' are solid lines,
-    all levels of pruning from 'random_hists' are dotted lines. """
+    all levels of pruning from 'rnd_hists' are dotted lines. """
     # setup and plot
-    ax = gen_new_single_ax()
     plot_averages_on_ax(ax, hists, sparsity_hist, plot_step)
-    if random_hists is not None:
-        plot_random_averages_on_ax(ax, random_hists, sparsity_hist[1:], plot_step)
-    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
+    if rnd_hists is not None:
+        plot_random_averages_on_ax(ax, rnd_hists, sparsity_hist[1:], plot_step)
+    setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
 
     # labeling
     net_count, _, _ = hists.shape
     setup_labeling_on_ax(ax, net_count, plot_type)
 
 
-def plot_early_stop_iterations(loss_hists, sparsity_hist, plot_step, random_loss_hists=None):
-    """ Plot means and error bars for early-stopping iterations based on 'loss_hists' and 'random_loss_hists', if given.
+def plot_early_stop_iterations_on_ax(ax, loss_hists, sparsity_hist, plot_step, rnd_loss_hists=None, force_zero=False):
+    """ Plot means and error bars for early-stopping iterations based on 'loss_hists' and 'rnd_loss_hists', if given.
     Suppose 'loss_hists' has shape (net_count, prune_count+1, data_length), 'loss_hists' has shape
     (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1) with prune_count > 1.
     The x-axis shows the sparsity at each time.
-    Plot iterations as solid line with error bars and random iterations as dotted line with error bars. """
+    Plot iterations as solid line and random iterations as dotted line in the same color. """
     assert (sparsity_hist.shape[0] > 1) and (sparsity_hist.shape[0] == loss_hists.shape[1]), \
         f"'prune_count' (dimension of 'sparsity_hist') needs to be greater than one, but is {sparsity_hist.shape}."
+
     # setup and plot
-    ax = gen_new_single_ax()
     early_stop_iterations = find_early_stop_iterations(loss_hists, plot_step)
-    plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist)
-    if random_loss_hists is not None:
-        random_early_stop_iterations = find_early_stop_iterations(random_loss_hists, plot_step)
-        plot_random_average_at_early_stop_on_ax(ax, random_early_stop_iterations, sparsity_hist)
+    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist)
+    if rnd_loss_hists is not None:
+        random_early_stop_iterations = find_early_stop_iterations(rnd_loss_hists, plot_step)
+        plot_random_average_at_early_stop_on_ax(ax, random_early_stop_iterations, sparsity_hist,
+                                                original_plot.lines[0].get_color())
     ax.set_xticks(sparsity_hist)
     ax.invert_xaxis()  # also inverts plot!
-    setup_grids_on_ax(ax)  # for correct scaling the grids need to be set after plotting
+    setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
 
     # labeling
     net_count, _, _ = loss_hists.shape
     gen_title_on_ax(ax, net_count, PlotType.EARLY_STOP_ITER, early_stop=True)
     gen_labels_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False)
-
-
-def plot_two_average_hists(hists_left, hists_right, sparsity_hist, plot_step, type_left: PlotType, type_right: PlotType,
-                           force_zero_left=False, force_zero_right=False, random_hists_left=None,
-                           random_hists_right=None):
-    """ Plot means and error bars for two hists side by side with random-histories (if given).
-    Suppose 'hists_left' and 'hists_right' have shape (net_count, prune_count+1, data_length), 'random_hists_left' and
-    and 'random_hists_right' have shape (net_count, prune_count, data_length) and 'sparsity_hist' has shape
-    (prune_count+1).
-    The x-axis is labeled with iterations, which are reconstructed from plot_step.
-    The baseline (i.e. the lowest sparsity) is a dashed line, all further pruning-levels are solid lines and
-    all levels of pruning from random histories are dotted lines. """
-    # setup and plot
-    fig = plt.figure(None, figsize=(14, 6))
-    ax_left, ax_right = fig.subplots(1, 2, sharex=False)
-    plot_averages_on_ax(ax_left, hists_left, sparsity_hist, plot_step)
-    plot_averages_on_ax(ax_right, hists_right, sparsity_hist, plot_step)
-    if random_hists_left is not None:
-        plot_random_averages_on_ax(ax_left, random_hists_left, sparsity_hist[1:], plot_step)
-    if random_hists_right is not None:
-        plot_random_averages_on_ax(ax_right, random_hists_right, sparsity_hist[1:], plot_step)
-    setup_grids_on_ax(ax_left, force_zero_left)  # for correct scaling the grids need to be set after plotting
-    setup_grids_on_ax(ax_right, force_zero_right)
-
-    # labeling
-    net_count, _, _ = hists_left.shape
-    setup_labeling_on_ax(ax_left, net_count, type_left)
-    setup_labeling_on_ax(ax_right, net_count, type_right)
