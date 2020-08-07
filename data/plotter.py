@@ -129,7 +129,7 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot
-    ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-')
+    ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-', color='C0')
 
 
 def plot_random_average_at_early_stop_on_ax(ax, random_hists, sparsity_hist):
@@ -146,7 +146,7 @@ def plot_random_average_at_early_stop_on_ax(ax, random_hists, sparsity_hist):
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot
-    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':')
+    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':', color='C0')
 
 
 def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
