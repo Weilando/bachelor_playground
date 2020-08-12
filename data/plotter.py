@@ -83,13 +83,23 @@ def gen_labels_on_ax(ax, plot_type: PlotType, iteration=True):
     ax.set_xlabel(f"{'Iteration' if iteration else 'Sparsity'}")
 
 
-def gen_title_on_ax(ax, net_count, plot_type: PlotType, early_stop=False):
-    """ Generates plot-title for 'net_count' nets on given ax.
+def gen_title_on_ax(ax, plot_type: PlotType, early_stop=False):
+    """ Generates plot-title on given ax.
     'early_stop' defines if early-stopping should be mentioned. """
     if not early_stop:
-        ax.set_title(f"Average {plot_type.value} for {net_count} pruned Networks")
+        ax.set_title(f"Average {plot_type.value}")
     else:
-        ax.set_title(f"Average {plot_type.value} for {net_count} pruned Networks at early-stop")
+        ax.set_title(f"Average {plot_type.value} at early-stop")
+
+
+def setup_early_stop_ax(ax, force_zero):
+    """ Inverts x-axis and activates log-scale for x-axis. """
+    ax.set_xscale('log', basex=2)
+    ax.set_xticks([2 ** (-p) for p in range(7)])
+    ax.set_xticklabels([2 ** (-p) for p in range(7)])
+
+    ax.invert_xaxis()  # also inverts plot!
+    setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
 
 
 def setup_grids_on_ax(ax, force_zero=False):
@@ -100,15 +110,15 @@ def setup_grids_on_ax(ax, force_zero=False):
         ax.set_ylim(bottom=0)
 
 
-def setup_labeling_on_ax(ax, net_count, plot_type: PlotType, iteration=True):
+def setup_labeling_on_ax(ax, plot_type: PlotType, iteration=True, early_stop=False):
     """ Setup complete labeling on ax, i.e. generate title, labels and legend. """
-    gen_title_on_ax(ax, net_count, plot_type)
+    gen_title_on_ax(ax, plot_type, early_stop)
     gen_labels_on_ax(ax, plot_type, iteration)
     ax.legend()
 
 
 # subplots
-def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
+def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist, net_name):
     """ Plot means and error-bars for given early-stopping iterations or accuracies on ax.
     Suppose 'hists' has shape (net_count, prune_count+1, 1) for accuracies or (net_count, prune_count+1) for iterations.
     Suppose 'sparsity_hist' has shape (prune_count+1).
@@ -122,10 +132,11 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist):
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot and return instance of `ErrorbarContainer` to read its color
-    return ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-')
+    return ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-',
+                       label=net_name)
 
 
-def plot_random_average_at_early_stop_on_ax(ax, rnd_hists, sparsity_hist, color):
+def plot_random_average_at_early_stop_on_ax(ax, rnd_hists, sparsity_hist, color, net_name):
     """ Plot means and error-bars for given random early-stopping iterations or accuracies on ax.
     Suppose 'rnd_hists' has shape (net_count, prune_count, 1) for accuracies or (net_count, prune_count) for iterations.
     Suppose 'sparsity_hist' has shape (prune_count+1).
@@ -139,7 +150,8 @@ def plot_random_average_at_early_stop_on_ax(ax, rnd_hists, sparsity_hist, color)
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot
-    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':', color=color)
+    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':', color=color,
+                label=f"{net_name} reinit")
 
 
 def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step):
@@ -166,12 +178,13 @@ def plot_random_averages_on_ax(ax, rnd_hists, sparsity_hist, plot_step):
     hists_mean, hists_neg_y_err, hists_pos_y_err = get_means_and_y_errors(rnd_hists)
     xs = gen_iteration_space(hists_mean[0], plot_step)
 
-    plot_pruned_means_on_ax(ax, xs, hists_mean, hists_neg_y_err, hists_pos_y_err, sparsity_hist, prune_count, ':')
+    plot_pruned_means_on_ax(ax, xs, hists_mean, hists_neg_y_err, hists_pos_y_err, sparsity_hist, prune_count - 1, ':')
 
 
 def plot_baseline_mean_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
     """ Plots the baseline as dashed line wit error bars on given ax. """
-    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], elinewidth=1.2, ls='--', color="C0", label="Sparsity 1.0000")
+    ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], elinewidth=1.2, ls='--', color="C0", label="Sparsity 1.0000",
+                errorevery=5, capsize=2)
 
 
 def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_count, ls='-'):
@@ -182,37 +195,32 @@ def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, pru
     Colors start with color-spec C1. """
     for p in range(prune_count):
         ax.errorbar(x=xs, y=ys[p], yerr=[y_err_neg[p], y_err_pos[p]], color=f"C{p + 1}", elinewidth=1.2, ls=ls,
-                    label=f"Sparsity {sparsity_hist[p]:.4f}")
+                    label=f"Sparsity {sparsity_hist[p]:.4f}", errorevery=5, capsize=2)
 
 
 # plots
-def plot_acc_at_early_stop_on_ax(ax, loss_hists, acc_hists, sparsity_hist, plot_type: PlotType, rnd_loss_hists=None,
-                                 rnd_acc_hists=None, force_zero=False):
+def plot_acc_at_early_stop_on_ax(ax, loss_hists, acc_hists, sparsity_hist, net_name, plot_type: PlotType,
+                                 rnd_loss_hists=None, rnd_acc_hists=None, force_zero=False, setup_ax=True):
     """ Plot means and error bars for the given accuracies at the time an early stopping criterion would end training.
     Use 'loss_hists' to find accuracies from 'acc_hists', analog for random histories, if given.
     Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), 'rnd_acc_hists' and
     'rnd_loss_hists' have shape (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1)
     with prune_count > 1.
-    The x-axis shows the sparsity at each time.
+    If 'setup_ax' is True, add grids and labels, invert x-axis and apply log-scale to x-axis.
+    Use 'net_name' to generate labels for the legend.
     Plot accuracies as solid line and random accuracies as dotted line in the same color. """
     assert (sparsity_hist.shape[0] > 1) and (sparsity_hist.shape[0] == loss_hists.shape[1]), \
         f"'prune_count' (dimension of 'sparsity_hist') needs to be greater than one, but is {sparsity_hist.shape}."
 
-    # setup and plot
     early_stop_acc = find_acc_at_early_stop_indices(loss_hists, acc_hists)
-    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist)
+    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist, net_name)
     if rnd_loss_hists is not None and rnd_acc_hists is not None:
         random_early_stop_acc = find_acc_at_early_stop_indices(rnd_loss_hists, rnd_acc_hists)
         plot_random_average_at_early_stop_on_ax(ax, random_early_stop_acc, sparsity_hist,
-                                                original_plot.lines[0].get_color())
-    ax.set_xticks(sparsity_hist)
-    ax.invert_xaxis()  # also inverts plot!
-    setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
-
-    # labeling
-    net_count, _, _ = acc_hists.shape
-    gen_title_on_ax(ax, net_count, plot_type, early_stop=True)
-    gen_labels_on_ax(ax, plot_type, iteration=False)
+                                                original_plot.lines[0].get_color(), net_name)
+    if setup_ax:
+        setup_early_stop_ax(ax, force_zero)
+        setup_labeling_on_ax(ax, plot_type, iteration=False, early_stop=True)
 
 
 def plot_average_hists_on_ax(ax, hists, sparsity_hist, plot_step, plot_type: PlotType, rnd_hists=None,
@@ -223,38 +231,31 @@ def plot_average_hists_on_ax(ax, hists, sparsity_hist, plot_step, plot_type: Plo
     The x-axis is labeled with iterations, which are reconstructed from plot_step.
     The baseline (i.e. the lowest sparsity) is a dashed line, all further pruning-levels from 'hists' are solid lines,
     all levels of pruning from 'rnd_hists' are dotted lines. """
-    # setup and plot
     plot_averages_on_ax(ax, hists, sparsity_hist, plot_step)
     if rnd_hists is not None:
         plot_random_averages_on_ax(ax, rnd_hists, sparsity_hist[1:], plot_step)
+
     setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
-
-    # labeling
-    net_count, _, _ = hists.shape
-    setup_labeling_on_ax(ax, net_count, plot_type)
+    setup_labeling_on_ax(ax, plot_type, iteration=True, early_stop=False)
 
 
-def plot_early_stop_iterations_on_ax(ax, loss_hists, sparsity_hist, plot_step, rnd_loss_hists=None, force_zero=False):
+def plot_early_stop_iterations_on_ax(ax, loss_hists, sparsity_hist, plot_step, net_name, rnd_loss_hists=None,
+                                     force_zero=False, setup_ax=True):
     """ Plot means and error bars for early-stopping iterations based on 'loss_hists' and 'rnd_loss_hists', if given.
     Suppose 'loss_hists' has shape (net_count, prune_count+1, data_length), 'loss_hists' has shape
     (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1) with prune_count > 1.
-    The x-axis shows the sparsity at each time.
+    If 'setup_ax' is True, add grids and labels, invert x-axis and apply log-scale to x-axis.
+    Use 'net_name' to generate labels for the legend.
     Plot iterations as solid line and random iterations as dotted line in the same color. """
     assert (sparsity_hist.shape[0] > 1) and (sparsity_hist.shape[0] == loss_hists.shape[1]), \
         f"'prune_count' (dimension of 'sparsity_hist') needs to be greater than one, but is {sparsity_hist.shape}."
 
-    # setup and plot
     early_stop_iterations = find_early_stop_iterations(loss_hists, plot_step)
-    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist)
+    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist, net_name)
     if rnd_loss_hists is not None:
         random_early_stop_iterations = find_early_stop_iterations(rnd_loss_hists, plot_step)
         plot_random_average_at_early_stop_on_ax(ax, random_early_stop_iterations, sparsity_hist,
-                                                original_plot.lines[0].get_color())
-    ax.set_xticks(sparsity_hist)
-    ax.invert_xaxis()  # also inverts plot!
-    setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
-
-    # labeling
-    net_count, _, _ = loss_hists.shape
-    gen_title_on_ax(ax, net_count, PlotType.EARLY_STOP_ITER, early_stop=True)
-    gen_labels_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False)
+                                                original_plot.lines[0].get_color(), net_name)
+    if setup_ax:
+        setup_early_stop_ax(ax, force_zero)
+        setup_labeling_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False, early_stop=True)

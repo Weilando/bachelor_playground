@@ -120,14 +120,14 @@ class TestPlotter(TestCase):
     def test_gen_title_for_test_acc_on_ax(self):
         """ Should generate the correct title. """
         ax = plt.figure().subplots(1, 1, sharex=False)
-        plotter.gen_title_on_ax(ax, 3, plotter.PlotType.TEST_ACC, early_stop=False)
-        self.assertEqual(ax.get_title(), f"Average {plotter.PlotType.TEST_ACC} for 3 pruned Networks")
+        plotter.gen_title_on_ax(ax, plotter.PlotType.TEST_ACC, early_stop=False)
+        self.assertEqual(ax.get_title(), f"Average {plotter.PlotType.TEST_ACC}")
 
     def test_gen_title_for_test_acc_with_early_stop_on_ax(self):
         """ Should generate the correct title with early-stop suffix. """
         ax = plt.figure().subplots(1, 1, sharex=False)
-        plotter.gen_title_on_ax(ax, 3, plotter.PlotType.TEST_ACC, early_stop=True)
-        self.assertEqual(ax.get_title(), f"Average {plotter.PlotType.TEST_ACC} for 3 pruned Networks at early-stop")
+        plotter.gen_title_on_ax(ax, plotter.PlotType.TEST_ACC, early_stop=True)
+        self.assertEqual(ax.get_title(), f"Average {plotter.PlotType.TEST_ACC} at early-stop")
 
     def test_setup_grids_and_y_lim_on_ax(self):
         """ Should setup grids and set the minimum of y-limit to zero. """
@@ -146,13 +146,12 @@ class TestPlotter(TestCase):
     def test_setup_labeling_on_ax(self):
         """ Should generate the right title and labels, and generate a legend. """
         plot_type = plotter.PlotType.TEST_ACC
-        net_count = 3
         ax = plt.figure().subplots(1, 1, sharex=False)
         ax.plot([0], label='f(x)')  # plot with label to avoid empty legend
 
-        plotter.setup_labeling_on_ax(ax, net_count, plot_type, iteration=False)
+        plotter.setup_labeling_on_ax(ax, plot_type, iteration=False)
 
-        self.assertEqual(ax.get_title(), f"Average {plot_type.value} for {net_count} pruned Networks")
+        self.assertEqual(ax.get_title(), f"Average {plot_type.value}")
         self.assertEqual(ax.get_ylabel(), f"{plot_type.value}")
         self.assertEqual(ax.get_xlabel(), "Sparsity")
         self.assertIsNotNone(ax.get_legend())
@@ -163,7 +162,7 @@ class TestPlotter(TestCase):
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         ax = plt.figure().subplots(1, 1)
-        plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, plotter.PlotType.TEST_ACC)
+        plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, 'Name', plotter.PlotType.TEST_ACC)
 
     def test_plot_acc_at_early_stop_on_ax_with_random_hists(self):
         """ Should run plot routine without errors. """
@@ -171,8 +170,8 @@ class TestPlotter(TestCase):
         hists_random = np.ones((4, 2, 2))
         sparsity = np.ones(3)
         ax = plt.figure().subplots(1, 1)
-        plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, plotter.PlotType.TEST_ACC, hists_random,
-                                             hists_random)
+        plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, 'Name', plotter.PlotType.TEST_ACC,
+                                             hists_random, hists_random)
 
     def test_plot_average_hists_on_ax(self):
         """ Should run plot routine without errors. """
@@ -194,7 +193,7 @@ class TestPlotter(TestCase):
         hists = np.ones((2, 2, 2))
         sparsity = np.ones(2)
         ax = plt.figure().subplots(1, 1)
-        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10)
+        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10, 'Name')
 
     def test_plot_early_stop_iterations_on_ax_with_random_hists(self):
         """ Should run plot routine without errors. """
@@ -202,7 +201,7 @@ class TestPlotter(TestCase):
         hists_random = np.ones((4, 2, 2))
         sparsity = np.ones(3)
         ax = plt.figure().subplots(1, 1)
-        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10, hists_random)
+        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10, 'Name', hists_random)
 
 
 if __name__ == '__main__':

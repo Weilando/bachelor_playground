@@ -81,6 +81,10 @@ All high-level plot functions take histories from randomly reinitialized nets as
 Original plots have solid lines and random plots dotted lines, but corresponding lines (e.g. the same level of sparsity) have the same colors.
 Baseline plots have dashed lines. 
 
+It is possible to plot equal histories at early-stop for several networks.
+Simply call the function with the same axes-object for each history to plot.
+You should set the argument `setup_ax` to False until the last plot to have a complete legend and correct grids.
+
 ## Tests
 There are many unit and integration tests which cover correct experiment setup, execution and evaluation.
 They also indicate if the Python environment provides all necessary packages.
