@@ -61,7 +61,7 @@ class Conv(Net):
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
             spec_number = get_number_from_numerical_spec(spec)
             fc_layers.append(nn.Linear(filters, spec_number))
-            fc_layers.append(nn.Tanh())
+            fc_layers.append(nn.ReLU())
             self.init_weight_count_net['fc'] += filters * spec_number
             filters = spec_number
 
