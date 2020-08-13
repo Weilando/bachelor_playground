@@ -1,10 +1,12 @@
 # Playground Bachelor Thesis
 This framework provides experiments for my bachelor thesis about the _Lottery Ticket Hypothesis_.
+It provides experiments with iterative magnitude pruning (IMP) and one-shot pruning (OSP).
 These experiments are currently available:
-- Finding winning tickets from fully-connected Lenet 300-100 on MNIST using Iterative Magnitude Pruning
-- Finding winning tickets from convolutional Conv-2 on CIFAR-10 using Iterative Magnitude Pruning
-- Finding winning tickets from convolutional Conv-4 on CIFAR-10 using Iterative Magnitude Pruning
-- Finding winning tickets from convolutional Conv-6 on CIFAR-10 using Iterative Magnitude Pruning
+- Finding winning tickets from fully-connected Lenet 300-100 on MNIST using IMP or OSP
+- Finding winning tickets from convolutional Conv-2 and CIFAR-10 using IMP or OSP
+- Finding winning tickets from convolutional Conv-4 and CIFAR-10 using IMP or OSP
+- Finding winning tickets from convolutional Conv-6 and CIFAR-10 using IMP or OSP
+- Retraining randomly reinitialized models from a previous IMP- or OSP-experiment
 
 ## Run experiments
 There are two ways to perform experiments and both options allow execution on CPU or GPU (with CUDA).
@@ -21,7 +23,7 @@ To run the second experiment, it is necessary to generate checkpoints (an `Early
 Implementations are in the package `experiments`.
 For details on experiment specs have a look at `~/experiments/experiment_specs.py`).
 
-### Predefined experiment specs for IMP
+### Predefined experiment specs for IMP and OSP
 
 Experiment | Architecture | Dataset
 --- | --- | ---
@@ -90,3 +92,12 @@ There are many unit and integration tests which cover correct experiment setup, 
 They also indicate if the Python environment provides all necessary packages.
 Run them by calling `python -m unittest` from the main directory.
 `~/test` contains all test files.
+
+## IMP
+After training and pruning the models, reset the survived weights to their initial values.
+Then train and prune the subnetworks iteratively.
+
+## OSP
+After training the models once, prune them with steps of different sizes.
+Always prune from the original network and train the subnetwork to evaluate accuracies.
+The amount of pruned weights is r^c with r pruning-rate and c prune-count.

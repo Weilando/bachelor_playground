@@ -34,8 +34,9 @@ class PruningMethodNames(str, Enum):
 
 class ExperimentNames(str, Enum):
     """ Enum to define available experiments. """
-    IMP = "imp"
-    RANDOM_RETRAIN = "random_retrain"
+    IMP = "imp"  # iterative magnitude pruning
+    OSP = "osp"  # one-shot pruning
+    RR = "rr"  # random retraining
 
     @staticmethod
     def get_value_list():
@@ -43,8 +44,8 @@ class ExperimentNames(str, Enum):
         return [name.value for name in ExperimentNames]
 
 
-class ExperimentIMPNames(str, Enum):
-    """ Enum to define available IMP-experiments. """
+class ExperimentPresetNames(str, Enum):
+    """ Enum to define available presets for pruning-experiments. """
     LENET_MNIST = "lenet-mnist"
     CONV2_CIFAR10 = "conv2-cifar10"
     CONV4_CIFAR10 = "conv4-cifar10"
@@ -53,7 +54,7 @@ class ExperimentIMPNames(str, Enum):
     @staticmethod
     def get_value_list():
         # noinspection PyUnresolvedReferences
-        return [name.value for name in ExperimentIMPNames]
+        return [name.value for name in ExperimentPresetNames]
 
 
 @dataclass
@@ -80,17 +81,18 @@ class ExperimentSpecs:
     device_name: str = "cpu"
 
     save_early_stop: bool = False
+    experiment_name: ExperimentNames = ExperimentNames.IMP
 
 
 def get_specs(experiment_name):
-    """ Load ExperimentSpecs for experiment_name (options specified by ExperimentIMPNames). """
-    if experiment_name == ExperimentIMPNames.LENET_MNIST:
+    """ Load ExperimentSpecs for experiment_name (options specified by ExperimentPresetNames). """
+    if experiment_name == ExperimentPresetNames.LENET_MNIST:
         return get_specs_lenet_mnist()
-    elif experiment_name == ExperimentIMPNames.CONV2_CIFAR10:
+    elif experiment_name == ExperimentPresetNames.CONV2_CIFAR10:
         return get_specs_conv2_cifar10()
-    elif experiment_name == ExperimentIMPNames.CONV4_CIFAR10:
+    elif experiment_name == ExperimentPresetNames.CONV4_CIFAR10:
         return get_specs_conv4_cifar10()
-    elif experiment_name == ExperimentIMPNames.CONV6_CIFAR10:
+    elif experiment_name == ExperimentPresetNames.CONV6_CIFAR10:
         return get_specs_conv6_cifar10()
     else:
         raise AssertionError(f"{experiment_name} is an invalid 'experiment_name'.")

@@ -5,23 +5,24 @@ from experiments.experiment_pruning import ExperimentPruning
 from training.logger import log_from_medium
 
 
-class ExperimentIMP(ExperimentPruning):
+class ExperimentOSP(ExperimentPruning):
     """
-    Experiment with iterative magnitude pruning with resetting (IMP).
+    Experiment with one-shot pruning.
     """
 
     def __init__(self, specs, result_path='../data/results'):
-        super(ExperimentIMP, self).__init__(specs, result_path)
+        super(ExperimentOSP, self).__init__(specs, result_path)
 
     def execute_experiment(self):
-        """ Perform iterative magnitude pruning and save accuracy- and loss-histories after each training.
-        Retrain in the end to check the last nets' accuracies. """
+        """ Perform one-shot pruning and save accuracy- and loss-histories after each training.
+        Retrain subnetworks to evaluate accuracies. """
         for n in range(self.specs.net_count):
             for p in range(0, self.specs.prune_count + 1):
                 tic = time.time()
                 if p > 0:
                     log_from_medium(self.specs.verbosity, f"Prune network #{n} in round {p}. ", False)
-                    self.nets[n].prune_net(self.specs.prune_rate_conv, self.specs.prune_rate_fc, reset=True)
+                    self.nets[n].load_state_dict(self.nets[0].state_dict())
+                    self.nets[n].prune_net(self.specs.prune_rate_conv ** p, self.specs.prune_rate_fc ** p, reset=True)
 
                 if n == 0:
                     self.hists.sparsity[p] = self.nets[0].sparsity_report()[0]
