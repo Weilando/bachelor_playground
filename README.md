@@ -8,6 +8,10 @@ These experiments are currently available:
 - Finding winning tickets from convolutional Conv-6 and CIFAR-10 using IMP or OSP
 - Retraining randomly reinitialized models from a previous IMP- or OSP-experiment
 
+I developed and tested the framework using a conda-environment with packages specified in `conda_specs.txt`.
+Use it to create a compatible environment.
+If you want to use EC2 instances in AWS, I recommend the image "Deep Learning AMI (Amazon Linux 2)", as it offers AWS functionality (e.g. for S3) and configured conda-environments with Pytorch and CUDA out of the box. 
+
 ## Run experiments
 There are two ways to perform experiments and both options allow execution on CPU or GPU (with CUDA).
 - Firstly by executing the main module via `python -m playground <experiment>` from the root-directory, where `experiment` specifies the experiment to run.
