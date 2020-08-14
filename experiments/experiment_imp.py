@@ -15,7 +15,7 @@ class ExperimentIMP(ExperimentPruning):
 
     def execute_experiment(self):
         """ Perform iterative magnitude pruning and save accuracy- and loss-histories after each training.
-        Retrain in the end to check the last nets' accuracies. """
+        Retrain and evaluate nets after each pruning step. """
         for n in range(self.specs.net_count):
             for p in range(0, self.specs.prune_count + 1):
                 tic = time.time()

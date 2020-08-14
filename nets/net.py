@@ -38,6 +38,11 @@ class Net(nn.Module):
         # prune output-layer with half of the fc pruning rate
         prune_layer(self.out, prune_rate_fc / 2, reset)
 
+    def get_new_instance(self, reset_weight=True):
+        """ Return a copy of this net with pruned mask.
+        If 'reset_weight' is True, the copy is untrained. """
+        pass
+
     @staticmethod
     def sparsity_layer(layer):
         """ Calculate sparsity and counts unpruned weights for given layer. """
