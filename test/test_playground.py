@@ -1,7 +1,8 @@
-import sys
 from io import StringIO
 from unittest import TestCase, mock
 from unittest import main as unittest_main
+
+import sys
 
 from experiments.experiment_specs import ExperimentPresetNames, VerbosityLevel, get_specs_lenet_mnist, \
     get_specs_conv2_cifar10, ExperimentNames
@@ -144,15 +145,32 @@ class TestPlayground(TestCase):
             playground_main([ExperimentNames.RR, 'some/path/pre-specs.json', '0', '3'])
             mocked_experiment.assert_called_once_with('../some/path/pre-specs.json', 0, 3)
 
-    def test_should_print_experiment_specs(self):
-        """ Playground should not start the experiment and print the specs. """
+    def test_should_print_experiment_specs_imp(self):
+        """ Playground should not start the IMP-experiment and print the specs. """
         expected_specs = get_specs_lenet_mnist()
+        expected_specs.experiment_name = ExperimentNames.IMP
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             with StringIO() as interception:
                 old_stdout = sys.stdout
                 sys.stdout = interception
 
                 playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-l'])
+
+                sys.stdout = old_stdout
+
+                self.assertEqual(interception.getvalue(), f"{expected_specs}\n")
+                mocked_experiment.assert_not_called()
+
+    def test_should_print_experiment_specs_osp(self):
+        """ Playground should not start the OSP-experiment and print the specs. """
+        expected_specs = get_specs_lenet_mnist()
+        expected_specs.experiment_name = ExperimentNames.OSP
+        with mock.patch('playground.ExperimentOSP') as mocked_experiment:
+            with StringIO() as interception:
+                old_stdout = sys.stdout
+                sys.stdout = interception
+
+                playground_main([ExperimentNames.OSP, ExperimentPresetNames.LENET_MNIST, '-l'])
 
                 sys.stdout = old_stdout
 

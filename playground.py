@@ -1,7 +1,7 @@
 import os
-import sys
 from argparse import ArgumentParser
 
+import sys
 import torch.cuda
 
 from experiments.experiment_imp import ExperimentIMP
@@ -155,15 +155,14 @@ def setup_pruning(args):
         specs.plot_step = args.plot_step
     specs.verbosity = VerbosityLevel(args.verbose)
     specs.save_early_stop = args.early_stop
+    specs.experiment_name = args.experiment_name
 
     if args.listing:
         print(specs)
     elif args.experiment_name == ExperimentNames.IMP:
-        specs.experiment_name = ExperimentNames.IMP
         experiment = ExperimentIMP(specs)
         experiment.run_experiment()
     elif args.experiment_name == ExperimentNames.OSP:
-        specs.experiment_name = ExperimentNames.OSP
         experiment = ExperimentOSP(specs)
         experiment.run_experiment()
 
