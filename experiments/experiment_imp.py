@@ -13,6 +13,7 @@ class ExperimentIMP(ExperimentPruning):
     def __init__(self, specs, result_path='../data/results'):
         super(ExperimentIMP, self).__init__(specs, result_path)
 
+    # noinspection DuplicatedCode
     def execute_experiment(self):
         """ Perform iterative magnitude pruning and save accuracy- and loss-histories after each training.
         Retrain and evaluate nets after each pruning step. """
@@ -28,9 +29,9 @@ class ExperimentIMP(ExperimentPruning):
 
                 log_from_medium(self.specs.verbosity, f"Train network #{n} (sparsity {self.hists.sparsity[p]:6.4f}).")
 
-                self.nets[n], self.hists.train_loss[n, p], self.hists.val_loss[n, p], self.hists.val_acc[n, p], \
-                self.hists.test_acc[n, p], self.stop_hists.histories[n].indices[p], \
-                self.stop_hists.histories[n].state_dicts[p] \
+                (self.nets[n], self.hists.train_loss[n, p], self.hists.val_loss[n, p], self.hists.val_acc[n, p],
+                 self.hists.test_acc[n, p], self.stop_hists.histories[n].indices[p],
+                 self.stop_hists.histories[n].state_dicts[p]) \
                     = self.trainer.train_net(self.nets[n], self.specs.epoch_count, self.specs.plot_step)
 
                 toc = time.time()

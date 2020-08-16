@@ -128,6 +128,7 @@ def parse_arguments(args):
 
 
 def setup_pruning(args):
+    """ Setup IMP- or OSP-experiment and print the specs or execute it. """
     assert args.verbose in VerbosityLevel.__members__.values()
 
     specs = get_specs(args.experiment_preset)
@@ -168,6 +169,7 @@ def setup_pruning(args):
 
 
 def setup_random_retrain(args):
+    """ Setup and run retraining experiment for specs from a loaded OSP- or IMP-experiment. """
     # working directory of experiment is ./experiment, but the path is relative to the main package
     relative_specs_path = os.path.join('..', args.specs_path)
 

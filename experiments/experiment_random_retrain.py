@@ -78,8 +78,8 @@ class ExperimentRandomRetrain(Experiment):
                 log_from_medium(self.specs.verbosity, f"Train network #{net_number + 1}/{self.retrain_net_count} ",
                                 False)
 
-                _, self.hists.train_loss[net_number, prune_level], self.hists.val_loss[net_number, prune_level], \
-                self.hists.val_acc[net_number, prune_level], self.hists.test_acc[net_number, prune_level], _, _ \
+                (_, self.hists.train_loss[net_number, prune_level], self.hists.val_loss[net_number, prune_level],
+                 self.hists.val_acc[net_number, prune_level], self.hists.test_acc[net_number, prune_level], _, _) \
                     = self.trainer.train_net(net, self.specs.epoch_count, self.specs.plot_step)
 
                 toc = time.time()
