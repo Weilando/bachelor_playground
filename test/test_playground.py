@@ -4,7 +4,7 @@ from unittest import main as unittest_main
 
 import sys
 
-from experiments.experiment_specs import ExperimentIMPNames, VerbosityLevel, get_specs_lenet_mnist, \
+from experiments.experiment_specs import ExperimentPresetNames, VerbosityLevel, get_specs_lenet_mnist, \
     get_specs_conv2_cifar10, ExperimentNames
 from playground import main as playground_main, setup_cuda, should_override_arg_plan, should_override_arg_rate, \
     should_override_arg_positive_int, parse_arguments
@@ -105,7 +105,7 @@ class TestPlayground(TestCase):
 
     def test_should_parse_arguments(self):
         """ Should parse all given arguments correctly. """
-        parsed_args = parse_arguments([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-c', '-es', '-l', '-ps',
+        parsed_args = parse_arguments([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-c', '-es', '-l', '-ps',
                                        '42', '-v', '-e', '1', '-n', '2', '-p', '3', '-lr', '0.01', '-prc', '0.2',
                                        '-prf', '0.3', '--plan_conv', '16', 'M', '--plan_fc', '300', '200'])
 
@@ -126,25 +126,51 @@ class TestPlayground(TestCase):
     def test_should_start_experiment_imp(self):
         """ Playground should start the IMP-experiment with correct standard specs. """
         expected_specs = get_specs_lenet_mnist()
+        expected_specs.experiment_name = ExperimentNames.IMP
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST])
+            mocked_experiment.assert_called_once_with(expected_specs)
+
+    def test_should_start_experiment_osp(self):
+        """ Playground should start the OSP-experiment with correct standard specs. """
+        expected_specs = get_specs_lenet_mnist()
+        expected_specs.experiment_name = ExperimentNames.OSP
+        with mock.patch('playground.ExperimentOSP') as mocked_experiment:
+            playground_main([ExperimentNames.OSP, ExperimentPresetNames.LENET_MNIST])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_random_retrain(self):
         """ Playground should start the random-retraining-experiment with correct arguments. """
         with mock.patch('playground.ExperimentRandomRetrain') as mocked_experiment:
-            playground_main([ExperimentNames.RANDOM_RETRAIN, 'some/path/pre-specs.json', '0', '3'])
+            playground_main([ExperimentNames.RR, 'some/path/pre-specs.json', '0', '3'])
             mocked_experiment.assert_called_once_with('../some/path/pre-specs.json', 0, 3)
 
-    def test_should_print_experiment_specs(self):
-        """ Playground should not start the experiment and print the specs. """
+    def test_should_print_experiment_specs_imp(self):
+        """ Playground should not start the IMP-experiment and print the specs. """
         expected_specs = get_specs_lenet_mnist()
+        expected_specs.experiment_name = ExperimentNames.IMP
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
             with StringIO() as interception:
                 old_stdout = sys.stdout
                 sys.stdout = interception
 
-                playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-l'])
+                playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-l'])
+
+                sys.stdout = old_stdout
+
+                self.assertEqual(interception.getvalue(), f"{expected_specs}\n")
+                mocked_experiment.assert_not_called()
+
+    def test_should_print_experiment_specs_osp(self):
+        """ Playground should not start the OSP-experiment and print the specs. """
+        expected_specs = get_specs_lenet_mnist()
+        expected_specs.experiment_name = ExperimentNames.OSP
+        with mock.patch('playground.ExperimentOSP') as mocked_experiment:
+            with StringIO() as interception:
+                old_stdout = sys.stdout
+                sys.stdout = interception
+
+                playground_main([ExperimentNames.OSP, ExperimentPresetNames.LENET_MNIST, '-l'])
 
                 sys.stdout = old_stdout
 
@@ -156,7 +182,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_lenet_mnist()
         expected_specs.epoch_count = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-e', '42'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-e', '42'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_nets_parameter(self):
@@ -164,7 +190,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_lenet_mnist()
         expected_specs.net_count = 1
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-n', '1'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-n', '1'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_prunes_parameter(self):
@@ -172,7 +198,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_lenet_mnist()
         expected_specs.prune_count = 4
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-p', '4'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-p', '4'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_learning_rate_parameter(self):
@@ -180,7 +206,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_conv2_cifar10()
         expected_specs.learning_rate = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.CONV2_CIFAR10, '-lr', '0.5'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.CONV2_CIFAR10, '-lr', '0.5'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_prune_rate_conv_parameter(self):
@@ -188,7 +214,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_conv2_cifar10()
         expected_specs.prune_rate_conv = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.CONV2_CIFAR10, '-prc', '0.5'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.CONV2_CIFAR10, '-prc', '0.5'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_prune_rate_fc_parameter(self):
@@ -196,7 +222,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_lenet_mnist()
         expected_specs.prune_rate_fc = 0.5
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-prf', '0.5'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-prf', '0.5'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_plan_conv(self):
@@ -204,7 +230,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_conv2_cifar10()
         expected_specs.plan_conv = ['1']
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.CONV2_CIFAR10, '--plan_conv', '1'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.CONV2_CIFAR10, '--plan_conv', '1'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_plan_fc(self):
@@ -212,7 +238,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_conv2_cifar10()
         expected_specs.plan_fc = ['1']
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.CONV2_CIFAR10, '--plan_fc', '1'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.CONV2_CIFAR10, '--plan_fc', '1'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_early_stop(self):
@@ -220,7 +246,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_lenet_mnist()
         expected_specs.save_early_stop = True
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-es'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-es'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_detailed_logging(self):
@@ -232,7 +258,7 @@ class TestPlayground(TestCase):
                 old_stdout = sys.stdout
                 sys.stdout = interception
 
-                playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-vv'])
+                playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-vv'])
 
                 sys.stdout = old_stdout
 
@@ -244,7 +270,7 @@ class TestPlayground(TestCase):
         expected_specs = get_specs_lenet_mnist()
         expected_specs.plot_step = 42
         with mock.patch('playground.ExperimentIMP') as mocked_experiment:
-            playground_main([ExperimentNames.IMP, ExperimentIMPNames.LENET_MNIST, '-ps', '42'])
+            playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-ps', '42'])
             mocked_experiment.assert_called_once_with(expected_specs)
 
 

@@ -94,9 +94,10 @@ class Conv(Net):
         x = self.fc(x)
         return self.out(x)
 
-    def get_untrained_instance(self):
-        """ Return a pruned, untrained version of this net, i.e. return this net with initial weights. """
+    def get_new_instance(self, reset_weight=True):
+        """ Return a copy of this net with pruned mask.
+        If 'reset_weight' is True, the copy is untrained. """
         new_net = Conv(self.plan_conv, self.plan_fc)
         new_net.load_state_dict(self.state_dict())
-        new_net.prune_net(prune_rate_conv=0.0, prune_rate_fc=0.0, reset=True)  # reapply pruned mask
+        new_net.prune_net(prune_rate_conv=0.0, prune_rate_fc=0.0, reset=reset_weight)  # reapply pruned mask
         return new_net

@@ -5,8 +5,9 @@ import sys
 import torch.cuda
 
 from experiments.experiment_imp import ExperimentIMP
+from experiments.experiment_osp import ExperimentOSP
 from experiments.experiment_random_retrain import ExperimentRandomRetrain
-from experiments.experiment_specs import get_specs, ExperimentIMPNames, VerbosityLevel, ExperimentNames
+from experiments.experiment_specs import get_specs, ExperimentPresetNames, VerbosityLevel, ExperimentNames
 from training.logger import log_from_medium
 
 current_path = os.path.dirname(__file__)
@@ -60,44 +61,54 @@ def parse_arguments(args):
                                        description='These experiments are available as subcommands:',
                                        dest='experiment_name')
 
-    # parser for main IMP-experiments
-    parser_imp = subparsers.add_parser(ExperimentNames.IMP.value,
-                                       description='Choose a preset and adapt parameters with flags.',
-                                       help='Iterative magnitude pruning. This is the main experiment.')
-    parser_imp.add_argument('experiment_preset', choices=ExperimentIMPNames.get_value_list(),
-                            help="choose a preset")
-    parser_imp.add_argument('-c', '--cuda', action='store_true', default=False, help="use cuda, if available")
-    parser_imp.add_argument('-es', '--early_stop', action='store_true', default=False,
-                            help="evaluate early-stopping criterion during training "
-                                 "and save checkpoints per net and level of pruning")
-    parser_imp.add_argument('-l', '--listing', action='store_true', default=False,
-                            help="list loaded settings, but do not run the experiment_name")
-    parser_imp.add_argument('-ps', '--plot_step', type=int, default=None, metavar='N',
-                            help="specify the number of iterations between history-entries")
-    parser_imp.add_argument('-v', '--verbose', action='count', default=0,
-                            help="activate output, use twice for more detailed output at higher frequency (i.e. -vv)")
+    # parent parser for pruning experiments, defines common flags like 'net_count' and 'cuda'
+    parser_pr = ArgumentParser(add_help=False)
+    parser_pr.add_argument('experiment_preset', choices=ExperimentPresetNames.get_value_list(),
+                           help="choose a preset")
+    parser_pr.add_argument('-c', '--cuda', action='store_true', default=False, help="use cuda, if available")
+    parser_pr.add_argument('-es', '--early_stop', action='store_true', default=False,
+                           help="evaluate early-stopping criterion during training "
+                                "and save checkpoints per net and level of pruning")
+    parser_pr.add_argument('-l', '--listing', action='store_true', default=False,
+                           help="list loaded settings, but do not run the experiment_name")
+    parser_pr.add_argument('-ps', '--plot_step', type=int, default=None, metavar='N',
+                           help="specify the number of iterations between history-entries")
+    parser_pr.add_argument('-v', '--verbose', action='count', default=0,
+                           help="activate output, use twice for more detailed output at higher frequency (i.e. -vv)")
 
-    parser_imp.add_argument('-e', '--epochs', type=int, default=None, metavar='N', help="specify number of epochs")
-    parser_imp.add_argument('-n', '--nets', type=int, default=None, metavar='N',
-                            help="specify number of trained networks")
-    parser_imp.add_argument('-p', '--prunes', type=int, default=None, metavar='N',
-                            help="specify number of pruning steps")
-    parser_imp.add_argument('-lr', '--learn_rate', type=float, default=None, metavar='R', help="specify learning-rate")
-    parser_imp.add_argument('-prc', '--prune_rate_conv', type=float, default=None, metavar='R',
-                            help="specify pruning-rate for convolutional layers")
-    parser_imp.add_argument('-prf', '--prune_rate_fc', type=float, default=None, metavar='R',
-                            help="specify pruning-rate for fully-connected layers")
-    parser_imp.add_argument('--plan_conv', type=str, nargs='+', default=None, metavar='SPEC',
-                            help="specify convolutional layers as list of output-sizes (as int or string); "
-                                 "special layers: 'A' for average-pooling, 'M' for max-pooling,"
-                                 "'iB' for convolution of size i with batch-norm")
-    parser_imp.add_argument('--plan_fc', type=str, nargs='+', default=None, metavar='SPEC',
-                            help="specify fully-connected layers as list of output-sizes (as int or string)")
+    parser_pr.add_argument('-e', '--epochs', type=int, default=None, metavar='N', help="specify number of epochs")
+    parser_pr.add_argument('-n', '--nets', type=int, default=None, metavar='N',
+                           help="specify number of trained networks")
+    parser_pr.add_argument('-p', '--prunes', type=int, default=None, metavar='N',
+                           help="specify number of pruning steps")
+    parser_pr.add_argument('-lr', '--learn_rate', type=float, default=None, metavar='R', help="specify learning-rate")
+    parser_pr.add_argument('-prc', '--prune_rate_conv', type=float, default=None, metavar='R',
+                           help="specify pruning-rate for convolutional layers")
+    parser_pr.add_argument('-prf', '--prune_rate_fc', type=float, default=None, metavar='R',
+                           help="specify pruning-rate for fully-connected layers")
+    parser_pr.add_argument('--plan_conv', type=str, nargs='+', default=None, metavar='SPEC',
+                           help="specify convolutional layers as list of output-sizes (as int or string); "
+                                "special layers: 'A' for average-pooling, 'M' for max-pooling,"
+                                "'iB' for convolution of size i with batch-norm")
+    parser_pr.add_argument('--plan_fc', type=str, nargs='+', default=None, metavar='SPEC',
+                           help="specify fully-connected layers as list of output-sizes (as int or string)")
+
+    # parser for main IMP-experiments
+    subparsers.add_parser(ExperimentNames.IMP.value,
+                          description='Choose a preset and adapt parameters with flags.',
+                          help='Iterative magnitude pruning. This is the main experiment.',
+                          parents=[parser_pr])
+
+    # parser for main OSP-experiments
+    subparsers.add_parser(ExperimentNames.OSP.value,
+                          description='Choose a preset and adapt parameters with flags.',
+                          help='One-shot pruning.',
+                          parents=[parser_pr])
 
     # parser for retraining-experiments
-    parser_rr = subparsers.add_parser(ExperimentNames.RANDOM_RETRAIN.value,
-                                      description="Specify the original IMP-experiment and the number of nets to train"
-                                                  "per level of sparsity. "
+    parser_rr = subparsers.add_parser(ExperimentNames.RR.value,
+                                      description="Specify the original IMP- or OSP-experiment and the number of nets"
+                                                  "to train per level of sparsity. "
                                                   "Reuse parameters like 'epoch_count' and 'cuda' from original specs. "
                                                   "Load state_dicts from EarlyStopHistory to get pruned masks.",
                                       help='Training randomly reinitialized networks from a previous IMP-experiment. '
@@ -116,7 +127,8 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def setup_imp(args):
+def setup_pruning(args):
+    """ Setup IMP- or OSP-experiment and print the specs or execute it. """
     assert args.verbose in VerbosityLevel.__members__.values()
 
     specs = get_specs(args.experiment_preset)
@@ -144,15 +156,20 @@ def setup_imp(args):
         specs.plot_step = args.plot_step
     specs.verbosity = VerbosityLevel(args.verbose)
     specs.save_early_stop = args.early_stop
+    specs.experiment_name = args.experiment_name
 
     if args.listing:
         print(specs)
-    else:
+    elif args.experiment_name == ExperimentNames.IMP:
         experiment = ExperimentIMP(specs)
+        experiment.run_experiment()
+    elif args.experiment_name == ExperimentNames.OSP:
+        experiment = ExperimentOSP(specs)
         experiment.run_experiment()
 
 
 def setup_random_retrain(args):
+    """ Setup and run retraining experiment for specs from a loaded OSP- or IMP-experiment. """
     # working directory of experiment is ./experiment, but the path is relative to the main package
     relative_specs_path = os.path.join('..', args.specs_path)
 
@@ -163,9 +180,9 @@ def setup_random_retrain(args):
 def main(args):
     parsed_args = parse_arguments(args)
 
-    if parsed_args.experiment_name == ExperimentNames.IMP:
-        setup_imp(parsed_args)
-    elif parsed_args.experiment_name == ExperimentNames.RANDOM_RETRAIN:
+    if parsed_args.experiment_name in [ExperimentNames.IMP, ExperimentNames.OSP]:
+        setup_pruning(parsed_args)
+    elif parsed_args.experiment_name == ExperimentNames.RR:
         setup_random_retrain(parsed_args)
 
 
