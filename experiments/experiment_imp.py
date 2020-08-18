@@ -1,6 +1,6 @@
 import time
 
-from data import plotter
+from data.plotter_evaluation import format_time
 from experiments.experiment_pruning import ExperimentPruning
 from training.logger import log_from_medium
 
@@ -37,5 +37,5 @@ class ExperimentIMP(ExperimentPruning):
                 toc = time.time()
                 log_from_medium(self.specs.verbosity,
                                 f"Final test-accuracy: {(self.hists.test_acc[n, p, -1]):6.4f} "
-                                f"(took {plotter.format_time(toc - tic)}).")
+                                f"(took {format_time(toc - tic)}).")
             log_from_medium(self.specs.verbosity, "")

@@ -2,7 +2,8 @@ import os
 
 import time
 
-from data import result_saver as rs, plotter
+from data import result_saver as rs
+from data.plotter_evaluation import format_time
 from data.result_loader import extract_experiment_path_prefix, generate_absolute_specs_path, get_specs_from_file, \
     get_early_stop_history_from_file, random_histories_file_exists
 from experiments.experiment import Experiment
@@ -83,7 +84,7 @@ class ExperimentRandomRetrain(Experiment):
                     = self.trainer.train_net(net, self.specs.epoch_count, self.specs.plot_step)
 
                 toc = time.time()
-                log_from_medium(self.specs.verbosity, f"(took {plotter.format_time(toc - tic)}).")
+                log_from_medium(self.specs.verbosity, f"(took {format_time(toc - tic)}).")
 
     def save_results(self):
         """ Save generated histories for randomly reinitialized models on disk. """
