@@ -1,4 +1,6 @@
 import numpy as np
+from matplotlib import colors
+from torch import nn
 
 
 def find_early_stop_indices(loss_hists):
@@ -55,3 +57,12 @@ def get_values_at_stop_iteration(stop_indices, hists):
 def scale_early_stop_indices_to_iterations(stop_indices, plot_step):
     """ Scale 'stop_indices', as calculated by find_early_stop_indices(...)), to match early-stopping iterations. """
     return (stop_indices + 1) * plot_step
+
+
+def get_norm_for_sequential(sequential):
+    """ Generates a Normalize-object with the minimum and maximum of all weights from all layers 'sequential'. """
+    assert isinstance(sequential, nn.Sequential)
+    weight_list = [lay.weight.data for lay in sequential if (isinstance(lay, nn.Linear) or isinstance(lay, nn.Conv2d))]
+    min_weight = min(weights.min().item() for weights in weight_list)
+    max_weight = max(weights.max().item() for weights in weight_list)
+    return colors.TwoSlopeNorm(vcenter=0.0, vmin=min_weight, vmax=max_weight)

@@ -2,6 +2,9 @@ from unittest import TestCase
 from unittest import main as unittest_main
 
 import numpy as np
+import torch
+from matplotlib.colors import TwoSlopeNorm
+from torch import nn
 
 from data import plotter_evaluation
 
@@ -90,6 +93,22 @@ class TestPlotterEvaluation(TestCase):
         expected_iterations = np.array([[50, 10]])
         result_iterations = plotter_evaluation.scale_early_stop_indices_to_iterations(indices, 10)
         np.testing.assert_array_equal(expected_iterations, result_iterations)
+
+    def test_get_norm_for_sequence(self):
+        """ Should find a Normalize-object with correct minimum and maximum of all weights from all layers in 'seq'. """
+        torch.manual_seed(123)
+        seq = nn.Sequential(
+            nn.Linear(2, 2),
+            nn.ReLU(),
+            nn.Conv2d(2, 2, 2)
+        )
+
+        norm = plotter_evaluation.get_norm_for_sequential(seq)
+
+        self.assertIsInstance(norm, TwoSlopeNorm)
+        self.assertAlmostEqual(0.0, norm.vcenter)
+        self.assertAlmostEqual(-0.35119062662124634, norm.vmin)
+        self.assertAlmostEqual(0.26665955781936646, norm.vmax)
 
 
 if __name__ == '__main__':
