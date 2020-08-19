@@ -60,7 +60,7 @@ def scale_early_stop_indices_to_iterations(stop_indices, plot_step):
 
 
 def get_norm_for_sequential(sequential):
-    """ Generates a Normalize-object with the minimum and maximum of all weights from all layers 'sequential'. """
+    """ Generates a TwoSlopeNorm-object to normalize the weights from all layers in 'sequential'. """
     assert isinstance(sequential, nn.Sequential)
     weight_list = [lay.weight.data for lay in sequential if (isinstance(lay, nn.Linear) or isinstance(lay, nn.Conv2d))]
     min_weight = min(weights.min().item() for weights in weight_list)

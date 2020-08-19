@@ -60,11 +60,12 @@ def setup_labeling_on_ax(ax, plot_type: PlotType, iteration=True, early_stop=Fal
 
 
 # subplots
-def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist, net_name):
+def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist, net_name, random=False, color=None):
     """ Plot means and error-bars for given early-stopping iterations or accuracies on ax.
     Suppose 'hists' has shape (net_count, prune_count+1, 1) for accuracies or (net_count, prune_count+1) for iterations.
     Suppose 'sparsity_hist' has shape (prune_count+1).
-    'hists' is a solid line with error bars with the next color from the color cycle. """
+    'hists' is a solid line with error bars if 'random' is False, and a dotted line otherwise.
+    If 'color' is not specified, choose the next color from the color cycle. """
     # calculate means
     mean, neg_y_err, pos_y_err = get_means_and_y_errors(hists)
 
@@ -74,26 +75,11 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist, net_name):
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot and return instance of `ErrorbarContainer` to read its color
+    if random:
+        return ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':',
+                           color=color, label=f"{net_name} reinit")
     return ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-',
-                       label=net_name)
-
-
-def plot_random_average_at_early_stop_on_ax(ax, rnd_hists, sparsity_hist, color, net_name):
-    """ Plot means and error-bars for given random early-stopping iterations or accuracies on ax.
-    Suppose 'rnd_hists' has shape (net_count, prune_count, 1) for accuracies or (net_count, prune_count) for iterations.
-    Suppose 'sparsity_hist' has shape (prune_count+1).
-    'hists' is a solid line with error bars and a color specified by 'color'. """
-    # calculate means
-    mean, neg_y_err, pos_y_err = get_means_and_y_errors(rnd_hists)
-
-    # for accuracies each mean and y_err has shape (prune_count+1, 1), so squeeze them to get shape (prune_count+1)
-    mean = np.squeeze(mean)
-    neg_y_err = np.squeeze(neg_y_err)
-    pos_y_err = np.squeeze(pos_y_err)
-
-    # plot
-    ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':', color=color,
-                label=f"{net_name} reinit")
+                       color=color, label=net_name)
 
 
 def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step, random=False):
@@ -107,11 +93,11 @@ def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step, random=False):
     h_mean, h_neg_y_err, h_pos_y_err = get_means_and_y_errors(hists)
     xs = gen_iteration_space(h_mean[0], plot_step)
 
-    if not random:
+    if random:
+        plot_pruned_means_on_ax(ax, xs, h_mean, h_neg_y_err, h_pos_y_err, sparsity_hist, prune_count, ':')
+    else:
         plot_baseline_mean_on_ax(ax, xs, h_mean[0], h_neg_y_err[0], h_pos_y_err[0])
         plot_pruned_means_on_ax(ax, xs, h_mean[1:], h_neg_y_err[1:], h_pos_y_err[1:], sparsity_hist[1:], prune_count)
-    else:
-        plot_pruned_means_on_ax(ax, xs, h_mean, h_neg_y_err, h_pos_y_err, sparsity_hist, prune_count, ':')
 
 
 def plot_baseline_mean_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
@@ -146,11 +132,11 @@ def plot_acc_at_early_stop_on_ax(ax, loss_hists, acc_hists, sparsity_hist, net_n
         f"'prune_count' (dimension of 'sparsity_hist') needs to be greater than one, but is {sparsity_hist.shape}."
 
     early_stop_acc = find_acc_at_early_stop_indices(loss_hists, acc_hists)
-    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist, net_name)
+    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_acc, sparsity_hist, net_name, random=False)
     if rnd_loss_hists is not None and rnd_acc_hists is not None:
         random_early_stop_acc = find_acc_at_early_stop_indices(rnd_loss_hists, rnd_acc_hists)
-        plot_random_average_at_early_stop_on_ax(ax, random_early_stop_acc, sparsity_hist,
-                                                original_plot.lines[0].get_color(), net_name)
+        plot_average_at_early_stop_on_ax(ax, random_early_stop_acc, sparsity_hist, net_name, random=True,
+                                         color=original_plot.lines[0].get_color())
     if setup_ax:
         setup_early_stop_ax(ax, force_zero)
         setup_labeling_on_ax(ax, plot_type, iteration=False, early_stop=True)
@@ -184,11 +170,11 @@ def plot_early_stop_iterations_on_ax(ax, loss_hists, sparsity_hist, plot_step, n
         f"'prune_count' (dimension of 'sparsity_hist') needs to be greater than one, but is {sparsity_hist.shape}."
 
     early_stop_iterations = find_early_stop_iterations(loss_hists, plot_step)
-    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist, net_name)
+    original_plot = plot_average_at_early_stop_on_ax(ax, early_stop_iterations, sparsity_hist, net_name, random=False)
     if rnd_loss_hists is not None:
         random_early_stop_iterations = find_early_stop_iterations(rnd_loss_hists, plot_step)
-        plot_random_average_at_early_stop_on_ax(ax, random_early_stop_iterations, sparsity_hist,
-                                                original_plot.lines[0].get_color(), net_name)
+        plot_average_at_early_stop_on_ax(ax, random_early_stop_iterations, sparsity_hist, net_name, random=True,
+                                         color=original_plot.lines[0].get_color())
     if setup_ax:
         setup_early_stop_ax(ax, force_zero)
         setup_labeling_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False, early_stop=True)
