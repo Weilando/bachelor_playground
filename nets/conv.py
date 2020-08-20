@@ -51,7 +51,7 @@ class Conv(Net):
                 conv_layers.append(nn.Conv2d(filters, spec_number, kernel_size=3, padding=1))
                 conv_layers.append(nn.ReLU())
                 self.init_weight_count_net['conv'] += filters * spec_number * 9
-                filters = spec
+                filters = spec_number
             else:
                 raise AssertionError(f"{spec} from plan_conv is an invalid spec.")
 
