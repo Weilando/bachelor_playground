@@ -1,3 +1,5 @@
+import warnings
+
 import matplotlib.pyplot as plt
 from math import ceil
 from torch import nn
@@ -44,6 +46,11 @@ def plot_kernels(conv_2d, num_cols=8):
     assert isinstance(conv_2d, nn.Conv2d)
 
     weights = conv_2d.weight.data.permute(0, 2, 3, 1).numpy()  # adapt dimensions to [kernel, height, width, color]
+    if (weights.shape[0] * weights.shape[3]) > 512:
+        last_kernel = ceil(512 / weights.shape[3])
+        weights = weights[:last_kernel]
+        warnings.warn(f"Too many kernels to plot, only plot the first {last_kernel} kernels.")
+
     weight_norm = plotter_evaluation.get_norm_for_sequential(nn.Sequential(conv_2d))
     num_cols, num_rows = get_row_and_col_num(weights.shape, num_cols)
 
@@ -58,7 +65,7 @@ def plot_kernels(conv_2d, num_cols=8):
     plt.show()
 
 
-def plot_conv(sequential):
+def plot_conv(sequential, num_cols=8):
     """ Plots the weights of all Conv2D layers from 'sequential' as rows of square representing the kernels.
     Plot them in RGB if the layer has three input channels, or each channel alone otherwise.
     Use normalization to avoid clipping and to center all values at zero. """
@@ -66,7 +73,7 @@ def plot_conv(sequential):
 
     for layer in sequential:
         if isinstance(layer, nn.Conv2d):
-            plot_kernels(layer)
+            plot_kernels(layer, num_cols)
 
 
 def plot_fc(sequential):

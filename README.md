@@ -66,9 +66,8 @@ The dataclass `experiments.early_stop_histories.EarlyStopHistoryList` contains a
 These store early-stop iterations and state_dicts per pruning level, if the `save_early_stop`-flag was set during training.
 
 ## Evaluate experiments
-It is possible to load the stored results into their original data-structure by using methods from the module `experiments.result_loader`.
-The module `data.plotter` provides high-level functions to analyze and plot histories in different contexts.
-The interactive Jupyter notebook `ExperimentEvaluation.ipynb` makes it easy to load and evaluate results from past experiments, as it shows examples for many use cases.
+The module `experiments.result_loader` provides methods to load the stored results into their original data-structure and the module `data.plotter` brings high-level functions to analyze and plot histories in different contexts.
+The interactive Jupyter notebook `ExperimentEvaluation.ipynb` shows examples for many use cases.
 
 The high-level plot functions take a `matplotlib-axes` object and apply plots, labels and axes. 
 Usually it is not necessary to call low-level functions by hand.
@@ -90,6 +89,20 @@ Baseline plots have dashed lines.
 It is possible to plot equal histories at early-stop for several networks.
 Simply call the function with the same axes-object for each history to plot.
 You should set the argument `setup_ax` to False until the last plot to have a complete legend and correct grids.
+
+## Plot layers
+The module `data.plotter_layer` provides high-level functions to plot linear and convolutional layers of trained networks.
+The interactive Jupyter notebook `ExperimentEvaluation.ipynb` shows examples for these functions, too.
+
+- `plot_conv(...)` plots all Conv2D-layers from a given Sequential.
+- `plot_fc(...)` plots all Linear-layers from a given Sequential.
+
+Rectangles with colored pixels represent weight matrices of linear layers.
+Similarly, rows of rectangles represent kernels from convolutional layers.
+If the convolutional layer has three input channels, one RGB plot shows a kernel, otherwise one plot exists per kernel and channel.
+
+Please keep in mind that convolutional plots might scale quickly, e.g. a network with two convolutions with 64 channels each produce a plot with 64 RGB images and a plot with 64*64=4096 single-channel plots.
+`plot_conv(...)` shows at most 512 images.
 
 ## Tests
 There are many unit and integration tests which cover correct experiment setup, execution and evaluation.
