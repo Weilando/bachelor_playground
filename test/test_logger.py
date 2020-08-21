@@ -21,7 +21,7 @@ class TestLogger(TestCase):
             logger.log_from_medium(VerbosityLevel.SILENT, "Some message")
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "")
+            self.assertEqual("", interception.getvalue())
 
     def test_medium_print_for_level_medium(self):
         """ Should print the message, because the verbosity_level is medium. """
@@ -31,7 +31,7 @@ class TestLogger(TestCase):
             logger.log_from_medium(VerbosityLevel.MEDIUM, "Some message")
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "Some message\n")
+            self.assertEqual("Some message\n", interception.getvalue())
 
     def test_medium_print_for_level_detailed(self):
         """ Should print the message, because the verbosity_level is detailed. """
@@ -41,7 +41,7 @@ class TestLogger(TestCase):
             logger.log_from_medium(VerbosityLevel.DETAILED, "Some message")
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "Some message\n")
+            self.assertEqual("Some message\n", interception.getvalue())
 
     def test_no_detailed_print_for_level_silent(self):
         """ Should not print anything, because the verbosity_level is silent. """
@@ -51,7 +51,7 @@ class TestLogger(TestCase):
             logger.log_detailed_only(VerbosityLevel.SILENT, "Some message")
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "")
+            self.assertEqual("", interception.getvalue())
 
     def test_no_detailed_print_for_level_medium(self):
         """ Should not print anything, because the verbosity_level is medium. """
@@ -61,7 +61,7 @@ class TestLogger(TestCase):
             logger.log_detailed_only(VerbosityLevel.MEDIUM, "Some message")
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "")
+            self.assertEqual("", interception.getvalue())
 
     def test_no_detailed_print_for_level_detailed(self):
         """ Should print message, because the verbosity_level is detailed. """
@@ -71,7 +71,7 @@ class TestLogger(TestCase):
             logger.log_detailed_only(VerbosityLevel.DETAILED, "Some message")
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "Some message\n")
+            self.assertEqual("Some message\n", interception.getvalue())
 
     def test_print_message_and_append_new_line(self):
         """ Should print message and append a new line. """
@@ -81,7 +81,7 @@ class TestLogger(TestCase):
             logger.print_message("Some message", True)
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "Some message\n")
+            self.assertEqual("Some message\n", interception.getvalue())
 
     def test_print_message_and_append_no_new_line(self):
         """ Should print message and do not append a new line. """
@@ -91,7 +91,7 @@ class TestLogger(TestCase):
             logger.print_message("Some message", False)
             sys.stdout = old_stdout
 
-            self.assertEqual(interception.getvalue(), "Some message")
+            self.assertEqual("Some message", interception.getvalue())
 
 
 if __name__ == '__main__':

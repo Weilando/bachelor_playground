@@ -23,7 +23,7 @@ class TestExperimentOSP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentOSP(specs, tmp_dir_name)
             experiment.run_experiment()
-            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), 1)
+            self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))))
 
     def test_perform_toy_conv_osp_experiment(self):
         """ Should run OSP-Experiment with small Conv and toy-dataset without errors. """
@@ -32,7 +32,7 @@ class TestExperimentOSP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentOSP(specs, tmp_dir_name)
             experiment.run_experiment()
-            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), 1)
+            self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))))
 
     def test_subnetworks_from_toy_lenet_osp_experiment_have_equal_init_weight(self):
         """ All subnetworks should have the same 'weight_init' buffer as the original network. """
@@ -58,7 +58,7 @@ class TestExperimentOSP(TestCase):
             self.assertIs(torch.equal(subnet.fc[0].weight_init, initial_net.fc[0].weight_init), True)
             self.assertIs(torch.equal(subnet.out.weight_init, initial_net.out.weight_init), True)
             # should not generate files
-            self.assertListEqual(os.listdir(tmp_dir_name), [])
+            self.assertListEqual([], os.listdir(tmp_dir_name))
 
 
 if __name__ == '__main__':

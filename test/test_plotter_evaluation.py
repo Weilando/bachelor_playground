@@ -19,7 +19,6 @@ class TestPlotterEvaluation(TestCase):
         The input has shape (1,2,5), thus the result needs to have shape (1,2). """
         loss = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
         expected_indices = np.array([[4, 2]])
-
         result_indices = plotter_evaluation.find_early_stop_indices(loss)
         np.testing.assert_array_equal(expected_indices, result_indices)
 
@@ -28,7 +27,6 @@ class TestPlotterEvaluation(TestCase):
         The input has shape (1,2,5), thus the result needs to have shape (1,2). """
         loss = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
         expected_iterations = np.array([[50, 30]])  # indices are 4 and 2, and there is no measurement at start
-
         result_iterations = plotter_evaluation.find_early_stop_iterations(loss, 10)
         np.testing.assert_array_equal(expected_iterations, result_iterations)
 
@@ -38,7 +36,6 @@ class TestPlotterEvaluation(TestCase):
         loss = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
         accuracies = np.array([[[0.5, 0.4, 0.3, 0.2, 0.1], [0.9, 0.8, 0.7, 0.8, 0.9]]], dtype=float)
         expected_accuracies = np.array([[[0.1], [0.7]]])  # indices are 4 and 2
-
         result_accuracies = plotter_evaluation.find_acc_at_early_stop_indices(loss, accuracies)
         np.testing.assert_array_equal(expected_accuracies, result_accuracies)
 
@@ -105,7 +102,6 @@ class TestPlotterEvaluation(TestCase):
     def test_get_row_and_col_num_color(self):
         """ Should return 4 columns and 2 rows as they can hold 8 kernels. """
         weight_shape = (8, 5, 5, 3)
-
         num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 4)
         self.assertEqual(4, num_cols)
         self.assertEqual(2, num_rows)
@@ -113,7 +109,6 @@ class TestPlotterEvaluation(TestCase):
     def test_get_row_and_col_num_color_clip(self):
         """ Should return 5 columns and 4 rows as the last row is not completely filled. """
         weight_shape = (18, 5, 5, 3)
-
         num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 5)
         self.assertEqual(5, num_cols)
         self.assertEqual(4, num_rows)
@@ -121,7 +116,6 @@ class TestPlotterEvaluation(TestCase):
     def test_get_row_and_col_num_single(self):
         """ Should return 4 columns and 8 rows as each row holds all channels for one kernel. """
         weight_shape = (8, 5, 5, 4)
-
         num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 4)
         self.assertEqual(4, num_cols)
         self.assertEqual(8, num_rows)
@@ -129,7 +123,6 @@ class TestPlotterEvaluation(TestCase):
     def test_get_row_and_col_num_single_clip(self):
         """ Should return 5 columns and 7 rows as all channels for one kernel do not fit into one row. """
         weight_shape = (8, 5, 5, 4)
-
         num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 5)
         self.assertEqual(5, num_cols)
         self.assertEqual(7, num_rows)
@@ -140,9 +133,7 @@ class TestPlotterEvaluation(TestCase):
         Thus the result needs to have shape (1,2,1). """
         hists = np.array([[[5, 4, 3, 2, 1], [9, 8, 7, 8, 9]]], dtype=float)
         stop_indices = np.array([[4, 2]])
-
         expected_values = np.array([[[1], [7]]])
-
         result_values = plotter_evaluation.get_values_at_stop_iteration(stop_indices, hists)
         np.testing.assert_array_equal(expected_values, result_values)
 

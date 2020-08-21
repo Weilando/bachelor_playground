@@ -19,7 +19,7 @@ class TestExperimentIMP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(specs, tmp_dir_name)
             experiment.run_experiment()
-            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), 1)
+            self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), )
 
     def test_perform_toy_conv_experiment(self):
         """ Should run IMP-Experiment with small Conv and toy-dataset without errors. """
@@ -27,7 +27,7 @@ class TestExperimentIMP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(specs, tmp_dir_name)
             experiment.run_experiment()
-            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))), 1)
+            self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, '*-specs.json'))))
 
     def test_raise_error_on_invalid_dataset(self):
         """ Should raise an assertion error, because the given dataset-name is invalid. """
@@ -43,7 +43,7 @@ class TestExperimentIMP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(specs, tmp_dir_name)
             experiment.run_experiment()
-            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, '*-early-stop[0,1].pth'))), 2)
+            self.assertEqual(2, len(glob.glob(os.path.join(tmp_dir_name, '*-early-stop[0,1].pth'))))
 
     def test_do_not_save_early_stop_checkpoints(self):
         """ Should not save checkpoints from early-stopping. """
@@ -52,7 +52,7 @@ class TestExperimentIMP(TestCase):
         with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
             experiment = ExperimentIMP(specs, tmp_dir_name)
             experiment.run_experiment()
-            self.assertEqual(glob.glob(os.path.join(tmp_dir_name, '*-early-stop*.pth')), [])
+            self.assertEqual([], glob.glob(os.path.join(tmp_dir_name, '*-early-stop*.pth')))
 
 
 if __name__ == '__main__':

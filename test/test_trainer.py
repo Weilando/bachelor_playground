@@ -127,7 +127,7 @@ class TestTrainer(TestCase):
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
         val_loss = trainer.compute_val_loss(net)
-        self.assertGreater(val_loss, 0.0)
+        self.assertLessEqual(0.0, val_loss)
 
     def test_should_save_early_stop_checkpoint_no_evaluation(self):
         """ Should return False, because the early-stopping criterion should not be evaluated. """

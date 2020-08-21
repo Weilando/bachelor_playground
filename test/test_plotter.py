@@ -27,40 +27,40 @@ class TestPlotter(TestCase):
         ax = plt.figure().subplots(1, 1, sharex=False)
         plotter.gen_labels_on_ax(ax, plotter.PlotType.TRAIN_LOSS, iteration=True)
         self.assertEqual(ax.get_ylabel(), plotter.PlotType.TRAIN_LOSS)
-        self.assertEqual(ax.get_xlabel(), "Iteration")
+        self.assertEqual("Iteration", ax.get_xlabel())
 
     def test_gen_labels_for_val_acc_and_sparsity(self):
         """ Should generate the correct labels. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         plotter.gen_labels_on_ax(ax, plotter.PlotType.VAL_ACC, iteration=False)
         self.assertEqual(ax.get_ylabel(), plotter.PlotType.VAL_ACC)
-        self.assertEqual(ax.get_xlabel(), "Sparsity")
+        self.assertEqual("Sparsity", ax.get_xlabel())
 
     def test_gen_title_for_test_acc_on_ax(self):
         """ Should generate the correct title. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         plotter.gen_title_on_ax(ax, plotter.PlotType.TEST_ACC, early_stop=False)
-        self.assertEqual(ax.get_title(), f"Average {plotter.PlotType.TEST_ACC}")
+        self.assertEqual(f"Average {plotter.PlotType.TEST_ACC}", ax.get_title())
 
     def test_gen_title_for_test_acc_with_early_stop_on_ax(self):
         """ Should generate the correct title with early-stop suffix. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         plotter.gen_title_on_ax(ax, plotter.PlotType.TEST_ACC, early_stop=True)
-        self.assertEqual(ax.get_title(), f"Average {plotter.PlotType.TEST_ACC} at early-stop")
+        self.assertEqual(f"Average {plotter.PlotType.TEST_ACC} at early-stop", ax.get_title())
 
     def test_setup_grids_and_y_lim_on_ax(self):
         """ Should setup grids and set the minimum of y-limit to zero. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         ax.set_ylim(bottom=1, top=2)
         plotter.setup_grids_on_ax(ax, force_zero=True)
-        self.assertEqual(ax.get_ylim()[0], 0)
+        self.assertEqual(0, ax.get_ylim()[0])
 
     def test_setup_grids_on_ax(self):
         """ Should setup grids and do not change y-limits. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         ax.set_ylim(bottom=1, top=2)
         plotter.setup_grids_on_ax(ax, force_zero=False)
-        self.assertEqual(ax.get_ylim()[0], 1)
+        self.assertEqual(1, ax.get_ylim()[0])
 
     def test_setup_labeling_on_ax(self):
         """ Should generate the right title and labels, and generate a legend. """
@@ -70,9 +70,9 @@ class TestPlotter(TestCase):
 
         plotter.setup_labeling_on_ax(ax, plot_type, iteration=False)
 
-        self.assertEqual(ax.get_title(), f"Average {plot_type.value}")
-        self.assertEqual(ax.get_ylabel(), f"{plot_type.value}")
-        self.assertEqual(ax.get_xlabel(), "Sparsity")
+        self.assertEqual(f"Average {plot_type.value}", ax.get_title())
+        self.assertEqual(f"{plot_type.value}", ax.get_ylabel())
+        self.assertEqual("Sparsity", ax.get_xlabel())
         self.assertIsNotNone(ax.get_legend())
 
     # plots

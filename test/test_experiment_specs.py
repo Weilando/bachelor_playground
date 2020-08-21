@@ -66,7 +66,7 @@ class TestExperimentSpecs(TestCase):
     def test_get_specs_should_raise_assertion_error_on_invalid_name(self):
         """ Should raise an assertion error, because the given name is invalid. """
         with self.assertRaises(AssertionError):
-            get_specs("This is an invalid experiment name for sure!")
+            get_specs("Invalid experiment name")
 
 
 if __name__ == '__main__':
