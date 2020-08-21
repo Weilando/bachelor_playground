@@ -3,7 +3,7 @@ from unittest import main as unittest_main
 
 import numpy as np
 import torch
-from matplotlib.colors import TwoSlopeNorm
+from matplotlib.colors import TwoSlopeNorm, Normalize
 from torch import nn
 
 from data import plotter_evaluation
@@ -58,7 +58,7 @@ class TestPlotterEvaluation(TestCase):
         """ If the given time is bigger than a minute, it should be returned as minutes and seconds without digits. """
         self.assertEqual("2:18min", plotter_evaluation.format_time(138.44444))
 
-    def test_calculate_correct_mean_and_y_error(self):
+    def test_get_mean_and_y_errors(self):
         """ Should calculate the correct averages, maxima and minima.
         The input has shape (3,2,4), thus all returned arrays need to have shape (2,4).
         Negative and positive error-bars are equal in this case, as it holds min=[[3, 4, 5, 7], [2, 21, 9, 25]] and
@@ -74,6 +74,65 @@ class TestPlotterEvaluation(TestCase):
         np.testing.assert_array_equal(expected_mean, result_mean)
         np.testing.assert_array_equal(expected_y_error, result_neg_y_error)
         np.testing.assert_array_equal(expected_y_error, result_pos_y_error)
+
+    def test_get_norm_for_sequence_zero_center(self):
+        """ Should find a TwoSlopeNorm-object with correct min and max of all weights from all layers in 'seq'. """
+        torch.manual_seed(123)
+        seq = nn.Sequential(
+            nn.Linear(2, 2),
+            nn.ReLU(),
+            nn.Conv2d(2, 2, 2)
+        )
+
+        norm = plotter_evaluation.get_norm_for_sequential(seq)
+
+        self.assertIsInstance(norm, TwoSlopeNorm)
+        self.assertAlmostEqual(0.0, norm.vcenter)  # colormap becomes zero centered
+        self.assertAlmostEqual(-0.35119062662124634, norm.vmin)
+        self.assertAlmostEqual(0.26665955781936646, norm.vmax)
+
+    def test_get_norm_for_sequence(self):
+        """ Should find a Normalize-object with correct min and max of all weights from all layers in 'seq'. """
+        seq = nn.Sequential(nn.Linear(2, 2))
+        seq[0].weight.data = torch.eye(2)  # plot of identity matrix is not zero centered
+
+        norm = plotter_evaluation.get_norm_for_sequential(seq)
+
+        self.assertIsInstance(norm, Normalize)
+        self.assertAlmostEqual(0.0, norm.vmin)
+        self.assertAlmostEqual(1.0, norm.vmax)
+
+    def test_get_row_and_col_num_color(self):
+        """ Should return 4 columns and 2 rows as they can hold 8 kernels. """
+        weight_shape = (8, 5, 5, 3)
+
+        num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 4)
+        self.assertEqual(4, num_cols)
+        self.assertEqual(2, num_rows)
+
+    def test_get_row_and_col_num_color_clip(self):
+        """ Should return 5 columns and 4 rows as the last row is not completely filled. """
+        weight_shape = (18, 5, 5, 3)
+
+        num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 5)
+        self.assertEqual(5, num_cols)
+        self.assertEqual(4, num_rows)
+
+    def test_get_row_and_col_num_single(self):
+        """ Should return 4 columns and 8 rows as each row holds all channels for one kernel. """
+        weight_shape = (8, 5, 5, 4)
+
+        num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 4)
+        self.assertEqual(4, num_cols)
+        self.assertEqual(8, num_rows)
+
+    def test_get_row_and_col_num_single_clip(self):
+        """ Should return 5 columns and 7 rows as all channels for one kernel do not fit into one row. """
+        weight_shape = (8, 5, 5, 4)
+
+        num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 5)
+        self.assertEqual(5, num_cols)
+        self.assertEqual(7, num_rows)
 
     def test_get_values_at_stop_iteration(self):
         """ Should find the corresponding values for the early-stopping indices.
@@ -93,22 +152,6 @@ class TestPlotterEvaluation(TestCase):
         expected_iterations = np.array([[50, 10]])
         result_iterations = plotter_evaluation.scale_early_stop_indices_to_iterations(indices, 10)
         np.testing.assert_array_equal(expected_iterations, result_iterations)
-
-    def test_get_norm_for_sequence(self):
-        """ Should find a Normalize-object with correct minimum and maximum of all weights from all layers in 'seq'. """
-        torch.manual_seed(123)
-        seq = nn.Sequential(
-            nn.Linear(2, 2),
-            nn.ReLU(),
-            nn.Conv2d(2, 2, 2)
-        )
-
-        norm = plotter_evaluation.get_norm_for_sequential(seq)
-
-        self.assertIsInstance(norm, TwoSlopeNorm)
-        self.assertAlmostEqual(0.0, norm.vcenter)
-        self.assertAlmostEqual(-0.35119062662124634, norm.vmin)
-        self.assertAlmostEqual(0.26665955781936646, norm.vmax)
 
 
 if __name__ == '__main__':

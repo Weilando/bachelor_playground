@@ -100,6 +100,7 @@ The interactive Jupyter notebook `ExperimentEvaluation.ipynb` shows examples for
 Rectangles with colored pixels represent weight matrices of linear layers.
 Similarly, rows of rectangles represent kernels from convolutional layers.
 If the convolutional layer has three input channels, one RGB plot shows a kernel, otherwise one plot exists per kernel and channel.
+Both functions show masked weights as black dots.
 
 Please keep in mind that convolutional plots might scale quickly, e.g. a network with two convolutions with 64 channels each produce a plot with 64 RGB images and a plot with 64*64=4096 single-channel plots.
 `plot_conv(...)` shows at most 512 images.
