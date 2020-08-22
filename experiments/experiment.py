@@ -1,8 +1,8 @@
 import time
 import torch
 
-from data import plotter
 from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
+from data.plotter_evaluation import format_time
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_specs import DatasetNames
@@ -68,7 +68,7 @@ class Experiment(object):
         self.execute_experiment()
 
         experiment_stop = time.time()  # stop clock for experiment duration
-        duration = plotter.format_time(experiment_stop - experiment_start)
+        duration = format_time(experiment_stop - experiment_start)
         self.specs.duration = duration
         log_from_medium(self.specs.verbosity, f"Experiment duration: {duration}")
 

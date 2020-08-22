@@ -109,19 +109,19 @@ class TestPlayground(TestCase):
                                        '42', '-v', '-e', '1', '-n', '2', '-p', '3', '-lr', '0.01', '-prc', '0.2',
                                        '-prf', '0.3', '--plan_conv', '16', 'M', '--plan_fc', '300', '200'])
 
-        self.assertEqual(parsed_args.cuda, True)
-        self.assertEqual(parsed_args.early_stop, True)
-        self.assertEqual(parsed_args.listing, True)
-        self.assertEqual(parsed_args.plot_step, 42)
-        self.assertEqual(parsed_args.verbose, VerbosityLevel.MEDIUM)
-        self.assertEqual(parsed_args.epochs, 1)
-        self.assertEqual(parsed_args.nets, 2)
-        self.assertEqual(parsed_args.prunes, 3)
-        self.assertEqual(parsed_args.learn_rate, 0.01)
-        self.assertEqual(parsed_args.prune_rate_conv, 0.2)
-        self.assertEqual(parsed_args.prune_rate_fc, 0.3)
-        self.assertEqual(parsed_args.plan_conv, ['16', 'M'])
-        self.assertEqual(parsed_args.plan_fc, ['300', '200'])
+        self.assertIs(parsed_args.cuda, True)
+        self.assertIs(parsed_args.early_stop, True)
+        self.assertIs(parsed_args.listing, True)
+        self.assertEqual(42, parsed_args.plot_step)
+        self.assertEqual(VerbosityLevel.MEDIUM, parsed_args.verbose)
+        self.assertEqual(1, parsed_args.epochs)
+        self.assertEqual(2, parsed_args.nets)
+        self.assertEqual(3, parsed_args.prunes)
+        self.assertEqual(0.01, parsed_args.learn_rate)
+        self.assertEqual(0.2, parsed_args.prune_rate_conv)
+        self.assertEqual(0.3, parsed_args.prune_rate_fc)
+        self.assertEqual(['16', 'M'], parsed_args.plan_conv)
+        self.assertEqual(['300', '200'], parsed_args.plan_fc)
 
     def test_should_start_experiment_imp(self):
         """ Playground should start the IMP-experiment with correct standard specs. """
@@ -158,7 +158,7 @@ class TestPlayground(TestCase):
 
                 sys.stdout = old_stdout
 
-                self.assertEqual(interception.getvalue(), f"{expected_specs}\n")
+                self.assertEqual(f"{expected_specs}\n", interception.getvalue())
                 mocked_experiment.assert_not_called()
 
     def test_should_print_experiment_specs_osp(self):
@@ -174,7 +174,7 @@ class TestPlayground(TestCase):
 
                 sys.stdout = old_stdout
 
-                self.assertEqual(interception.getvalue(), f"{expected_specs}\n")
+                self.assertEqual(f"{expected_specs}\n", interception.getvalue())
                 mocked_experiment.assert_not_called()
 
     def test_should_start_experiment_with_modified_epochs_parameter(self):
@@ -262,7 +262,7 @@ class TestPlayground(TestCase):
 
                 sys.stdout = old_stdout
 
-                self.assertEqual(interception.getvalue(), "cpu\n")
+                self.assertEqual("cpu\n", interception.getvalue())
                 mocked_experiment.assert_called_once_with(expected_specs)
 
     def test_should_start_experiment_with_modified_plot_step_parameter(self):

@@ -56,7 +56,7 @@ class TestExperimentRandomRetrain(TestCase):
             path_to_specs = os.path.join(tmp_dir_name, 'prefix-specs.json')
             experiment = ExperimentRandomRetrain(path_to_specs, 0, 1)
             experiment.run_experiment()
-            self.assertEqual(len(glob.glob(os.path.join(tmp_dir_name, 'prefix-random-histories0.npz'))), 1)
+            self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, 'prefix-random-histories0.npz'))))
 
 
 if __name__ == '__main__':

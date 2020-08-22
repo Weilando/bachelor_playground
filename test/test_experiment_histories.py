@@ -42,10 +42,10 @@ class TestExperimentHistories(TestCase):
     # noinspection PyMethodMayBeStatic
     def test_setup_experiment_histories(self):
         """ Should setup all np.arrays correctly. """
+        expected_history = np.zeros((3, 2, 24), dtype=float)  # expected history for accuracies and losses
         histories = ExperimentHistories()
         histories.setup(3, 1, 42, 4, 7)
 
-        expected_history = np.zeros((3, 2, 24), dtype=float)  # expected history for accuracies and losses
         np.testing.assert_array_equal(histories.train_loss, expected_history)
         np.testing.assert_array_equal(histories.val_loss, expected_history)
         np.testing.assert_array_equal(histories.val_acc, expected_history)
@@ -66,14 +66,13 @@ class TestExperimentHistories(TestCase):
         histories1.val_acc = np.ones_like(histories1.val_acc)
         histories1.test_acc = np.ones_like(histories1.test_acc)
 
-        result_history = histories0.stack_histories(histories1)
-
         # expected history for accuracies and losses
         expected_history = np.array([[[0., 0., 0.], [0., 0., 0.]],
                                      [[0., 0., 0.], [0., 0., 0.]],
                                      [[1., 1., 1.], [1., 1., 1.]],
                                      [[1., 1., 1.], [1., 1., 1.]]], dtype=float)
 
+        result_history = histories0.stack_histories(histories1)
         np.testing.assert_array_equal(result_history.train_loss, expected_history)
         np.testing.assert_array_equal(result_history.val_loss, expected_history)
         np.testing.assert_array_equal(result_history.val_acc, expected_history)
@@ -103,7 +102,7 @@ class TestExperimentHistories(TestCase):
     def test_calc_hist_length_per_net_rounding(self):
         """ Should calculate the correct length of a history for one net.
         As one entry is generated in the last epoch, the history should have a length of one. """
-        self.assertEqual(calc_hist_length_per_net(3, 2, 4), 1)
+        self.assertEqual(1, calc_hist_length_per_net(3, 2, 4))
 
 
 if __name__ == '__main__':

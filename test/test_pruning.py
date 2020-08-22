@@ -38,7 +38,7 @@ class TestPruning(TestCase):
         test_mask_pruned = mp.prune_mask(layer=test_layer, prune_rate=0.2)
 
         expected_mask = torch.tensor([[0., 1., 1., 1., 1.], [1., 1., 1., 0., 1.]])
-        self.assertTrue(test_mask_pruned.equal(expected_mask))
+        self.assertIs(test_mask_pruned.equal(expected_mask), True)
 
     def test_prune_linear_layer_correctly(self):
         """ Prune the mask for a pruned linear layer in one step.
@@ -54,7 +54,7 @@ class TestPruning(TestCase):
         mp.prune_layer(layer=test_layer, prune_rate=0.2)
 
         expected_weights = torch.tensor([[0., -2., 3., -0., -3.], [-0., 2., -4., 0., 1.5]])
-        self.assertTrue(test_layer.weight.equal(expected_weights))
+        self.assertIs(test_layer.weight.equal(expected_weights), True)
 
     def test_prune_mask_for_conv_layer_correctly(self):
         """ Prune the mask for an unpruned convolutional layer in one step.
@@ -69,7 +69,7 @@ class TestPruning(TestCase):
         test_mask_pruned = mp.prune_mask(layer=test_layer, prune_rate=0.2)
 
         expected_mask = torch.tensor([1., 0., 1., 1., 1., 1., 1., 1., 1., 0., 0., 1., 1., 1., 0., 1.]).view(2, 2, 2, 2)
-        self.assertTrue(test_mask_pruned.equal(expected_mask))
+        self.assertIs(test_mask_pruned.equal(expected_mask), True)
 
     def test_prune_conv_layer_correctly(self):
         """ Prune the mask for a pruned convolutional layer in one step.
@@ -87,7 +87,7 @@ class TestPruning(TestCase):
 
         expected_weights = torch.tensor(
             [1.2, -0., 1.2, 4.3, -2.1, -1.1, -0., 1.2, 0., 0., 0., 1.4, 2.2, -0., 0., 0.9]).view(2, 2, 2, 2)
-        self.assertTrue((test_layer.weight == expected_weights).all())
+        self.assertIs((test_layer.weight == expected_weights).all().item(), True)
 
     def test_apply_init_weight_after_pruning_linear_layer(self):
         """ Generate, modify and prune an unpruned linear layer.
