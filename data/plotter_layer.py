@@ -37,7 +37,7 @@ def plot_kernels(conv_2d, num_cols=8):
     for kernel_counter, kernel in enumerate(weights[:]):
         for channel_counter, channel in enumerate(kernel[:], 1):
             ax = fig.add_subplot(num_rows, num_cols, kernel_counter * kernel.shape[0] + channel_counter)
-            ax.imshow(channel, cmap=get_cmap(), vmin=weight_norm.vmin, vmax=weight_norm.vmax)
+            ax.imshow(channel, cmap=get_cmap(), norm=weight_norm)
             ax.set_title(f"K{kernel_counter + 1}.{channel_counter}").set_position([.5, 0.95])
             ax.axis('off')
 
