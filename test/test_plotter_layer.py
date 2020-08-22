@@ -11,14 +11,7 @@ class TestPlotterLayer(TestCase):
     Call with 'python -m test.test_plotter_layer' from project root '~'.
     Call with 'python -m test_plotter_layer' from inside '~/test'. """
 
-    def test_plot_kernels_color(self):
-        """ Should run plot routine without errors. """
-        conv_2d = nn.Conv2d(3, 2, kernel_size=3)
-        with mock.patch('matplotlib.pyplot.show') as plot_mock:
-            plotter_layer.plot_kernels(conv_2d)
-            plot_mock.assert_called_once()
-
-    def test_plot_kernels_single(self):
+    def test_plot_kernels(self):
         """ Should run plot routine without errors. """
         conv_2d = nn.Conv2d(2, 2, kernel_size=3)
         with mock.patch('matplotlib.pyplot.show') as plot_mock:

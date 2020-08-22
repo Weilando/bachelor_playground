@@ -12,43 +12,21 @@ from data.plotter_evaluation import get_row_and_col_num
 
 def get_cmap():
     """ Generates a diverging colormap which shows NANs in black. """
-    cmap = plt.get_cmap('seismic')
+    cmap = plt.get_cmap('bwr')
     cmap.set_bad(color='black')
     return cmap
 
 
-def plot_kernels_rgb_on_fig(fig, weights, weight_norm, num_cols, num_rows, cmap):
-    """ Plots each kernel from 'weights' as normalized RGB-images on 'fig'. """
-    for plot_counter, kernel in enumerate(weights[:], 1):
-        ax = fig.add_subplot(num_rows, num_cols, plot_counter)
-        ax.imshow(weight_norm(kernel), cmap=cmap, vmin=weight_norm.vmin, vmax=weight_norm.vmax)
-        ax.set_title(f"K{plot_counter}").set_position([.5, 0.95])
-        ax.axis('off')
-
-
-def plot_kernels_single_channel_on_fig(fig, weights, weight_norm, num_cols, num_rows, cmap):
-    """ Plots each kernel from 'weights' as normalized image per channel on 'fig'. """
-    for kernel_counter, kernel in enumerate(weights[:]):
-        kernel = kernel.transpose(2, 0, 1)  # adapt dimensions to [color, height, width]
-        for channel_counter, channel in enumerate(kernel[:], 1):
-            ax = fig.add_subplot(num_rows, num_cols, kernel_counter * kernel.shape[0] + channel_counter)
-            ax.imshow(weight_norm(channel), cmap=cmap, vmin=weight_norm.vmin, vmax=weight_norm.vmax)
-            ax.set_title(f"K{kernel_counter + 1}.{channel_counter}").set_position([.5, 0.95])
-            ax.axis('off')
-
-
 def plot_kernels(conv_2d, num_cols=8):
     """ Plots the weights of all kernels from 'conv_2d' as rectangles and translates values into colors.
-    Plot each kernel as RGB image if the layer has three input channels or one plot per channel and kernel otherwise.
-    Use normalization to avoid clipping and to center all values at zero. """
+    Creates one normalized image per channel and kernel to avoid clipping and to center all values at zero. """
     assert isinstance(conv_2d, nn.Conv2d)
 
-    weights = conv_2d.weight.data.clone().permute(0, 2, 3, 1).numpy()  # adapt dims to [kernel, height, width, color]
+    weights = conv_2d.weight.data.clone().numpy()  # shape is [kernels, channels, height, width]
     if prune.is_pruned(conv_2d):  # mark masked weights with NAN to highlight them later
-        pruning_mask = conv_2d.weight_mask.permute(0, 2, 3, 1).numpy()
-        weights[np.where(pruning_mask == 0)] = np.nan
-    if (weights.shape[0] * weights.shape[3]) > 512:  # restrict number of images to 512, do not plot partial kernels
-        last_kernel = ceil(512 / weights.shape[3])
+        weights[np.where(conv_2d.weight_mask.numpy() == 0)] = np.nan
+    if (weights.shape[0] * weights.shape[1]) > 512:  # restrict number of images to 512, do not plot partial kernels
+        last_kernel = ceil(512 / weights.shape[1])
         weights = weights[:last_kernel]
         warnings.warn(f"Too many kernels to plot, only plot the first {last_kernel} kernels.")
 
@@ -56,10 +34,12 @@ def plot_kernels(conv_2d, num_cols=8):
     num_cols, num_rows = get_row_and_col_num(weights.shape, num_cols)
 
     fig = plt.figure(figsize=(num_cols, num_rows))
-    if weights.shape[3] == 3:
-        plot_kernels_rgb_on_fig(fig, weights, weight_norm, num_cols, num_rows, get_cmap())
-    else:
-        plot_kernels_single_channel_on_fig(fig, weights, weight_norm, num_cols, num_rows, get_cmap())
+    for kernel_counter, kernel in enumerate(weights[:]):
+        for channel_counter, channel in enumerate(kernel[:], 1):
+            ax = fig.add_subplot(num_rows, num_cols, kernel_counter * kernel.shape[0] + channel_counter)
+            ax.imshow(channel, cmap=get_cmap(), vmin=weight_norm.vmin, vmax=weight_norm.vmax)
+            ax.set_title(f"K{kernel_counter + 1}.{channel_counter}").set_position([.5, 0.95])
+            ax.axis('off')
 
     fig.colorbar(fig.axes[0].images[0], ax=fig.axes, fraction=0.1)
     plt.subplots_adjust(wspace=0.1, hspace=0.1, right=0.75)
@@ -67,9 +47,8 @@ def plot_kernels(conv_2d, num_cols=8):
 
 
 def plot_conv(sequential, num_cols=8):
-    """ Plots the weights of all Conv2D layers from 'sequential' as rows of square representing the kernels.
-    Plot them in RGB if the layer has three input channels, or each channel alone otherwise.
-    Use normalization to avoid clipping and to center all values at zero. """
+    """ Plots the kernel-weights of each Conv2D layer from 'sequential' as single figure.
+    Creates one normalized image per channel and kernel to avoid clipping and to center all values at zero. """
     assert isinstance(sequential, nn.Sequential)
 
     for layer in sequential:

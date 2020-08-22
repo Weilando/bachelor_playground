@@ -98,8 +98,7 @@ The interactive Jupyter notebook `ExperimentEvaluation.ipynb` shows examples for
 - `plot_fc(...)` plots all Linear-layers from a given Sequential.
 
 Rectangles with colored pixels represent weight matrices of linear layers.
-Similarly, rows of rectangles represent kernels from convolutional layers.
-If the convolutional layer has three input channels, one RGB plot shows a kernel, otherwise one plot exists per kernel and channel.
+Similarly, rows of rectangles represent kernels per channel from convolutional layers.
 Both functions show masked weights as black dots.
 
 Please keep in mind that convolutional plots might scale quickly, e.g. a network with two convolutions with 64 channels each produce a plot with 64 RGB images and a plot with 64*64=4096 single-channel plots.

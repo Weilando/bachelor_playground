@@ -99,30 +99,16 @@ class TestPlotterEvaluation(TestCase):
         self.assertAlmostEqual(0.0, norm.vmin)
         self.assertAlmostEqual(1.0, norm.vmax)
 
-    def test_get_row_and_col_num_color(self):
-        """ Should return 4 columns and 2 rows as they can hold 8 kernels. """
-        weight_shape = (8, 5, 5, 3)
-        num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 4)
-        self.assertEqual(4, num_cols)
-        self.assertEqual(2, num_rows)
-
-    def test_get_row_and_col_num_color_clip(self):
-        """ Should return 5 columns and 4 rows as the last row is not completely filled. """
-        weight_shape = (18, 5, 5, 3)
-        num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 5)
-        self.assertEqual(5, num_cols)
-        self.assertEqual(4, num_rows)
-
-    def test_get_row_and_col_num_single(self):
+    def test_get_row_and_col_num(self):
         """ Should return 4 columns and 8 rows as each row holds all channels for one kernel. """
-        weight_shape = (8, 5, 5, 4)
+        weight_shape = (8, 4, 5, 5)
         num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 4)
         self.assertEqual(4, num_cols)
         self.assertEqual(8, num_rows)
 
-    def test_get_row_and_col_num_single_clip(self):
+    def test_get_row_and_col_num_clip(self):
         """ Should return 5 columns and 7 rows as all channels for one kernel do not fit into one row. """
-        weight_shape = (8, 5, 5, 4)
+        weight_shape = (8, 4, 5, 5)
         num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weight_shape, 5)
         self.assertEqual(5, num_cols)
         self.assertEqual(7, num_rows)

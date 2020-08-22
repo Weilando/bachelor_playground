@@ -59,13 +59,9 @@ def get_norm_for_sequential(sequential):
 
 def get_row_and_col_num(weight_shape, num_cols):
     """ Calculates the correct row and column numbers from convolutional 'weight_shape' and preferred number of columns.
-    Suppose 'weight_shape' is a tuple with entries [kernel, height, width, color]. """
-    if weight_shape[3] == 3:
-        num_cols = min(num_cols, weight_shape[0])
-        num_rows = ceil(weight_shape[0] / num_cols)
-    else:
-        num_cols = min(num_cols, weight_shape[0] * weight_shape[3])
-        num_rows = ceil((weight_shape[0] * weight_shape[3]) / num_cols)
+    Suppose 'weight_shape' is a tuple with entries [kernels, channels, height, width]. """
+    num_cols = min(num_cols, weight_shape[0] * weight_shape[1])
+    num_rows = ceil((weight_shape[0] * weight_shape[1]) / num_cols)
     return num_cols, num_rows
 
 
