@@ -1,6 +1,7 @@
-from unittest import TestCase, mock
+from unittest import TestCase
 from unittest import main as unittest_main
 
+from matplotlib.figure import Figure
 from torch import nn
 
 from data import plotter_layer
@@ -14,9 +15,8 @@ class TestPlotterLayer(TestCase):
     def test_plot_kernels(self):
         """ Should run plot routine without errors. """
         conv_2d = nn.Conv2d(2, 2, kernel_size=3)
-        with mock.patch('matplotlib.pyplot.show') as plot_mock:
-            plotter_layer.plot_kernels(conv_2d)
-            plot_mock.assert_called_once()
+        result_figure = plotter_layer.plot_kernels(conv_2d)
+        self.assertIsInstance(result_figure, Figure)
 
     def test_plot_conv(self):
         """ Should run plot routine without errors. """
@@ -27,9 +27,12 @@ class TestPlotterLayer(TestCase):
             nn.Conv2d(4, 6, 3),
             nn.ReLU()
         )
-        with mock.patch('matplotlib.pyplot.show') as plot_mock:
-            plotter_layer.plot_conv(sequential)
-            self.assertEqual(2, plot_mock.call_count)
+
+        result_figure_list = plotter_layer.plot_conv(sequential)
+
+        self.assertEqual(2, len(result_figure_list))
+        self.assertIsInstance(result_figure_list[0], Figure)
+        self.assertIsInstance(result_figure_list[1], Figure)
 
     def test_plot_fc(self):
         """ Should run plot routine without errors. """
@@ -39,9 +42,8 @@ class TestPlotterLayer(TestCase):
             nn.Linear(3, 2),
             nn.ReLU()
         )
-        with mock.patch('matplotlib.pyplot.show') as plot_mock:
-            plotter_layer.plot_fc(sequential)
-            plot_mock.assert_called_once()
+        result_figure = plotter_layer.plot_fc(sequential)
+        self.assertIsInstance(result_figure, Figure)
 
 
 if __name__ == '__main__':

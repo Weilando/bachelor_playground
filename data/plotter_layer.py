@@ -18,7 +18,7 @@ def get_cmap():
 
 
 def plot_kernels(conv_2d, num_cols=8):
-    """ Plots the weights of all kernels from 'conv_2d' as rectangles and translates values into colors.
+    """ Plots the weights of all kernels from 'conv_2d' as rectangles on a new figure and maps values to colors.
     Creates one normalized image per channel and kernel to avoid clipping and to center all values at zero. """
     assert isinstance(conv_2d, nn.Conv2d)
 
@@ -42,22 +42,24 @@ def plot_kernels(conv_2d, num_cols=8):
             ax.axis('off')
 
     fig.colorbar(fig.axes[0].images[0], ax=fig.axes, fraction=0.1)
-    plt.subplots_adjust(wspace=0.1, hspace=0.1, right=0.75)
-    plt.show()
+    fig.subplots_adjust(wspace=0.1, hspace=0.1, right=0.75)
+    return fig
 
 
 def plot_conv(sequential, num_cols=8):
     """ Plots the kernel-weights of each Conv2D layer from 'sequential' as single figure.
     Creates one normalized image per channel and kernel to avoid clipping and to center all values at zero. """
     assert isinstance(sequential, nn.Sequential)
+    fig_list = []
 
     for layer in sequential:
         if isinstance(layer, nn.Conv2d):
-            plot_kernels(layer, num_cols)
+            fig_list.append(plot_kernels(layer, num_cols))
+    return fig_list
 
 
 def plot_fc(sequential):
-    """ Plots the weights of all linear layers from 'sequential' as rectangles and translates values into colors.
+    """ Plots the weights of all linear layers from 'sequential' as rectangles on a figure and maps values to colors.
     Use normalization to avoid clipping and to center all values at zero. """
     assert isinstance(sequential, nn.Sequential)
 
@@ -74,5 +76,5 @@ def plot_fc(sequential):
         ax[plot_counter].label_outer()
 
     fig.colorbar(ax[0].images[0], ax=ax, fraction=0.1)
-    plt.subplots_adjust(wspace=0.1, hspace=0.1, right=0.8)
-    plt.show()
+    fig.subplots_adjust(wspace=0.1, hspace=0.1, right=0.8)
+    return fig
