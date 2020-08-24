@@ -354,12 +354,12 @@ class TestResultLoader(TestCase):
             self.assertIsInstance(loaded_nets[0], Conv)
             self.assertIsInstance(loaded_nets[1], Conv)
 
-    def test_get_models_from_file_invalid_model_name(self):
+    def test_generate_model_from_state_dict_invalid_model_name(self):
         """ Should raise assertion error if specs contain an invalid entry for 'net'. """
         experiment_specs = get_specs_lenet_toy()
-        experiment_specs.net = "Some invalid name"
+        experiment_specs.net = "Invalid name"
         with self.assertRaises(AssertionError):
-            result_loader.get_models_from_files("some_path", experiment_specs)
+            result_loader.generate_model_from_state_dict(dict(), experiment_specs)
 
     def test_get_models_from_file_invalid_specs(self):
         """ Should raise assertion error if specs do not have type ExperimentSpecs. """

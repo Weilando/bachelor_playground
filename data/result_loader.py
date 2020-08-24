@@ -138,18 +138,23 @@ def get_models_from_files(experiment_path_prefix, specs):
     nets = []
     net_file_paths = generate_net_file_paths(experiment_path_prefix, specs.net_count)
     for model_file in net_file_paths:
-        if specs.net == NetNames.LENET:
-            net = lenet.Lenet(specs.plan_fc)
-        elif specs.net == NetNames.CONV:
-            net = conv.Conv(specs.plan_conv, specs.plan_fc)
-        else:
-            raise AssertionError(f"Could not rebuild net because name {specs.net} is invalid.")
-
-        checkpoint = torch.load(model_file, map_location=torch.device("cpu"))
-        net.load_state_dict(checkpoint)
-        net.prune_net(0., 0.)  # apply pruned masks, but do not modify the masks
-        nets.append(net)
+        state_dict = torch.load(model_file, map_location=torch.device("cpu"))
+        nets.append(generate_model_from_state_dict(state_dict, specs))
     return nets
+
+
+def generate_model_from_state_dict(state_dict, specs):
+    """ Generate a model specified by 'specs' and load the given 'state_dict'. """
+    if specs.net == NetNames.LENET:
+        net = lenet.Lenet(specs.plan_fc)
+    elif specs.net == NetNames.CONV:
+        net = conv.Conv(specs.plan_conv, specs.plan_fc)
+    else:
+        raise AssertionError(f"Could not rebuild net because name {specs.net} is invalid.")
+
+    net.load_state_dict(state_dict)
+    net.prune_net(0., 0., reset=False)  # apply pruned masks, but do not modify the masks
+    return net
 
 
 def random_histories_file_exists(experiment_path_prefix, net_number):
