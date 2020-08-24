@@ -1,8 +1,7 @@
 from unittest import TestCase
 from unittest import main as unittest_main
 
-from experiments.experiment_specs import get_specs, DatasetNames, ExperimentPresetNames, ExperimentSpecs, NetNames, \
-    get_specs_lenet_toy, get_specs_conv_toy
+from experiments.experiment_specs import get_specs, DatasetNames, ExperimentPresetNames, ExperimentSpecs, NetNames
 
 
 class TestExperimentSpecs(TestCase):
@@ -46,22 +45,6 @@ class TestExperimentSpecs(TestCase):
         self.assertIs(type(experiment_specs), ExperimentSpecs)
         self.assertIs(experiment_specs.net, NetNames.CONV)
         self.assertIs(experiment_specs.dataset, DatasetNames.CIFAR10)
-
-    def test_get_specs_for_lenet_toy(self):
-        """ Should get specs without errors and verify the most important attributes. """
-        experiment_specs = get_specs_lenet_toy()
-
-        self.assertIs(type(experiment_specs), ExperimentSpecs)
-        self.assertIs(experiment_specs.net, NetNames.LENET)
-        self.assertIs(experiment_specs.dataset, DatasetNames.TOY_MNIST)
-
-    def test_get_specs_for_conv_toy(self):
-        """ Should get specs without errors and verify the most important attributes. """
-        experiment_specs = get_specs_conv_toy()
-
-        self.assertIs(type(experiment_specs), ExperimentSpecs)
-        self.assertIs(experiment_specs.net, NetNames.CONV)
-        self.assertIs(experiment_specs.dataset, DatasetNames.TOY_CIFAR10)
 
     def test_get_specs_should_raise_assertion_error_on_invalid_name(self):
         """ Should raise an assertion error, because the given name is invalid. """

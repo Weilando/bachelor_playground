@@ -1,8 +1,8 @@
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, random_split, Subset
+from torch.utils.data import DataLoader, random_split
 
-from experiments.experiment_specs import VerbosityLevel, DatasetNames
+from experiments.experiment_specs import VerbosityLevel
 from training.logger import log_from_medium
 
 
@@ -52,27 +52,3 @@ def get_cifar10_data_loaders(batch_size=60, train_len=45000, val_len=5000, path=
     test_data = datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
 
     return generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity)
-
-
-def get_toy_data_loaders(dataset_name, path='../data/datasets'):
-    """ Load a part of the MNIST-dataset and provide DataLoaders for use in fast tests.
-    The training-set contains 6, the validation-set 4 and the test set 4 samples.
-    The batch size is 2. """
-    # load from subset from MNIST test-set, as it is smaller than the training set
-    tr = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
-
-    if dataset_name == DatasetNames.TOY_MNIST:
-        data = datasets.MNIST(root=path, train=False, download=True, transform=tr)
-    elif dataset_name == DatasetNames.TOY_CIFAR10:
-        data = datasets.CIFAR10(root=path, train=False, download=True, transform=tr)
-    else:
-        raise AssertionError(f"Could not load toy-datasets, because the given name {dataset_name} is invalid.")
-
-    data = Subset(data, range(0, 14))
-    train_data, val_data, test_data = random_split(data, [6, 4, 4])
-
-    train_loader = DataLoader(train_data, batch_size=2, shuffle=False, num_workers=0, pin_memory=False)
-    val_loader = DataLoader(val_data, batch_size=2, shuffle=False, num_workers=0, pin_memory=False)
-    test_loader = DataLoader(test_data, batch_size=2, shuffle=False, num_workers=0, pin_memory=False)
-
-    return train_loader, val_loader, test_loader

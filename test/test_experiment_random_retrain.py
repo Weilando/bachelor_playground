@@ -1,15 +1,17 @@
 import glob
 import os
 from tempfile import TemporaryDirectory
-from unittest import TestCase
+from unittest import TestCase, mock
 from unittest import main as unittest_main
 
 import torch
 
 import experiments.experiment_specs as experiment_specs
+import fake_experiment_specs
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistory, EarlyStopHistoryList
 from experiments.experiment_random_retrain import ExperimentRandomRetrain
+from fake_data_loaders import generate_fake_mnist_data_loaders
 from nets.lenet import Lenet
 
 
@@ -36,7 +38,7 @@ class TestExperimentRandomRetrain(TestCase):
 
     def test_perform_toy_lenet_experiment(self):
         """ Should run IMP-Experiment with small Lenet and toy-dataset without errors. """
-        specs = experiment_specs.get_specs_lenet_toy()
+        specs = fake_experiment_specs.get_specs_lenet_toy()
         specs.prune_count = 1
         specs.save_early_stop = True
 
@@ -50,13 +52,15 @@ class TestExperimentRandomRetrain(TestCase):
         early_stop_history_list.setup(1, 0)
         early_stop_history_list.histories[0] = early_stop_history
 
-        with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
-            result_saver.save_specs(tmp_dir_name, 'prefix', specs)
-            result_saver.save_early_stop_history_list(tmp_dir_name, 'prefix', early_stop_history_list)
-            path_to_specs = os.path.join(tmp_dir_name, 'prefix-specs.json')
-            experiment = ExperimentRandomRetrain(path_to_specs, 0, 1)
-            experiment.run_experiment()
-            self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, 'prefix-random-histories0.npz'))))
+        fake_mnist_data_loaders = generate_fake_mnist_data_loaders()
+        with mock.patch('experiments.experiment.get_mnist_data_loaders', return_value=fake_mnist_data_loaders):
+            with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
+                result_saver.save_specs(tmp_dir_name, 'prefix', specs)
+                result_saver.save_early_stop_history_list(tmp_dir_name, 'prefix', early_stop_history_list)
+                path_to_specs = os.path.join(tmp_dir_name, 'prefix-specs.json')
+                experiment = ExperimentRandomRetrain(path_to_specs, 0, 1)
+                experiment.run_experiment()
+                self.assertEqual(1, len(glob.glob(os.path.join(tmp_dir_name, 'prefix-random-histories0.npz'))))
 
 
 if __name__ == '__main__':

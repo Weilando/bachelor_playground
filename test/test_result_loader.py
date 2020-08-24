@@ -9,7 +9,7 @@ import data.result_loader as result_loader
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList, EarlyStopHistory
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_specs import get_specs_lenet_toy, get_specs_conv_toy
+from fake_experiment_specs import get_specs_lenet_toy, get_specs_conv_toy
 from nets.conv import Conv
 from nets.lenet import Lenet
 

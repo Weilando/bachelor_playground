@@ -12,7 +12,7 @@ from torch import load as t_load
 import data.result_saver as result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_specs import get_specs_lenet_toy
+from fake_experiment_specs import get_specs_lenet_toy
 from nets.lenet import Lenet
 
 
@@ -60,7 +60,7 @@ class TestResultSaver(TestCase):
         specs = get_specs_lenet_toy()
         time_string = 'Time'
 
-        expected_file_prefix = 'Time-Lenet-Toy-MNIST'
+        expected_file_prefix = 'Time-Lenet-MNIST'
 
         self.assertEqual(expected_file_prefix, result_saver.generate_file_prefix(specs, time_string))
 

@@ -1,7 +1,8 @@
 import time
+
 import torch
 
-from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_toy_data_loaders
+from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders
 from data.plotter_evaluation import format_time
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
@@ -45,8 +46,6 @@ class Experiment(object):
         elif self.specs.dataset == DatasetNames.CIFAR10:
             train_loader, val_loader, test_loader = get_cifar10_data_loaders(device=self.specs.device,
                                                                              verbosity=self.specs.verbosity)
-        elif self.specs.dataset in [DatasetNames.TOY_MNIST, DatasetNames.TOY_CIFAR10]:
-            train_loader, val_loader, test_loader = get_toy_data_loaders(self.specs.dataset)
         else:
             raise AssertionError(f"Could not load datasets, because the given name {self.specs.dataset} is invalid.")
 
