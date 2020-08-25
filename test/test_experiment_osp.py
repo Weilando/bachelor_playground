@@ -8,9 +8,9 @@ import numpy as np
 import torch
 
 import experiments.experiment_specs as experiment_specs
-import fake_experiment_specs
 from experiments.experiment_osp import ExperimentOSP
-from fake_data_loaders import generate_fake_mnist_data_loaders, generate_fake_cifar10_data_loaders
+from test.fake_data_loaders import generate_fake_mnist_data_loaders, generate_fake_cifar10_data_loaders
+from test.fake_experiment_specs import get_specs_lenet_toy, get_specs_conv_toy
 
 
 class TestExperimentOSP(TestCase):
@@ -22,12 +22,10 @@ class TestExperimentOSP(TestCase):
     def setUpClass(cls):
         cls.fake_mnist_data_loaders = generate_fake_mnist_data_loaders()
         cls.fake_cifar10_data_loaders = generate_fake_cifar10_data_loaders()
-        mock.patch('experiments.experiment.get_mnist_data_loaders', return_value=cls.fake_mnist_data_loaders)
-        mock.patch('experiments.experiment.get_cifar10_data_loaders', return_value=cls.fake_cifar10_data_loaders)
 
     def test_perform_toy_lenet_osp_experiment(self):
         """ Should run OSP-Experiment with small Lenet and toy-dataset without errors. """
-        specs = fake_experiment_specs.get_specs_lenet_toy()
+        specs = get_specs_lenet_toy()
         specs.experiment_name = experiment_specs.ExperimentNames.OSP
         with mock.patch('experiments.experiment.get_mnist_data_loaders', return_value=self.fake_mnist_data_loaders):
             with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
@@ -37,7 +35,7 @@ class TestExperimentOSP(TestCase):
 
     def test_perform_toy_conv_osp_experiment(self):
         """ Should run OSP-Experiment with small Conv and toy-dataset without errors. """
-        specs = fake_experiment_specs.get_specs_conv_toy()
+        specs = get_specs_conv_toy()
         specs.experiment_name = experiment_specs.ExperimentNames.OSP
         with mock.patch('experiments.experiment.get_cifar10_data_loaders', return_value=self.fake_cifar10_data_loaders):
             with TemporaryDirectory() as tmp_dir_name:  # save results into a temporary folder
@@ -47,7 +45,7 @@ class TestExperimentOSP(TestCase):
 
     def test_subnetworks_from_toy_lenet_osp_experiment_have_equal_init_weight(self):
         """ All subnetworks should have the same 'weight_init' buffer as the original network. """
-        specs = fake_experiment_specs.get_specs_lenet_toy()
+        specs = get_specs_lenet_toy()
         specs.experiment_name = experiment_specs.ExperimentNames.OSP
         specs.net_count = 1
         specs.epoch_count = 1

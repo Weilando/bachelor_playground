@@ -7,12 +7,12 @@ from unittest import main as unittest_main
 import torch
 
 import experiments.experiment_specs as experiment_specs
-import fake_experiment_specs
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistory, EarlyStopHistoryList
 from experiments.experiment_random_retrain import ExperimentRandomRetrain
-from fake_data_loaders import generate_fake_mnist_data_loaders
 from nets.net import Net
+from test.fake_data_loaders import generate_fake_mnist_data_loaders
+from test.fake_experiment_specs import get_specs_lenet_toy
 
 
 class TestExperimentRandomRetrain(TestCase):
@@ -38,7 +38,7 @@ class TestExperimentRandomRetrain(TestCase):
 
     def test_perform_toy_lenet_experiment(self):
         """ Should run IMP-Experiment with small Lenet and toy-dataset without errors. """
-        specs = fake_experiment_specs.get_specs_lenet_toy()
+        specs = get_specs_lenet_toy()
         specs.prune_count = 1
         specs.save_early_stop = True
 

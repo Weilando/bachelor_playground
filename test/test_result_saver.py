@@ -13,8 +13,8 @@ import data.result_saver as result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
 from experiments.experiment_specs import NetNames, DatasetNames
-from fake_experiment_specs import get_specs_lenet_toy
 from nets.net import Net
+from test.fake_experiment_specs import get_specs_lenet_toy
 
 
 class TestResultSaver(TestCase):
