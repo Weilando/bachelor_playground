@@ -9,9 +9,9 @@ import data.result_loader as result_loader
 from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList, EarlyStopHistory
 from experiments.experiment_histories import ExperimentHistories
+from experiments.experiment_specs import NetNames, DatasetNames
 from fake_experiment_specs import get_specs_lenet_toy, get_specs_conv_toy
-from nets.conv import Conv
-from nets.lenet import Lenet
+from nets.net import Net
 
 
 class TestResultLoader(TestCase):
@@ -230,8 +230,7 @@ class TestResultLoader(TestCase):
 
     def test_get_early_stop_history_from_file(self):
         """ Should load fake EarlyStopHistory from pth file. """
-        plan_fc = [2]
-        net0 = Lenet(plan_fc)
+        net0 = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=[2])
         history = EarlyStopHistory()
         history.setup(0)
         history.state_dicts[0] = deepcopy(net0.state_dict())
@@ -286,8 +285,8 @@ class TestResultLoader(TestCase):
     def test_get_early_stop_history_list_from_files(self):
         """ Should load fake EarlyStopHistoryList from pth files. """
         plan_fc = [2]
-        net0 = Lenet(plan_fc)
-        net1 = Lenet(plan_fc)
+        net0 = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)
+        net1 = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)
         history_list = EarlyStopHistoryList()
         history_list.setup(2, 0)
         history_list.histories[0].state_dicts[0] = deepcopy(net0.state_dict())
@@ -323,26 +322,13 @@ class TestResultLoader(TestCase):
         with self.assertRaises(AssertionError):
             result_loader.get_early_stop_history_list_from_files("some_path", experiment_specs)
 
-    def test_get_lenet_from_file(self):
-        """ Should load two small Lenet instances from pth files. """
-        experiment_specs = get_specs_lenet_toy()
-        net_list = [Lenet(experiment_specs.plan_fc), Lenet(experiment_specs.plan_fc)]
-
-        with TemporaryDirectory() as tmp_dir_name:
-            # save nets
-            result_saver.save_nets(tmp_dir_name, 'prefix', net_list)
-
-            # load and reconstruct nets from their files
-            experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_specs)
-            self.assertIsInstance(loaded_nets[0], Lenet)
-            self.assertIsInstance(loaded_nets[1], Lenet)
-
-    def test_get_conv_from_file(self):
+    def test_get_net_from_file(self):
         """ Should load two small Conv instances from pth files. """
-        experiment_specs = get_specs_conv_toy()
-        net_list = [Conv(experiment_specs.plan_conv, experiment_specs.plan_fc),
-                    Conv(experiment_specs.plan_conv, experiment_specs.plan_fc)]
+        specs = get_specs_conv_toy()
+        specs.plan_conv = [2, 'M']
+        specs.plan_fc = [2]
+        net_list = [Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc),
+                    Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
             # save nets
@@ -350,9 +336,13 @@ class TestResultLoader(TestCase):
 
             # load and reconstruct nets from their files
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, experiment_specs)
-            self.assertIsInstance(loaded_nets[0], Conv)
-            self.assertIsInstance(loaded_nets[1], Conv)
+            loaded_nets = result_loader.get_models_from_files(experiment_path_prefix, specs)
+            self.assertIsInstance(loaded_nets[0], Net)
+            self.assertIsInstance(loaded_nets[1], Net)
+            self.assertEqual(DatasetNames.CIFAR10, loaded_nets[0].dataset_name)
+            self.assertEqual(DatasetNames.CIFAR10, loaded_nets[1].dataset_name)
+            self.assertEqual(NetNames.CONV, loaded_nets[0].net_name)
+            self.assertEqual(NetNames.CONV, loaded_nets[1].net_name)
 
     def test_generate_model_from_state_dict_invalid_model_name(self):
         """ Should raise assertion error if specs contain an invalid entry for 'net'. """

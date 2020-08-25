@@ -12,8 +12,9 @@ from torch import load as t_load
 import data.result_saver as result_saver
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
+from experiments.experiment_specs import NetNames, DatasetNames
 from fake_experiment_specs import get_specs_lenet_toy
-from nets.lenet import Lenet
+from nets.net import Net
 
 
 class TestResultSaver(TestCase):
@@ -134,8 +135,8 @@ class TestResultSaver(TestCase):
     def test_save_early_stop_history_list(self):
         """ Should save two fake EarlyStopHistories into two pth files. """
         plan_fc = [2]
-        net0 = Lenet(plan_fc)
-        net1 = Lenet(plan_fc)
+        net0 = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)
+        net1 = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)
         history_list = EarlyStopHistoryList()
         history_list.setup(2, 0)
         history_list.histories[0].state_dicts[0] = deepcopy(net0.state_dict())
@@ -153,14 +154,15 @@ class TestResultSaver(TestCase):
             for net_num, result_file_path in enumerate([result_file_path0, result_file_path1]):
                 with open(result_file_path, 'rb') as result_file:
                     reconstructed_hist = t_load(result_file)
-                    net = Lenet(plan_fc)
+                    net = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)
                     np.testing.assert_array_equal(reconstructed_hist.indices, history_list.histories[net_num].indices)
                     net.load_state_dict(reconstructed_hist.state_dicts[0])
 
     def test_save_nets(self):
         """ Should save two small Lenet instances into pth files. """
         plan_fc = [5]
-        net_list = [Lenet(plan_fc), Lenet(plan_fc)]
+        net_list = [Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc),
+                    Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)]
 
         with TemporaryDirectory() as tmp_dir_name:
             # save nets
@@ -172,7 +174,7 @@ class TestResultSaver(TestCase):
             for result_file_path in [result_file_path0, result_file_path1]:
                 with open(result_file_path, 'rb') as result_file:
                     checkpoint = t_load(result_file)
-                    net = Lenet(plan_fc)
+                    net = Net(NetNames.LENET, DatasetNames.MNIST, plan_conv=[], plan_fc=plan_fc)
                     net.load_state_dict(checkpoint)
 
 

@@ -12,7 +12,7 @@ from data import result_saver
 from experiments.early_stop_histories import EarlyStopHistory, EarlyStopHistoryList
 from experiments.experiment_random_retrain import ExperimentRandomRetrain
 from fake_data_loaders import generate_fake_mnist_data_loaders
-from nets.lenet import Lenet
+from nets.net import Net
 
 
 class TestExperimentRandomRetrain(TestCase):
@@ -26,7 +26,7 @@ class TestExperimentRandomRetrain(TestCase):
         specs.plan_fc = [5]
         specs.save_early_stop = True
         torch.manual_seed(0)
-        net = Lenet(specs.plan_fc)
+        net = Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc)
 
         torch.manual_seed(1)
         new_net = ExperimentRandomRetrain.generate_randomly_reinitialized_net(specs, net.state_dict())
@@ -45,7 +45,7 @@ class TestExperimentRandomRetrain(TestCase):
         early_stop_history = EarlyStopHistory()
         early_stop_history.setup(specs.prune_count)
 
-        net = Lenet(specs.plan_fc)
+        net = Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc)
         early_stop_history.state_dicts[0] = net.state_dict()
         early_stop_history.state_dicts[1] = net.state_dict()
         early_stop_history_list = EarlyStopHistoryList()

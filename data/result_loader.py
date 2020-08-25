@@ -7,8 +7,8 @@ import torch
 
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_specs import NetNames, ExperimentSpecs
-from nets import lenet, conv
+from experiments.experiment_specs import ExperimentSpecs
+from nets.net import Net
 
 
 # helper functions
@@ -145,13 +145,7 @@ def get_models_from_files(experiment_path_prefix, specs):
 
 def generate_model_from_state_dict(state_dict, specs):
     """ Generate a model specified by 'specs' and load the given 'state_dict'. """
-    if specs.net == NetNames.LENET:
-        net = lenet.Lenet(specs.plan_fc)
-    elif specs.net == NetNames.CONV:
-        net = conv.Conv(specs.plan_conv, specs.plan_fc)
-    else:
-        raise AssertionError(f"Could not rebuild net because name {specs.net} is invalid.")
-
+    net = Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc)
     net.load_state_dict(state_dict)
     net.prune_net(0., 0., reset=False)  # apply pruned masks, but do not modify the masks
     return net

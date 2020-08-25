@@ -2,9 +2,6 @@ import time
 
 from data import result_saver as rs
 from experiments.experiment import Experiment
-from experiments.experiment_specs import NetNames
-from nets.conv import Conv
-from nets.lenet import Lenet
 from nets.net import Net
 from training.logger import log_from_medium, log_detailed_only
 
@@ -22,16 +19,11 @@ class ExperimentPruning(Experiment):
         # setup nets in init_nets()
         self.nets = [Net] * self.specs.net_count
 
-    # noinspection PyTypeChecker
     def init_nets(self):
         """ Initialize nets which are used during the experiment. """
         for n in range(self.specs.net_count):
-            if self.specs.net == NetNames.LENET:
-                self.nets[n] = Lenet(self.specs.plan_fc)
-            elif self.specs.net == NetNames.CONV:
-                self.nets[n] = Conv(self.specs.plan_conv, self.specs.plan_fc)
-            else:
-                raise AssertionError(f"Could not initialize net, because the given name {self.specs.net} is invalid.")
+            # noinspection PyTypeChecker
+            self.nets[n] = Net(self.specs.net, self.specs.dataset, self.specs.plan_conv, self.specs.plan_fc)
 
         log_detailed_only(self.specs.verbosity, self.nets[0])
 

@@ -64,7 +64,7 @@ def parse_arguments(args):
     # parent parser for pruning experiments, defines common flags like 'net_count' and 'cuda'
     parser_pr = ArgumentParser(add_help=False)
     parser_pr.add_argument('experiment_preset', choices=ExperimentPresetNames.get_value_list(),
-                           help="choose a preset")
+                           help="choose a preset; Lenet uses tanh-activations and Conv uses ReLU-activations")
     parser_pr.add_argument('-c', '--cuda', action='store_true', default=False, help="use cuda, if available")
     parser_pr.add_argument('-es', '--early_stop', action='store_true', default=False,
                            help="evaluate early-stopping criterion during training "
@@ -86,11 +86,11 @@ def parse_arguments(args):
                            help="specify pruning-rate for convolutional layers")
     parser_pr.add_argument('-prf', '--prune_rate_fc', type=float, default=None, metavar='R',
                            help="specify pruning-rate for fully-connected layers")
-    parser_pr.add_argument('--plan_conv', type=str, nargs='+', default=None, metavar='SPEC',
+    parser_pr.add_argument('--plan_conv', type=str, nargs='*', default=None, metavar='SPEC',
                            help="specify convolutional layers as list of output-sizes (as int or string); "
                                 "special layers: 'A' for average-pooling, 'M' for max-pooling,"
                                 "'iB' for convolution of size i with batch-norm")
-    parser_pr.add_argument('--plan_fc', type=str, nargs='+', default=None, metavar='SPEC',
+    parser_pr.add_argument('--plan_fc', type=str, nargs='*', default=None, metavar='SPEC',
                            help="specify fully-connected layers as list of output-sizes (as int or string)")
 
     # parser for main IMP-experiments
