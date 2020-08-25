@@ -1,7 +1,11 @@
 from unittest import TestCase
 from unittest import main as unittest_main
 
+from torch import nn
+
+from experiments.experiment_specs import NetNames
 from nets import plan_check
+from nets.plan_check import get_activation
 
 
 class TestPlanCheck(TestCase):
@@ -74,6 +78,14 @@ class TestPlanCheck(TestCase):
         """ Should raise a ValueError, as the string cannot be parsed into an int. """
         with self.assertRaises(ValueError):
             plan_check.get_number_from_batch_norm_spec('not a numberB')
+
+    def test_get_activation_lenet(self):
+        """ Should return tanh for Lenet. """
+        self.assertIsInstance(get_activation(NetNames.LENET), nn.Tanh)
+
+    def test_get_activation_conv(self):
+        """ Should return ReLU for Conv. """
+        self.assertIsInstance(get_activation(NetNames.CONV), nn.ReLU)
 
 
 if __name__ == '__main__':

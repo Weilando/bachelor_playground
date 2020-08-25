@@ -8,6 +8,8 @@ These experiments are currently available:
 - Finding winning tickets from convolutional Conv-6 and CIFAR-10 using IMP or OSP
 - Retraining randomly reinitialized models from a previous IMP- or OSP-experiment
 
+Lenet and Conv can be modified, but their main difference is the activation function they use (tanh for Lenet and ReLU for Conv).
+
 I developed and tested the framework using a conda-environment with packages specified in `conda_specs.txt`.
 Use it to create a compatible environment.
 If you want to use EC2 instances in AWS, I recommend the image "Deep Learning AMI (Amazon Linux 2)", as it offers AWS functionality (e.g. for S3) and configured conda-environments with Pytorch and CUDA out of the box. 
@@ -51,7 +53,7 @@ Suffix | Content | Previous format
 --- | --- | ---
 `-specs.json` | hyper-parameters and meta-data | `ExperimentSettings`
 `-histories.npz` | histories of training-loss, validation-loss, validation-accuracy, test-accuracy and sparsity for several networks and pruning stages | `ExperimentHistories`
-`-net<number>.pth` | state_dict of one net | `torch.nn.Module` (often subclasses like `Lenet` or `Conv`)
+`-net<number>.pth` | state_dict of one net | `Lenet` (subclass of `torch.nn.Module`)
 `-early-stop<number>.pth` | early-stop iterations and state_dicts of one net per level of pruning | `EarlyStopHistory`
 `-random-histories<number>.npz` | histories of training-loss, validation-loss, validation-accuracy, test-accuracy and sparsity for several randomly reinitialized versions of one net for multiple pruning stages | `ExperimentHistories`
 

@@ -1,5 +1,9 @@
 import re
 
+from torch import nn as nn
+
+from experiments.experiment_specs import NetNames
+
 
 def is_numerical_spec(input_string):
     """ Matches all strings containing a positive integer without leading zeros. """
@@ -32,3 +36,10 @@ def get_number_from_batch_norm_spec(spec):
         return int(spec[:-1])
     except ValueError:
         raise ValueError("'spec' does not contain an int.")
+
+
+def get_activation(net_name: NetNames):
+    """ Returns tanh for Lenet and ReLU otherwise. """
+    if net_name == NetNames.LENET:
+        return nn.Tanh()
+    return nn.ReLU()

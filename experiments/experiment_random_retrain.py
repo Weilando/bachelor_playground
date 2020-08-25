@@ -7,9 +7,8 @@ from data.plotter_evaluation import format_time
 from data.result_loader import extract_experiment_path_prefix, generate_absolute_specs_path, get_specs_from_file, \
     get_early_stop_history_from_file, random_histories_file_exists
 from experiments.experiment import Experiment
-from experiments.experiment_specs import ExperimentSpecs, NetNames
-from nets.conv import Conv
-from nets.lenet import Lenet
+from experiments.experiment_specs import ExperimentSpecs
+from nets.net import Net
 from nets.weight_initializer import gaussian_glorot
 from training.logger import log_from_medium
 
@@ -48,14 +47,7 @@ class ExperimentRandomRetrain(Experiment):
         """ Build a net from 'state_dict' and randomly reinitialize its weights.
         The net has the same masks like the net specified by 'state_dict'. """
         assert isinstance(specs, ExperimentSpecs), f"'specs' needs to be ExperimentSpecs, but is {type(specs)}."
-
-        if specs.net == NetNames.LENET:
-            net = Lenet(specs.plan_fc)
-        elif specs.net == NetNames.CONV:
-            net = Conv(specs.plan_conv, specs.plan_fc)
-        else:
-            raise AssertionError(f"Could not initialize net, because the given name {specs.net} is invalid.")
-
+        net = Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc)
         net.load_state_dict(state_dict)
         net.apply(gaussian_glorot)
         net.store_initial_weights()
