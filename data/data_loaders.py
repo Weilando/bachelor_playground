@@ -2,8 +2,17 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split
 
-from experiments.experiment_specs import VerbosityLevel
+from experiments.experiment_specs import VerbosityLevel, DatasetNames
 from training.logger import log_from_medium
+
+
+def get_sample_shape(dataset_name: DatasetNames):
+    """ Returns a tuple with the shape [channels, height, width] of a single sample in a batch from 'dataset_name'. """
+    if dataset_name == DatasetNames.MNIST:
+        return 1, 28, 28
+    elif dataset_name == DatasetNames.CIFAR10:
+        return 3, 32, 32
+    raise AssertionError(f"The given dataset_name {dataset_name} is invalid.")
 
 
 def generate_data_loaders(train_data, val_data, test_data, batch_size, device, verbosity: VerbosityLevel):

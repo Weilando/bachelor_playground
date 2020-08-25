@@ -3,10 +3,9 @@ from unittest import main as unittest_main
 
 import numpy as np
 import torch
-from torch import nn
 
 from experiments.experiment_specs import NetNames, DatasetNames
-from nets.net import Net, get_activation
+from nets.net import Net
 
 
 class TestNet(TestCase):
@@ -14,18 +13,15 @@ class TestNet(TestCase):
     Call with 'python -m test.test_net' from project root '~'.
     Call with 'python -m test_net' from inside '~/test'. """
 
-    def test_get_activation_lenet(self):
-        """ Should return tanh for Lenet. """
-        self.assertIsInstance(get_activation(NetNames.LENET), nn.Tanh)
-
-    def test_get_activation_conv(self):
-        """ Should return ReLU for Conv. """
-        self.assertIsInstance(get_activation(NetNames.CONV), nn.ReLU)
-
     def test_raise_error_on_invalid_conv_spec(self):
         """ The network should raise an assertion error, because plan_conv contains an invalid spec. """
         with self.assertRaises(AssertionError):
             Net(NetNames.CONV, DatasetNames.MNIST, plan_conv=['invalid_spec'], plan_fc=[])
+
+    def test_raise_error_on_invalid_fc_spec(self):
+        """ The network should raise an assertion error, because plan_fc contains an invalid spec. """
+        with self.assertRaises(AssertionError):
+            Net(NetNames.CONV, DatasetNames.MNIST, plan_conv=[], plan_fc=['invalid_spec'])
 
     def test_raise_error_on_invalid_net_name(self):
         """ The network should raise an assertion error, because 'net_name' is invalid. """

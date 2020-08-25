@@ -2,18 +2,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from data.data_loaders import get_sample_shape
 from experiments.experiment_specs import NetNames, DatasetNames
 from nets.plan_check import is_numerical_spec, get_number_from_numerical_spec, get_number_from_batch_norm_spec, \
-    is_batch_norm_spec
+    is_batch_norm_spec, get_activation
 from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
-
-
-def get_activation(net_name: NetNames):
-    """ Chooses tanh for Lenet and ReLU otherwise. """
-    if net_name == NetNames.LENET:
-        return nn.Tanh()
-    return nn.ReLU()
 
 
 class Net(nn.Module):
@@ -32,20 +26,16 @@ class Net(nn.Module):
         assert (net_name == NetNames.CONV) or (net_name == NetNames.LENET), \
             f"Could not initialize net, because the given name {net_name} is invalid."
 
-        if dataset_name == DatasetNames.MNIST:
-            sample_shape = (1, 28, 28)  # [channels, height, width]
-        elif dataset_name == DatasetNames.CIFAR10:
-            sample_shape = (3, 32, 32)  # [channels, height, width]
-        else:
-            raise AssertionError(f"Could not initialize net, because the given dataset_name {dataset_name} is invalid.")
-
         self.init_weight_count_net = dict([('conv', 0), ('fc', 0)])
         self.net_name = net_name
         self.dataset_name = dataset_name
+        self.plan_conv = plan_conv
+        self.plan_fc = plan_fc
 
         # create and initialize layers with Gaussian Glorot
         conv_layers = []
         fc_layers = []
+        sample_shape = get_sample_shape(dataset_name)
         filters = sample_shape[0]
         pooling_count = 0
 
@@ -72,7 +62,7 @@ class Net(nn.Module):
             else:
                 raise AssertionError(f"{spec} from plan_conv is an invalid spec.")
 
-        # Each Pooling-layer quarters the input size (height * width)
+        # each Pooling-layer quarters the input size (height * width)
         filters = filters * round((sample_shape[1] * sample_shape[2]) / (4 ** pooling_count))
         for spec in plan_fc:
             assert is_numerical_spec(spec), f"{spec} from plan_fc is not a numerical spec."
@@ -82,8 +72,6 @@ class Net(nn.Module):
             self.init_weight_count_net['fc'] += filters * spec_number
             filters = spec_number
 
-        self.plan_conv = plan_conv
-        self.plan_fc = plan_fc
         self.conv = nn.Sequential(*conv_layers)
         self.fc = nn.Sequential(*fc_layers)
         self.out = nn.Linear(filters, 10)

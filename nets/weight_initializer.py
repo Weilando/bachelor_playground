@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-def gaussian_glorot(layer):
+def gaussian_glorot(module):
     """ Recursively apply Gaussian Glorot initialization to all linear and convolutional layers. """
-    if isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d):
-        nn.init.xavier_normal_(layer.weight)
+    if isinstance(module, nn.Linear) or isinstance(module, nn.Conv2d):
+        nn.init.xavier_normal_(module.weight)
