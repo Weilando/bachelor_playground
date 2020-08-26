@@ -79,6 +79,7 @@ class TrainerAdam(object):
 
                     net.train(True)  # set model to training mode (important for batch-norm/dropout)
                     if self.should_save_early_stop_checkpoint(val_loss_hist[hist_count], min_val_loss):
+                        min_val_loss = val_loss_hist[hist_count]
                         early_stop_index = j
                         early_stop_checkpoint = deepcopy(net.state_dict())
                     hist_count += 1

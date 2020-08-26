@@ -1,5 +1,4 @@
-from unittest import TestCase
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main, mock
 
 import numpy as np
 import torch
@@ -66,24 +65,25 @@ class TestTrainer(TestCase):
     def test_execute_training_with_early_stopping(self):
         """ Should execute training without errors and save results with correct shapes.
         It should also return a valid checkpoint and early-stopping index.
-        Use a simple net with one linear layer and fake-data_loaders.
-        Inputs have shape (1,4). """
+        Use a simple net with one linear layer and fake-data_loaders with samples of shape (1,4). """
+        # create net and setup trainer with fake-DataLoader (use the same loader for training, validation and test)
         net = generate_single_layer_net()
-
-        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
         fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader, save_early_stop=True)
 
-        net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, early_stop_index, early_stop_checkpoint = \
-            trainer.train_net(net, epoch_count=1, plot_step=3)
-        zero_history = np.zeros(1, dtype=float)  # has expected shape (1,) and is used to check for positive entries
+        # perform training with mocked validation-loss
+        with mock.patch('training.trainer.TrainerAdam.compute_val_loss',
+                        side_effect=[2.0, 1.0, 0.5, 1.0]) as mocked_val_loss:
+            net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, early_stop_index, early_stop_cp = \
+                trainer.train_net(net, epoch_count=2, plot_step=2)  # 8 batches (iterations), 4 early-stop evaluations
+            self.assertEqual(4, mocked_val_loss.call_count)
+
+        # early-stopping criterion is True for first three calls (last one counts), thus 5 is the 'early_stop_index'
+        self.assertEqual(5, early_stop_index)
+        net.load_state_dict(early_stop_cp)  # check if the checkpoint can be loaded without errors
 
         self.assertIs(net is not None, True)
-
-        self.assertIs(early_stop_checkpoint is not None, True)
-        self.assertIn(early_stop_index, [0, 1, 2])  # training runs for one epoch, i.e. three iterations
-        net.load_state_dict(early_stop_checkpoint)  # check if the checkpoint can be loaded without errors
-
+        zero_history = np.zeros(4, dtype=float)  # has expected shape (4,) and is used to check for positive entries
         np.testing.assert_array_less(zero_history, train_loss_hist)
         np.testing.assert_array_less(zero_history, val_loss_hist)
         np.testing.assert_array_less(zero_history, val_acc_hist)
