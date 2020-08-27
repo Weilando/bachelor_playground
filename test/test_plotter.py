@@ -1,5 +1,4 @@
-from unittest import TestCase
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -75,6 +74,13 @@ class TestPlotter(TestCase):
         self.assertEqual("Sparsity", ax.get_xlabel())
         self.assertIsNotNone(ax.get_legend())
 
+    def test_setup_early_stop_ax(self):
+        """ Should setup log-scale correctly and invert x-axis. """
+        ax = plt.figure().subplots(1, 1, sharex=False)
+        plotter.setup_early_stop_ax(ax, False, log_step=4)
+        self.assertEqual([1.0, 0.5, 0.25, 0.125], ax.get_xticks().tolist())
+        self.assertIs(ax.xaxis_inverted().item(), True)
+
     # plots
     def test_plot_acc_at_early_stop_on_ax(self):
         """ Should run plot routine without errors. """
@@ -90,7 +96,8 @@ class TestPlotter(TestCase):
         sparsity = np.ones(3)
         ax = plt.figure().subplots(1, 1)
         plotter.plot_acc_at_early_stop_on_ax(ax, hists, hists, sparsity, 'Name', plotter.PlotType.TEST_ACC,
-                                             hists_random, hists_random)
+                                             hists_random, hists_random, log_step=3)
+        self.assertEqual(3, len(ax.get_xticks()))
 
     def test_plot_average_hists_on_ax(self):
         """ Should run plot routine without errors. """
@@ -120,7 +127,8 @@ class TestPlotter(TestCase):
         hists_random = np.ones((4, 2, 2))
         sparsity = np.ones(3)
         ax = plt.figure().subplots(1, 1)
-        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10, 'Name', hists_random)
+        plotter.plot_early_stop_iterations_on_ax(ax, hists, sparsity, 10, 'Name', hists_random, log_step=2)
+        self.assertEqual(2, len(ax.get_xticks()))
 
 
 if __name__ == '__main__':

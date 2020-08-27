@@ -2,7 +2,7 @@ from enum import Enum
 
 import numpy as np
 
-from data.plotter_evaluation import get_means_and_y_errors, find_acc_at_early_stop_indices, find_early_stop_iterations
+from data.plotter_evaluation import find_acc_at_early_stop_indices, find_early_stop_iterations, get_means_and_y_errors
 
 
 class PlotType(str, Enum):
@@ -34,11 +34,11 @@ def gen_title_on_ax(ax, plot_type: PlotType, early_stop=False):
     ax.set_title(f"Average {plot_type.value}{' at early-stop' if early_stop else ''}")
 
 
-def setup_early_stop_ax(ax, force_zero):
-    """ Inverts x-axis and activates log-scale for x-axis. """
+def setup_early_stop_ax(ax, force_zero, log_step=7):
+    """ Inverts x-axis and activates log-scale with 'log_step' steps for x-axis. """
     ax.set_xscale('log', basex=2)
-    ax.set_xticks([2 ** (-p) for p in range(7)])
-    ax.set_xticklabels([2 ** (-p) for p in range(7)])
+    ax.set_xticks([2 ** (-p) for p in range(log_step)])
+    ax.set_xticklabels([2 ** (-p) for p in range(log_step)])
 
     ax.invert_xaxis()  # also inverts plot!
     setup_grids_on_ax(ax, force_zero)  # for correct scaling the grids need to be set after plotting
@@ -119,7 +119,7 @@ def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, pru
 
 # plots
 def plot_acc_at_early_stop_on_ax(ax, loss_hists, acc_hists, sparsity_hist, net_name, plot_type: PlotType,
-                                 rnd_loss_hists=None, rnd_acc_hists=None, force_zero=False, setup_ax=True):
+                                 rnd_loss_hists=None, rnd_acc_hists=None, force_zero=False, setup_ax=True, log_step=7):
     """ Plot means and error bars for the given accuracies at the time an early stopping criterion would end training.
     Use 'loss_hists' to find accuracies from 'acc_hists', analog for random histories, if given.
     Suppose 'acc_hists' and 'loss_hists' have shape (net_count, prune_count+1, data_length), 'rnd_acc_hists' and
@@ -138,7 +138,7 @@ def plot_acc_at_early_stop_on_ax(ax, loss_hists, acc_hists, sparsity_hist, net_n
         plot_average_at_early_stop_on_ax(ax, random_early_stop_acc, sparsity_hist, net_name, random=True,
                                          color=original_plot.lines[0].get_color())
     if setup_ax:
-        setup_early_stop_ax(ax, force_zero)
+        setup_early_stop_ax(ax, force_zero, log_step)
         setup_labeling_on_ax(ax, plot_type, iteration=False, early_stop=True)
 
 
@@ -159,7 +159,7 @@ def plot_average_hists_on_ax(ax, hists, sparsity_hist, plot_step, plot_type: Plo
 
 
 def plot_early_stop_iterations_on_ax(ax, loss_hists, sparsity_hist, plot_step, net_name, rnd_loss_hists=None,
-                                     force_zero=False, setup_ax=True):
+                                     force_zero=False, setup_ax=True, log_step=7):
     """ Plot means and error bars for early-stopping iterations based on 'loss_hists' and 'rnd_loss_hists', if given.
     Suppose 'loss_hists' has shape (net_count, prune_count+1, data_length), 'loss_hists' has shape
     (net_count, prune_count, data_length) and 'sparsity_hist' has shape (prune_count+1) with prune_count > 1.
@@ -176,5 +176,5 @@ def plot_early_stop_iterations_on_ax(ax, loss_hists, sparsity_hist, plot_step, n
         plot_average_at_early_stop_on_ax(ax, random_early_stop_iterations, sparsity_hist, net_name, random=True,
                                          color=original_plot.lines[0].get_color())
     if setup_ax:
-        setup_early_stop_ax(ax, force_zero)
+        setup_early_stop_ax(ax, force_zero, log_step)
         setup_labeling_on_ax(ax, PlotType.EARLY_STOP_ITER, iteration=False, early_stop=True)
