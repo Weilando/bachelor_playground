@@ -44,23 +44,20 @@ class TestTrainer(TestCase):
 
     def test_execute_training(self):
         """ The training should be executed without errors and results should have correct shapes.
-        Use a simple net with one linear layer and fake-data_loaders.
-        Inputs have shape (1,4). """
+        Use a simple net with one linear layer and fake-data_loaders with samples of shape (1,4). """
+        # create net and setup trainer with fake-DataLoader (use the same loader for training, validation and test)
         net = generate_single_layer_net()
-
-        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
         fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
         net, train_loss_hist, val_loss_hist, val_acc_hist, test_acc_hist, _, _ = \
             trainer.train_net(net, epoch_count=2, plot_step=4)
-        zero_history = np.zeros(2, dtype=float)  # has expected shape (2,) and is used to check for positive entries
 
         self.assertIs(net is not None, True)
-        np.testing.assert_array_less(zero_history, train_loss_hist)
-        np.testing.assert_array_less(zero_history, val_loss_hist)
-        np.testing.assert_array_less(zero_history, val_acc_hist)
-        np.testing.assert_array_less(zero_history, test_acc_hist)
+        np.testing.assert_array_less(np.zeros(2, dtype=float), train_loss_hist)  # check for positive entries
+        np.testing.assert_array_less(np.zeros(2, dtype=float), val_loss_hist)
+        np.testing.assert_array_less(np.zeros(2, dtype=float), val_acc_hist)
+        np.testing.assert_array_less(np.zeros(2, dtype=float), test_acc_hist)
 
     def test_execute_training_with_early_stopping(self):
         """ Should execute training without errors and save results with correct shapes.
@@ -83,23 +80,19 @@ class TestTrainer(TestCase):
         net.load_state_dict(early_stop_cp)  # check if the checkpoint can be loaded without errors
 
         self.assertIs(net is not None, True)
-        zero_history = np.zeros(4, dtype=float)  # has expected shape (4,) and is used to check for positive entries
-        np.testing.assert_array_less(zero_history, train_loss_hist)
-        np.testing.assert_array_less(zero_history, val_loss_hist)
-        np.testing.assert_array_less(zero_history, val_acc_hist)
-        np.testing.assert_array_less(zero_history, test_acc_hist)
+        np.testing.assert_array_less(np.zeros(4, dtype=float), train_loss_hist)  # check for positive entries
+        np.testing.assert_array_less(np.zeros(4, dtype=float), val_loss_hist)
+        np.testing.assert_array_less(np.zeros(4, dtype=float), val_acc_hist)
+        np.testing.assert_array_less(np.zeros(4, dtype=float), test_acc_hist)
 
     def test_compute_test_acc(self):
         """ Should calculate the correct test-accuracy.
         The fake-net with one linear layer classifies half of the fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. """
+        # create net and setup trainer and fake-DataLoader with two batches (use the same samples for both batches)
         net = generate_single_layer_net()
-
-        # setup trainer and fake-DataLoader with two batches (use the same samples for both batches)
         samples = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
-        labels_batch1 = torch.tensor([0, 0, 1])
-        labels_batch2 = torch.tensor([1, 1, 0])
-        test_loader = [[samples, labels_batch1], [samples, labels_batch2]]
+        test_loader = [[samples, torch.tensor([0, 0, 1])], [samples, torch.tensor([1, 1, 0])]]
         trainer = TrainerAdam(0., [], [], test_loader=test_loader)
 
         self.assertEqual(0.5, trainer.compute_acc(net, test=True))
@@ -108,26 +101,21 @@ class TestTrainer(TestCase):
         """ Should calculate the correct validation-accuracy.
         The fake-net with one linear layer classifies all fake-samples correctly.
         Use a fake-val_loader with one batch to validate the result. """
+        # create net and setup trainer and fake-DataLoader with one batch
         net = generate_single_layer_net()
-
-        # setup trainer and fake-DataLoader with one batch
-        samples = torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]])
-        labels = torch.tensor([0, 0, 1])
-        val_loader = [[samples, labels]]
+        val_loader = [[torch.tensor([[2., 2., 2., 2.], [2., 2., 0., 0.], [0., 0., 2., 2.]]), torch.tensor([0, 0, 1])]]
         trainer = TrainerAdam(0., [], val_loader, test_loader=[])
 
         self.assertEqual(1., trainer.compute_acc(net, test=False))
 
     def test_compute_val_loss(self):
         """ Should calculate a positive validation loss. """
+        # create net and setup trainer with fake-DataLoader (use the same loader for training, validation and test)
         net = generate_single_layer_net()
-
-        # setup trainer with fake-DataLoader (use the same loader for training, validation and test)
         fake_loader = generate_fake_data_loader()
         trainer = TrainerAdam(0., fake_loader, fake_loader, fake_loader)
 
-        val_loss = trainer.compute_val_loss(net)
-        self.assertLessEqual(0.0, val_loss)
+        self.assertLessEqual(0.0, trainer.compute_val_loss(net))
 
     def test_should_save_early_stop_checkpoint_no_evaluation(self):
         """ Should return False, because the early-stopping criterion should not be evaluated. """

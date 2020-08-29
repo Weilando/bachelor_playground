@@ -2,16 +2,15 @@ import os
 from copy import deepcopy
 from dataclasses import asdict
 from tempfile import TemporaryDirectory
-from unittest import main as unittest_main
-from unittest import mock, TestCase
+from unittest import TestCase, main as unittest_main, mock
 
 import data.result_loader as result_loader
 from data import result_saver
-from experiments.early_stop_histories import EarlyStopHistoryList, EarlyStopHistory
+from experiments.early_stop_histories import EarlyStopHistory, EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
-from experiments.experiment_specs import NetNames, DatasetNames
+from experiments.experiment_specs import DatasetNames, NetNames
 from nets.net import Net
-from test.fake_experiment_specs import get_specs_lenet_toy, get_specs_conv_toy
+from test.fake_experiment_specs import get_specs_conv_toy, get_specs_lenet_toy
 
 
 class TestResultLoader(TestCase):
@@ -61,24 +60,21 @@ class TestResultLoader(TestCase):
 
     def test_generate_experiment_path_prefix(self):
         """ Should generate the experiment prefix from given specs-file path, i.e. remove suffix '-specs.json'. """
-        expected_prefix = "//root/results/prefix"
         absolute_path = "//root/results/prefix-specs.json"
         result_path = result_loader.generate_experiment_path_prefix(absolute_path)
-        self.assertEqual(expected_prefix, result_path)
+        self.assertEqual("//root/results/prefix", result_path)
 
     def test_generate_experiment_histories_file_path(self):
         """ Should generate histories file path, i.e. append '-histories.npz'. """
         experiment_path_prefix = "results/prefix"
-        expected_path = "results/prefix-histories.npz"
         result_path = result_loader.generate_experiment_histories_file_path(experiment_path_prefix)
-        self.assertEqual(expected_path, result_path)
+        self.assertEqual("results/prefix-histories.npz", result_path)
 
     def test_generate_random_experiment_histories_file_path(self):
         """ Should generate histories file path, i.e. append '-random-histories#.npz' with #=net_number. """
         experiment_path_prefix = "results/prefix"
-        expected_path = "results/prefix-random-histories42.npz"
         result_path = result_loader.generate_random_experiment_histories_file_path(experiment_path_prefix, 42)
-        self.assertEqual(expected_path, result_path)
+        self.assertEqual("results/prefix-random-histories42.npz", result_path)
 
     def test_generate_early_stop_file_path(self):
         """ Should an early-stop file path, i.e. append '-early-stop#.pth' with # number. """
@@ -90,15 +86,13 @@ class TestResultLoader(TestCase):
     def test_generate_net_file_paths(self):
         """ Should generate a list of net file paths, i.e. append '-net#.pth' with # number. """
         experiment_path_prefix = "results/prefix"
-        expected_paths = ["results/prefix-net0.pth", "results/prefix-net1.pth"]
         result_paths = result_loader.generate_net_file_paths(experiment_path_prefix, 2)
-        self.assertEqual(expected_paths, result_paths)
+        self.assertEqual(["results/prefix-net0.pth", "results/prefix-net1.pth"], result_paths)
 
     def test_generate_net_file_paths_invalid_net_count(self):
         """ Should not generate a list of net file paths, because 'net_count' is not positive. """
-        experiment_path_prefix = "results/prefix"
         with self.assertRaises(AssertionError):
-            result_loader.generate_net_file_paths(experiment_path_prefix, 0)
+            result_loader.generate_net_file_paths("results/prefix", 0)
 
     # higher level functions
     def test_get_relative_spec_file_paths(self):
@@ -115,7 +109,6 @@ class TestResultLoader(TestCase):
             open(relative_path_no_specs_file, 'a').close()
 
             result_paths = result_loader.get_relative_spec_file_paths(tmp_results)
-
             self.assertEqual([relative_path_specs_file1, relative_path_specs_file2], result_paths)
 
     def test_extract_experiment_path_prefix(self):
@@ -123,7 +116,6 @@ class TestResultLoader(TestCase):
         with mock.patch('data.result_loader.os') as mocked_os:
             relative_specs_path = "results/prefix-specs.json"
             absolute_specs_path = "//root/results/prefix-specs.json"
-            expected_prefix = "//root/results/prefix"
 
             mocked_os.getcwd.return_value = "//root"
             mocked_os.path.join.return_value = absolute_specs_path
@@ -131,7 +123,7 @@ class TestResultLoader(TestCase):
 
             result_prefix = result_loader.extract_experiment_path_prefix(relative_specs_path)
 
-            self.assertEqual(expected_prefix, result_prefix)
+            self.assertEqual("//root/results/prefix", result_prefix)
             mocked_os.path.join.called_once_with("//root", relative_specs_path)
             mocked_os.path.exists.assert_called_once_with(absolute_specs_path)
 
@@ -157,7 +149,7 @@ class TestResultLoader(TestCase):
 
             result_file_path = f"{tmp_dir_name}/prefix-specs.json"
             loaded_dict = result_loader.get_specs_from_file(result_file_path, as_dict=True)
-            self.assertEqual(loaded_dict, asdict(experiment_specs))
+            self.assertEqual(asdict(experiment_specs), loaded_dict)
 
     def test_get_specs_from_file_as_experiment_specs(self):
         """ Should load toy_specs from json file as ExperimentSpecs. """
@@ -168,7 +160,7 @@ class TestResultLoader(TestCase):
 
             result_file_path = f"{tmp_dir_name}/prefix-specs.json"
             loaded_experiment_specs = result_loader.get_specs_from_file(result_file_path, as_dict=False)
-            self.assertEqual(loaded_experiment_specs, experiment_specs)
+            self.assertEqual(experiment_specs, loaded_experiment_specs)
 
     def test_get_experiment_histories_from_file(self):
         """ Should load fake histories from npz file. """
@@ -181,7 +173,7 @@ class TestResultLoader(TestCase):
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
             loaded_histories = result_loader.get_experiment_histories_from_file(experiment_path_prefix)
-            self.assertEqual(loaded_histories, histories)
+            self.assertEqual(histories, loaded_histories)
 
     def test_get_random_experiment_histories_from_file(self):
         """ Should load fake random_histories from npz file. """
@@ -194,7 +186,7 @@ class TestResultLoader(TestCase):
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
             loaded_histories = result_loader.get_random_experiment_histories_from_file(experiment_path_prefix, 42)
-            self.assertEqual(loaded_histories, histories)
+            self.assertEqual(histories, loaded_histories)
 
     def test_get_all_random_experiment_histories_from_files(self):
         """ Should load two fake random_histories from npz files. """
@@ -208,7 +200,7 @@ class TestResultLoader(TestCase):
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
             loaded_histories = result_loader.get_all_random_experiment_histories_from_files(experiment_path_prefix, 2)
-            self.assertEqual(loaded_histories, histories.stack_histories(histories))
+            self.assertEqual(histories.stack_histories(histories), loaded_histories)
 
     def test_get_all_random_experiment_histories_from_files_invalid_net_count(self):
         """ Should raise an AssertionError, as 'net_count' is zero. """
@@ -216,14 +208,8 @@ class TestResultLoader(TestCase):
             result_loader.get_all_random_experiment_histories_from_files('some/path', 0)
 
     def test_get_all_random_experiment_histories_from_files_missing_file(self):
-        """ Should raise an error, as a file does not exist. """
-        histories = ExperimentHistories()
-        histories.setup(1, 1, 1, 1, 1)
-
+        """ Should raise an error, as no npz file exists. """
         with TemporaryDirectory() as tmp_dir_name:
-            # do not create npz file with index '0'
-            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 1, histories)
-
             with self.assertRaises(FileNotFoundError):
                 experiment_path_prefix = f"{tmp_dir_name}/prefix"
                 result_loader.get_all_random_experiment_histories_from_files(experiment_path_prefix, 2)
@@ -251,7 +237,7 @@ class TestResultLoader(TestCase):
             # load and validate histories from file
             experiment_path_prefix = f"{tmp_dir_name}/prefix"
             loaded_history = result_loader.get_early_stop_history_from_file(experiment_path_prefix, specs, 0)
-            self.assertEqual(loaded_history, history)
+            self.assertEqual(history, loaded_history)
             net0.load_state_dict(history.state_dicts[0])
 
     def test_get_early_stop_history_from_file_invalid_specs(self):
@@ -267,20 +253,20 @@ class TestResultLoader(TestCase):
             result_loader.get_early_stop_history_from_file("some_path", experiment_specs, 42)
 
     def test_get_early_stop_history_from_file_invalid_number_small(self):
-        """ Should raise assertion error as 'number' is too small. """
+        """ Should raise assertion error as 'net_number' is too small. """
         experiment_specs = get_specs_lenet_toy()
         experiment_specs.save_early_stop = True
         experiment_specs.net_count = 3
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, -1)
+            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, net_number=-1)
 
     def test_get_early_stop_history_from_file_invalid_number_tall(self):
-        """ Should raise assertion error as 'number' is too tall. """
+        """ Should raise assertion error as 'net_number' is too tall. """
         experiment_specs = get_specs_lenet_toy()
         experiment_specs.save_early_stop = True
         experiment_specs.net_count = 3
         with self.assertRaises(AssertionError):
-            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, 3)
+            result_loader.get_early_stop_history_from_file("some_path", experiment_specs, net_number=3)
 
     def test_get_early_stop_history_list_from_files(self):
         """ Should load fake EarlyStopHistoryList from pth files. """
@@ -357,28 +343,17 @@ class TestResultLoader(TestCase):
             result_loader.get_models_from_files("some_path", dict())
 
     def test_random_histories_file_exists(self):
-        """ Should return true, because a random-histories-file exists for 42. """
+        """ Should return True, because a random-histories-file exists for 42. """
         histories = ExperimentHistories()
         histories.setup(2, 2, 2, 2, 2)
         with TemporaryDirectory() as tmp_dir_name:
-            # save nets
             result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 42, histories)
-
-            # load and reconstruct nets from their files
-            experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            self.assertIs(result_loader.random_histories_file_exists(experiment_path_prefix, 42), True)
+            self.assertIs(result_loader.random_histories_file_exists(f"{tmp_dir_name}/prefix", 42), True)
 
     def test_random_histories_file_does_not_exist(self):
-        """ Should return true, because no random-histories-file exists for 42. """
-        histories = ExperimentHistories()
-        histories.setup(2, 2, 2, 2, 2)
+        """ Should return False, because no random-histories-file exists for 42 in empty directory. """
         with TemporaryDirectory() as tmp_dir_name:
-            # save nets
-            result_saver.save_experiment_histories_random_retrain(tmp_dir_name, 'prefix', 7, histories)
-
-            # load and reconstruct nets from their files
-            experiment_path_prefix = f"{tmp_dir_name}/prefix"
-            self.assertIs(result_loader.random_histories_file_exists(experiment_path_prefix, 42), False)
+            self.assertIs(result_loader.random_histories_file_exists(f"{tmp_dir_name}/prefix", 42), False)
 
 
 if __name__ == '__main__':

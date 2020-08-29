@@ -1,9 +1,8 @@
-from unittest import TestCase
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main
 
 import numpy as np
 
-from experiments.experiment_histories import calc_hist_length_per_net, ExperimentHistories
+from experiments.experiment_histories import ExperimentHistories, calc_hist_length_per_net
 
 
 class TestExperimentHistories(TestCase):
@@ -13,17 +12,14 @@ class TestExperimentHistories(TestCase):
 
     def test_experiment_histories_are_equal(self):
         """ Should return True, because both ExperimentHistories contain equal arrays. """
-        histories1 = ExperimentHistories()
-        histories2 = ExperimentHistories()
-        histories1.setup(1, 1, 1, 1, 1)
-        histories2.setup(1, 1, 1, 1, 1)
+        histories = ExperimentHistories()
+        histories.setup(1, 1, 1, 1, 1)
 
-        self.assertIs(ExperimentHistories.__eq__(histories1, histories2), True)
+        self.assertIs(ExperimentHistories.__eq__(histories, histories), True)
 
     def test_experiment_histories_are_unequal(self):
         """ Should return False, because both ExperimentHistories contain unequal arrays. """
-        histories1 = ExperimentHistories()
-        histories2 = ExperimentHistories()
+        histories1, histories2 = ExperimentHistories(), ExperimentHistories()
         histories1.setup(1, 1, 1, 1, 1)
         histories2.setup(1, 1, 2, 1, 1)
 
@@ -37,7 +33,7 @@ class TestExperimentHistories(TestCase):
     def test_calc_hist_length_per_net(self):
         """ Should calculate the correct length of a history for one net.
         As one entry is generated per epoch, the history should have a length of two. """
-        self.assertEqual(calc_hist_length_per_net(3, 2, 3), 2)
+        self.assertEqual(2, calc_hist_length_per_net(3, 2, 3))
 
     # noinspection PyMethodMayBeStatic
     def test_setup_experiment_histories(self):
@@ -46,11 +42,11 @@ class TestExperimentHistories(TestCase):
         histories = ExperimentHistories()
         histories.setup(3, 1, 42, 4, 7)
 
-        np.testing.assert_array_equal(histories.train_loss, expected_history)
-        np.testing.assert_array_equal(histories.val_loss, expected_history)
-        np.testing.assert_array_equal(histories.val_acc, expected_history)
-        np.testing.assert_array_equal(histories.test_acc, expected_history)
-        np.testing.assert_array_equal(histories.sparsity, np.ones(2, dtype=float))
+        np.testing.assert_array_equal(expected_history, histories.train_loss)
+        np.testing.assert_array_equal(expected_history, histories.val_loss)
+        np.testing.assert_array_equal(expected_history, histories.val_acc)
+        np.testing.assert_array_equal(expected_history, histories.test_acc)
+        np.testing.assert_array_equal(np.ones(2, dtype=float), histories.sparsity)
 
     def test_stack_histories(self):
         """ Should stack two histories, i.e. append their arrays at the net-dimension.
@@ -73,31 +69,29 @@ class TestExperimentHistories(TestCase):
                                      [[1., 1., 1.], [1., 1., 1.]]], dtype=float)
 
         result_history = histories0.stack_histories(histories1)
-        np.testing.assert_array_equal(result_history.train_loss, expected_history)
-        np.testing.assert_array_equal(result_history.val_loss, expected_history)
-        np.testing.assert_array_equal(result_history.val_acc, expected_history)
-        np.testing.assert_array_equal(result_history.test_acc, expected_history)
-        np.testing.assert_array_equal(result_history.sparsity, histories0.sparsity)
+        np.testing.assert_array_equal(expected_history, result_history.train_loss)
+        np.testing.assert_array_equal(expected_history, result_history.val_loss)
+        np.testing.assert_array_equal(expected_history, result_history.val_acc)
+        np.testing.assert_array_equal(expected_history, result_history.test_acc)
+        np.testing.assert_array_equal(histories0.sparsity, result_history.sparsity)
 
     def test_stack_histories_fail_unequal_sparsity(self):
         """ Should raise an error, as the sparsity-histories do not match. """
-        histories0 = ExperimentHistories()
-        histories1 = ExperimentHistories()
+        histories0, histories1 = ExperimentHistories(), ExperimentHistories()
         histories0.setup(1, 1, 2, 3, 2)
         histories1.setup(1, 1, 2, 3, 2)
-        histories0.sparsity = np.array([1., 0.5])
-        histories1.sparsity = np.array([1., 0.7])
+        histories0.sparsity, histories1.sparsity = np.array([1., 0.5]), np.array([1., 0.7])
 
         with self.assertRaises(AssertionError):
             histories0.stack_histories(histories1)
 
     def test_stack_histories_fail_wrong_type(self):
-        """ Should raise an error, as other is no ExperimentHistory. """
+        """ Should raise an error, as other is no ExperimentHistory but a list. """
         histories0 = ExperimentHistories()
         histories0.setup(1, 1, 1, 1, 1)
 
         with self.assertRaises(AssertionError):
-            histories0.stack_histories(list)
+            histories0.stack_histories([])
 
     def test_calc_hist_length_per_net_rounding(self):
         """ Should calculate the correct length of a history for one net.

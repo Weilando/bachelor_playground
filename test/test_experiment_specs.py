@@ -1,7 +1,6 @@
-from unittest import TestCase
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main
 
-from experiments.experiment_specs import get_specs, DatasetNames, ExperimentPresetNames, ExperimentSpecs, NetNames
+from experiments.experiment_specs import DatasetNames, ExperimentPresetNames, ExperimentSpecs, NetNames, get_specs
 
 
 class TestExperimentSpecs(TestCase):
@@ -18,7 +17,7 @@ class TestExperimentSpecs(TestCase):
         """ Should get specs without errors and verify the most important attributes. """
         experiment_specs = get_specs(ExperimentPresetNames.LENET_MNIST)
 
-        self.assertIs(type(experiment_specs), ExperimentSpecs)
+        self.assertIsInstance(experiment_specs, ExperimentSpecs)
         self.assertIs(experiment_specs.net, NetNames.LENET)
         self.assertIs(experiment_specs.dataset, DatasetNames.MNIST)
 
@@ -26,7 +25,7 @@ class TestExperimentSpecs(TestCase):
         """ Should get specs without errors and verify the most important attributes. """
         experiment_specs = get_specs(ExperimentPresetNames.CONV2_CIFAR10)
 
-        self.assertIs(type(experiment_specs), ExperimentSpecs)
+        self.assertIsInstance(experiment_specs, ExperimentSpecs)
         self.assertIs(experiment_specs.net, NetNames.CONV)
         self.assertIs(experiment_specs.dataset, DatasetNames.CIFAR10)
 
@@ -34,7 +33,7 @@ class TestExperimentSpecs(TestCase):
         """ Should get specs without errors and verify the most important attributes. """
         experiment_specs = get_specs(ExperimentPresetNames.CONV4_CIFAR10)
 
-        self.assertIs(type(experiment_specs), ExperimentSpecs)
+        self.assertIsInstance(experiment_specs, ExperimentSpecs)
         self.assertIs(experiment_specs.net, NetNames.CONV)
         self.assertIs(experiment_specs.dataset, DatasetNames.CIFAR10)
 
@@ -42,7 +41,7 @@ class TestExperimentSpecs(TestCase):
         """ Should get specs without errors and verify the most important attributes. """
         experiment_specs = get_specs(ExperimentPresetNames.CONV6_CIFAR10)
 
-        self.assertIs(type(experiment_specs), ExperimentSpecs)
+        self.assertIsInstance(experiment_specs, ExperimentSpecs)
         self.assertIs(experiment_specs.net, NetNames.CONV)
         self.assertIs(experiment_specs.dataset, DatasetNames.CIFAR10)
 

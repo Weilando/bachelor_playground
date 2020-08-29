@@ -1,13 +1,12 @@
 from io import StringIO
-from unittest import TestCase, mock
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main, mock
 
 import sys
 
-from experiments.experiment_specs import ExperimentPresetNames, VerbosityLevel, get_specs_lenet_mnist, \
-    get_specs_conv2_cifar10, ExperimentNames
-from playground import main as playground_main, setup_cuda, should_override_arg_plan, should_override_arg_rate, \
-    should_override_arg_positive_int, parse_arguments
+from experiments.experiment_specs import ExperimentNames, ExperimentPresetNames, VerbosityLevel, \
+    get_specs_conv2_cifar10, get_specs_lenet_mnist
+from playground import main as playground_main, parse_arguments, setup_cuda, should_override_arg_plan, \
+    should_override_arg_positive_int, should_override_arg_rate
 
 
 class TestPlayground(TestCase):
@@ -27,8 +26,7 @@ class TestPlayground(TestCase):
     def test_should_raise_exception_as_positive_int_is_invalid(self):
         """ Should throw an assertion error, because the flag was set with an invalid value. """
         with self.assertRaises(AssertionError):
-            should_override_arg_positive_int(0, 'Some Argument')
-            should_override_arg_positive_int(1.0, 'Some Argument')
+            should_override_arg_positive_int(0.0, 'Some Argument')
 
     def test_should_not_override_rate_as_flag_not_set(self):
         """ Should return False, because the flag was not set. """
@@ -40,10 +38,11 @@ class TestPlayground(TestCase):
         self.assertIs(should_override_arg_rate(0.8, 'Some argument'), True)
         self.assertIs(should_override_arg_rate(1.0, 'Some argument'), True)
 
-    def test_should_raise_exception_as_rate_is_invalid(self):
-        """ Should throw an assertion error, because the flag was set with an invalid value. """
+    def test_should_raise_exception_as_rates_are_invalid(self):
+        """ Should throw an assertion error, because the flag was set with an invalid values. """
         with self.assertRaises(AssertionError):
             should_override_arg_positive_int(1.1, 'Some Argument')
+        with self.assertRaises(AssertionError):
             should_override_arg_positive_int(0, 'Some Argument')
 
     def test_should_not_override_arg_plan_as_flag_not_set(self):
@@ -67,8 +66,8 @@ class TestPlayground(TestCase):
 
             device, device_name = setup_cuda(True)
 
-            self.assertEqual(device, 'cuda:0')
-            self.assertEqual(device_name, 'GPU-name')
+            self.assertEqual('cuda:0', device)
+            self.assertEqual('GPU-name', device_name)
             mocked_cuda.is_available.assert_called_once()
             mocked_cuda.get_device_name.assert_called_once_with(0)
 
@@ -79,16 +78,16 @@ class TestPlayground(TestCase):
 
             device, device_name = setup_cuda(True)
 
-            self.assertEqual(device, 'cpu')
-            self.assertEqual(device_name, 'cpu')
+            self.assertEqual('cpu', device)
+            self.assertEqual('cpu', device_name)
             mocked_cuda.is_available.assert_called_once()
             mocked_cuda.get_device_name.assert_not_called()
 
     def test_should_setup_cpu_as_wanted(self):
         """ Should return 'cpu' as cuda device and device_name, because no cuda is wanted. """
         device, device_name = setup_cuda(False)
-        self.assertEqual(device, 'cpu')
-        self.assertEqual(device_name, 'cpu')
+        self.assertEqual('cpu', device)
+        self.assertEqual('cpu', device_name)
 
     def test_should_show_help_on_missing_args(self):
         """ Should print help message to stderr, if args is empty. """
@@ -99,9 +98,8 @@ class TestPlayground(TestCase):
             with self.assertRaises(SystemExit):
                 parse_arguments([])
 
-            sys.stderr = old_stderr
-
             self.assertIn("usage", interception.getvalue())
+            sys.stderr = old_stderr
 
     def test_should_parse_arguments(self):
         """ Should parse all given arguments correctly. """
@@ -157,7 +155,6 @@ class TestPlayground(TestCase):
                 playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-l'])
 
                 sys.stdout = old_stdout
-
                 self.assertEqual(f"{expected_specs}\n", interception.getvalue())
                 mocked_experiment.assert_not_called()
 
@@ -173,7 +170,6 @@ class TestPlayground(TestCase):
                 playground_main([ExperimentNames.OSP, ExperimentPresetNames.LENET_MNIST, '-l'])
 
                 sys.stdout = old_stdout
-
                 self.assertEqual(f"{expected_specs}\n", interception.getvalue())
                 mocked_experiment.assert_not_called()
 
@@ -261,7 +257,6 @@ class TestPlayground(TestCase):
                 playground_main([ExperimentNames.IMP, ExperimentPresetNames.LENET_MNIST, '-vv'])
 
                 sys.stdout = old_stdout
-
                 self.assertEqual("cpu\n", interception.getvalue())
                 mocked_experiment.assert_called_once_with(expected_specs)
 

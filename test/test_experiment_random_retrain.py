@@ -1,8 +1,7 @@
 import glob
 import os
 from tempfile import TemporaryDirectory
-from unittest import TestCase, mock
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main, mock
 
 import torch
 
@@ -23,7 +22,6 @@ class TestExperimentRandomRetrain(TestCase):
     def test_generate_randomly_reinitialized_net(self):
         """ Should generate a network with equal masks but different weights. """
         specs = experiment_specs.get_specs_lenet_mnist()
-        specs.plan_fc = [5]
         specs.save_early_stop = True
         torch.manual_seed(0)
         net = Net(specs.net, specs.dataset, specs.plan_conv, specs.plan_fc)

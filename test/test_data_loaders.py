@@ -1,7 +1,6 @@
-from unittest import TestCase
-from unittest import main as unittest_main
+from unittest import TestCase, main as unittest_main
 
-from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders, get_sample_shape
+from data.data_loaders import get_cifar10_data_loaders, get_mnist_data_loaders, get_sample_shape
 from experiments.experiment_specs import DatasetNames
 
 
@@ -28,9 +27,8 @@ class TestDataLoaders(TestCase):
         """ Should load toy MNIST dataset with expected batch counts and sample shapes. """
         train_loader, val_loader, test_loader = get_mnist_data_loaders()
 
-        sample, _ = next(iter(val_loader))  # get one sample
+        sample, _ = next(iter(val_loader))  # get one batch
         self.assertEqual(sample[0].shape, (1, 28, 28))
-
         self.assertEqual(len(train_loader), 916)
         self.assertEqual(len(val_loader), 84)
         self.assertEqual(len(test_loader), 167)
@@ -39,9 +37,8 @@ class TestDataLoaders(TestCase):
         """ Should load toy CIFAR-10 dataset with expected batch counts. """
         train_loader, val_loader, test_loader = get_cifar10_data_loaders()
 
-        sample, _ = next(iter(val_loader))  # get one sample
+        sample, _ = next(iter(val_loader))  # get one batch
         self.assertEqual(sample[0].shape, (3, 32, 32))
-
         self.assertEqual(len(train_loader), 750)
         self.assertEqual(len(val_loader), 84)
         self.assertEqual(len(test_loader), 167)

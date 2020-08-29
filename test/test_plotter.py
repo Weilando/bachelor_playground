@@ -14,25 +14,21 @@ class TestPlotter(TestCase):
     # generators
     def test_gen_iteration_space(self):
         """ Should generate the correct iteration space. """
-        arr = np.zeros(3)
-        plot_step = 2
-
-        expected_space = np.array([2, 4, 6])
-        result_space = plotter.gen_iteration_space(arr, plot_step)
-        np.testing.assert_array_equal(expected_space, result_space)
+        result_space = plotter.gen_iteration_space(arr=np.zeros(3), plot_step=2)
+        np.testing.assert_array_equal(np.array([2, 4, 6]), result_space)
 
     def test_gen_labels_for_train_loss_and_iterations(self):
         """ Should generate the correct labels. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         plotter.gen_labels_on_ax(ax, plotter.PlotType.TRAIN_LOSS, iteration=True)
-        self.assertEqual(ax.get_ylabel(), plotter.PlotType.TRAIN_LOSS)
+        self.assertEqual(plotter.PlotType.TRAIN_LOSS, ax.get_ylabel())
         self.assertEqual("Iteration", ax.get_xlabel())
 
     def test_gen_labels_for_val_acc_and_sparsity(self):
         """ Should generate the correct labels. """
         ax = plt.figure().subplots(1, 1, sharex=False)
         plotter.gen_labels_on_ax(ax, plotter.PlotType.VAL_ACC, iteration=False)
-        self.assertEqual(ax.get_ylabel(), plotter.PlotType.VAL_ACC)
+        self.assertEqual(plotter.PlotType.VAL_ACC, ax.get_ylabel())
         self.assertEqual("Sparsity", ax.get_xlabel())
 
     def test_gen_title_for_test_acc_on_ax(self):
