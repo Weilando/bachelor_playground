@@ -7,7 +7,7 @@ import torch.cuda
 from experiments.experiment_imp import ExperimentIMP
 from experiments.experiment_osp import ExperimentOSP
 from experiments.experiment_random_retrain import ExperimentRandomRetrain
-from experiments.experiment_specs import get_specs, ExperimentPresetNames, VerbosityLevel, ExperimentNames
+from experiments.experiment_specs import ExperimentNames, ExperimentPresetNames, VerbosityLevel, get_specs
 from training.logger import log_from_medium
 
 current_path = os.path.dirname(__file__)
@@ -15,8 +15,7 @@ os.chdir(os.path.join(current_path, 'experiments'))
 
 
 def should_override_arg_positive_int(value, debug_name):
-    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. positive integer).
-    The error message contains 'debug_name', if 'value' is invalid. """
+    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. positive integer). """
     if value is not None:
         assert isinstance(value, int) and (value > 0), f"{debug_name} needs to be a positive integer, but is {value}."
         return True
@@ -24,11 +23,9 @@ def should_override_arg_positive_int(value, debug_name):
 
 
 def should_override_arg_rate(value, debug_name):
-    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. float from zero to one).
-    The error message contains 'debug_name', if 'value' is invalid. """
+    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. float from zero to one). """
     if value is not None:
-        assert isinstance(value, float) and (value >= 0) and (value <= 1), \
-            f"{debug_name} needs to be a float between zero and one, but is {value}."
+        assert isinstance(value, float) and (0 <= value <= 1), f"0.0<={value}<=1.0 is invalid for {debug_name}."
         return True
     return False
 
@@ -36,7 +33,7 @@ def should_override_arg_rate(value, debug_name):
 def should_override_arg_plan(plan, debug_name):
     """ Check if the flag was set (i.e. 'plan'!=None) and if the given plan is valid (i.e. list). """
     if plan is not None:
-        assert isinstance(plan, list), f"{debug_name} needs to be list, but is of type {type(plan)}."
+        assert isinstance(plan, list), f"{debug_name} has invalid type {type(plan)}."
         return True
     return False
 
@@ -120,10 +117,9 @@ def parse_arguments(args):
     parser_rr.add_argument('net_count', type=int, default=None,
                            help="specify the number of random initializations per level of pruning")
 
-    if len(args) < 1:
+    if len(args) < 1:  # show help, if no arguments are given
         parser.print_help(sys.stderr)
         sys.exit()
-
     return parser.parse_args(args)
 
 

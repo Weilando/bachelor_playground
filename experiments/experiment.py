@@ -1,8 +1,7 @@
 import time
-
 import torch
 
-from data.data_loaders import get_mnist_data_loaders, get_cifar10_data_loaders
+from data.data_loaders import get_cifar10_data_loaders, get_mnist_data_loaders
 from data.plotter_evaluation import format_time
 from experiments.early_stop_histories import EarlyStopHistoryList
 from experiments.experiment_histories import ExperimentHistories
@@ -19,7 +18,6 @@ class Experiment(object):
     def __init__(self, specs):
         super(Experiment, self).__init__()
         self.specs = specs
-
         log_from_medium(self.specs.verbosity, specs)
 
         self.device = torch.device(specs.device)
@@ -41,18 +39,14 @@ class Experiment(object):
         Store the length of the training-loader into 'self.epoch_length' to initialize histories. """
         # load dataset
         if self.specs.dataset == DatasetNames.MNIST:
-            train_loader, val_loader, test_loader = get_mnist_data_loaders(device=self.specs.device,
-                                                                           verbosity=self.specs.verbosity)
+            train_ld, val_ld, test_ld = get_mnist_data_loaders(device=self.specs.device, verb=self.specs.verbosity)
         elif self.specs.dataset == DatasetNames.CIFAR10:
-            train_loader, val_loader, test_loader = get_cifar10_data_loaders(device=self.specs.device,
-                                                                             verbosity=self.specs.verbosity)
+            train_ld, val_ld, test_ld = get_cifar10_data_loaders(device=self.specs.device, verb=self.specs.verbosity)
         else:
             raise AssertionError(f"Could not load datasets, because the given name {self.specs.dataset} is invalid.")
 
-        self.epoch_length = len(train_loader)
-
-        # initialize trainer
-        self.trainer = TrainerAdam(self.specs.learning_rate, train_loader, val_loader, test_loader, self.device,
+        self.epoch_length = len(train_ld)
+        self.trainer = TrainerAdam(self.specs.learning_rate, train_ld, val_ld, test_ld, self.device,
                                    self.specs.save_early_stop, self.specs.verbosity)
 
     def execute_experiment(self):

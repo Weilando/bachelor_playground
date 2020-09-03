@@ -3,9 +3,9 @@ import torch
 import torch.nn as nn
 
 from data.data_loaders import get_sample_shape
-from experiments.experiment_specs import NetNames, DatasetNames
-from nets.plan_check import is_numerical_spec, get_number_from_numerical_spec, get_number_from_batch_norm_spec, \
-    is_batch_norm_spec, get_activation
+from experiments.experiment_specs import DatasetNames, NetNames
+from nets.plan_check import get_activation, get_number_from_batch_norm_spec, get_number_from_numerical_spec, \
+    is_batch_norm_spec, is_numerical_spec
 from nets.weight_initializer import gaussian_glorot
 from pruning.magnitude_pruning import prune_layer, setup_masks
 
@@ -160,7 +160,7 @@ class Net(nn.Module):
         return np.round(sparsity_list, decimals=4)
 
     def equal_layers(self, other):
-        """ Returns True, if 'other' has the same types of layers in 'conv' and 'fc', and if all pairs of Linear- and
+        """ Return True, if 'other' has the same types of layers in 'conv' and 'fc', and if all pairs of Linear- and
         Conv2d-layers have equal weight, bias and initial_weight attributes. """
         layer_list_self = [layer for layer in self.conv] + [layer for layer in self.fc]
         layer_list_other = [layer for layer in other.conv] + [layer for layer in other.fc]

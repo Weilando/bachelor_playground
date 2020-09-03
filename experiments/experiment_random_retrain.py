@@ -4,8 +4,8 @@ import time
 
 from data import result_saver as rs
 from data.plotter_evaluation import format_time
-from data.result_loader import extract_experiment_path_prefix, generate_absolute_specs_path, get_specs_from_file, \
-    get_early_stop_history_from_file, random_histories_file_exists
+from data.result_loader import extract_experiment_path_prefix, generate_absolute_specs_path, \
+    get_early_stop_history_from_file, get_specs_from_file, random_histories_file_exists
 from experiments.experiment import Experiment
 from experiments.experiment_specs import ExperimentSpecs
 from nets.net import Net

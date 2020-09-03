@@ -29,22 +29,22 @@ def generate_experiment_path_prefix(absolute_specs_path):
 
 
 def generate_experiment_histories_file_path(experiment_path_prefix):
-    """ Given an experiment path prefix, append '-histories.npz'. """
+    """ Given an 'experiment_path_prefix', append '-histories.npz'. """
     return f"{experiment_path_prefix}-histories.npz"
 
 
 def generate_random_experiment_histories_file_path(experiment_path_prefix, net_number):
-    """ Given an experiment path prefix, return random-histories-file path with 'net_number'. """
+    """ Given an 'experiment_path_prefix', return random-histories-file path with 'net_number'. """
     return f"{experiment_path_prefix}-random-histories{net_number}.npz"
 
 
 def generate_early_stop_file_path(experiment_path_prefix, net_number):
-    """ Given an experiment path prefix, return an early-stop-file path with 'net_number'. """
+    """ Given an 'experiment_path_prefix', return an early-stop-file path with 'net_number'. """
     return f"{experiment_path_prefix}-early-stop{net_number}.pth"
 
 
 def generate_net_file_paths(experiment_path_prefix, net_count):
-    """ Given an experiment path prefix, return an array of net-file paths. """
+    """ Given an 'experiment_path_prefix', return an array of net-file paths. """
     assert net_count > 0, f"'net_count' needs to be greater than zero, but was {net_count}."
     return [f"{experiment_path_prefix}-net{n}.pth" for n in range(net_count)]
 
@@ -64,8 +64,7 @@ def extract_experiment_path_prefix(relative_specs_path):
 
 
 def get_specs_from_file(absolute_specs_path, as_dict=False):
-    """ Read the specs-file (.json) specified by 'absolute_specs_path'.
-    Return result as dict or ExperimentSpecs object. """
+    """ Read the specs-file (.json) specified by 'absolute_specs_path' and return a dict or ExperimentSpecs object. """
     with open(absolute_specs_path, 'r') as specs_file:
         specs_dict = json.load(specs_file)
     if as_dict:
@@ -74,39 +73,34 @@ def get_specs_from_file(absolute_specs_path, as_dict=False):
 
 
 def get_experiment_histories_from_file(experiment_path_prefix):
-    """ Read history-arrays from the npz-file specified by 'experiment_path_prefix' and return them as
-    ExperimentHistories object. """
+    """ Read history-arrays from the specified npz-file and return them as ExperimentHistories object. """
     histories_file_path = generate_experiment_histories_file_path(experiment_path_prefix)
     with np.load(histories_file_path) as histories_file:
         return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
 
 
 def get_random_experiment_histories_from_file(experiment_path_prefix, net_number):
-    """ Read history-arrays from the npz-file specified by 'experiment_path_prefix' and 'net_number' and return them as
-    ExperimentHistories object. """
+    """ Read history-arrays from the specified npz-file and return them as ExperimentHistories object. """
     histories_file_path = generate_random_experiment_histories_file_path(experiment_path_prefix, net_number)
     with np.load(histories_file_path) as histories_file:
         return ExperimentHistories(**histories_file)  # unpack dict-like histories-file
 
 
 def get_all_random_experiment_histories_from_files(experiment_path_prefix, net_count):
-    """ Read history-arrays from all npz-files specified by 'experiment_path_prefix' and net_number from zero to
-    'net_count' and return them as a single ExperimentHistories object. """
+    """ Read history-arrays from all specified npz-files with net_number from zero to 'net_count' and return them as
+    one ExperimentHistories object. """
     assert net_count > 0, f"'net_count' needs to be greater than 0, but is {net_count}."
-
     histories = get_random_experiment_histories_from_file(experiment_path_prefix, 0)
 
     for net_number in range(1, net_count):
         current_histories = get_random_experiment_histories_from_file(experiment_path_prefix, net_number)
         histories = histories.stack_histories(current_histories)
-
     return histories
 
 
 def get_early_stop_history_from_file(experiment_path_prefix, specs, net_number):
-    """ Read EarlyStopHistory from file specified by 'experiment_path_prefix', 'specs' and the corresponding
-    'net_number'. """
-    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
+    """ Read EarlyStopHistory from the specified pth-file. """
+    assert isinstance(specs, ExperimentSpecs), f"'specs' has invalid type {type(specs)}."
     assert specs.save_early_stop, f"'save_early_stop' is False in given 'specs', i.e. no EarlyStopHistoryList exists."
     assert 0 <= net_number < specs.net_count, \
         f"'net_number' needs to be between 0 and {specs.net_count - 1}, but is {net_number}."
@@ -116,9 +110,8 @@ def get_early_stop_history_from_file(experiment_path_prefix, specs, net_number):
 
 
 def get_early_stop_history_list_from_files(experiment_path_prefix, specs):
-    """ Read all EarlyStopHistory objects corresponding to 'specs' from their files and return them as one
-    EarlyStopHistoryList. """
-    assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
+    """ Read all EarlyStopHistory objects related to 'specs' from pth-files and return one EarlyStopHistoryList. """
+    assert isinstance(specs, ExperimentSpecs), f"'specs' has invalid type {type(specs)}."
     assert specs.save_early_stop, f"'save_early_stop' is False in given 'specs', i.e. no EarlyStopHistoryList exists."
 
     history_list = EarlyStopHistoryList()
@@ -127,13 +120,11 @@ def get_early_stop_history_list_from_files(experiment_path_prefix, specs):
     for net_number in range(specs.net_count):
         early_stop_file_path = generate_early_stop_file_path(experiment_path_prefix, net_number)
         history_list.histories[net_number] = torch.load(early_stop_file_path, map_location=torch.device("cpu"))
-
     return history_list
 
 
 def get_models_from_files(experiment_path_prefix, specs):
-    """ Read models' state_dicts from pth-files specified by the given experiment_path_prefix.
-    Return an array of nets with the loaded states. """
+    """ Read models' state_dicts from specified pth-files  and return an array of nets with the loaded states. """
     assert isinstance(specs, ExperimentSpecs), f"Expected specs of type ExperimentSpecs, but got {type(specs)}."
     nets = []
     net_file_paths = generate_net_file_paths(experiment_path_prefix, specs.net_count)
@@ -152,6 +143,6 @@ def generate_model_from_state_dict(state_dict, specs):
 
 
 def random_histories_file_exists(experiment_path_prefix, net_number):
-    """ Indicates of a random-histories-file exists for 'net_number'. """
+    """ Indicate if a random-histories-file exists for 'net_number'. """
     file_path = generate_random_experiment_histories_file_path(experiment_path_prefix, net_number)
     return len(glob.glob(file_path)) > 0

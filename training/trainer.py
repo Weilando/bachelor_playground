@@ -97,13 +97,12 @@ class TrainerAdam(object):
         'test' indicates whether the test- or validation-accuracy should be calculated. """
         net.train(False)  # set model to evaluation mode (important for batch-norm/dropout)
 
-        correct = 0
-        total = 0
+        correct, total = 0, 0
         with torch.no_grad():
             for data in (self.test_loader if test else self.val_loader):
-                # push inputs and targets to device
-                inputs, labels = data[0].to(self.device), data[1].to(self.device)
-                outputs = net(inputs)
+                inputs, labels = data[0].to(self.device), data[1].to(self.device)  # push inputs and targets to device
+                outputs = net(inputs)  # forward pass
+
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += predicted.eq(labels).sum().item()
@@ -117,11 +116,9 @@ class TrainerAdam(object):
         running_val_loss = 0
         with torch.no_grad():
             for data in self.val_loader:
-                # push inputs and targets to device
-                inputs, labels = data[0].to(self.device), data[1].to(self.device)
+                inputs, labels = data[0].to(self.device), data[1].to(self.device)  # push inputs and targets to device
+                outputs = net(inputs)  # forward pass
 
-                # forward pass
-                outputs = net(inputs)
                 val_loss = net.criterion(outputs, labels)
                 running_val_loss += val_loss.item()
 

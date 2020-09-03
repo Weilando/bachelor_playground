@@ -6,7 +6,7 @@ from data.plotter_evaluation import find_acc_at_early_stop_indices, find_early_s
 
 
 class PlotType(str, Enum):
-    """ Defines available types of plots. """
+    """ Define available types of plots. """
     TRAIN_LOSS = "Training-Loss"
     VAL_LOSS = "Validation-Loss"
     VAL_ACC = "Validation-Accuracy"
@@ -22,20 +22,20 @@ def gen_iteration_space(arr, plot_step):
 
 
 def gen_labels_on_ax(ax, plot_type: PlotType, iteration=True):
-    """ Generates labels for the x- and y-axis on given ax.
-    'iteration' defines if the x-axis shows iterations or sparsity. """
+    """ Generate labels for the x- and y-axis on given ax.
+    'iteration' defines if the x-label shows iterations or sparsity. """
     ax.set_ylabel(f"{plot_type.value}")
     ax.set_xlabel(f"{'Iteration' if iteration else 'Sparsity'}")
 
 
 def gen_title_on_ax(ax, plot_type: PlotType, early_stop=False):
-    """ Generates plot-title on given ax.
+    """ Generate plot-title on given ax.
     'early_stop' defines if early-stopping should be mentioned. """
     ax.set_title(f"Average {plot_type.value}{' at early-stop' if early_stop else ''}")
 
 
 def setup_early_stop_ax(ax, force_zero, log_step=7):
-    """ Inverts x-axis and activates log-scale with 'log_step' steps for x-axis. """
+    """ Invert x-axis and activate log-scale with 'log_step' steps for x-axis. """
     ax.set_xscale('log', basex=2)
     ax.set_xticks([2 ** (-p) for p in range(log_step)])
     ax.set_xticklabels([2 ** (-p) for p in range(log_step)])
@@ -66,27 +66,24 @@ def plot_average_at_early_stop_on_ax(ax, hists, sparsity_hist, net_name, random=
     Suppose 'sparsity_hist' has shape (prune_count+1).
     'hists' is a solid line with error bars if 'random' is False, and a dotted line otherwise.
     If 'color' is not specified, choose the next color from the color cycle. """
-    # calculate means
     mean, neg_y_err, pos_y_err = get_means_and_y_errors(hists)
 
-    # for accuracies each mean and y_err has shape (prune_count+1, 1), so squeeze them to get shape (prune_count+1)
+    # for accuracies each mean and y_err has shape (prune_count+1, 1), so squeeze them to shape (prune_count+1)
     mean = np.squeeze(mean)
     neg_y_err = np.squeeze(neg_y_err)
     pos_y_err = np.squeeze(pos_y_err)
 
     # plot and return instance of `ErrorbarContainer` to read its color
-    if random:
-        return ax.errorbar(x=sparsity_hist[1:], y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls=':',
-                           color=color, label=f"{net_name} reinit")
-    return ax.errorbar(x=sparsity_hist, y=mean, elinewidth=1, yerr=[neg_y_err, pos_y_err], marker='x', ls='-',
-                       color=color, label=net_name)
+    return ax.errorbar(x=sparsity_hist[1:] if random else sparsity_hist, y=mean, yerr=[neg_y_err, pos_y_err],
+                       color=color, elinewidth=1, marker='x', ls=':' if random else '-',
+                       label=f"{net_name} reinit" if random else net_name)
 
 
 def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step, random=False):
     """ Plot means and error-bars for 'hists' on ax.
     Suppose hists has shape (net_count, prune_count+1) and 'sparsity_hist' has shape (prune_count+1).
-    Plots dashed baseline (unpruned) and a solid line for each pruning step, if 'random' is False.
-    Plots dotted lines for each pruning step, if 'random' is True. """
+    Plot dashed baseline (unpruned) and a solid line for each pruning step, if 'random' is False.
+    Plot dotted lines for each pruning step, if 'random' is True. """
     _, prune_count, _ = hists.shape
     prune_count -= 1  # baseline at index 0, thus first pruned round at index 1
 
@@ -101,17 +98,15 @@ def plot_averages_on_ax(ax, hists, sparsity_hist, plot_step, random=False):
 
 
 def plot_baseline_mean_on_ax(ax, xs, ys, y_err_neg, y_err_pos):
-    """ Plots the baseline as dashed line wit error bars on given ax. """
+    """ Plot the baseline as dashed line wit error bars on given ax. """
     ax.errorbar(x=xs, y=ys, yerr=[y_err_neg, y_err_pos], elinewidth=1.2, ls='--', color="C0", label="Sparsity 1.0000",
                 errorevery=5, capsize=2)
 
 
 def plot_pruned_means_on_ax(ax, xs, ys, y_err_neg, y_err_pos, sparsity_hist, prune_count, ls='-'):
-    """ Plots means per pruning level as line with error bars on given ax.
+    """ Plot means per pruning level between 'prune_min' and 'prune_max' as line with error bars on given ax.
     Labels contain the sparsity at given level of pruning.
-    'prune_min' and 'prune_max' specify the prune-levels to plot.
-    'ls' specifies the style for all plotted lines (e.g. '-'=solid and ':'=dotted).
-    Colors start with color-spec C1. """
+    'ls' specifies the line style (e.g. '-'=solid and ':'=dotted) and colors start with color-spec C1. """
     for p in range(prune_count):
         ax.errorbar(x=xs, y=ys[p], yerr=[y_err_neg[p], y_err_pos[p]], color=f"C{p + 1}", elinewidth=1.2, ls=ls,
                     label=f"Sparsity {sparsity_hist[p]:.4f}", errorevery=5, capsize=2)

@@ -50,7 +50,7 @@ def generate_net_file_name(file_prefix, net_number):
 
 def save_specs(results_path, file_prefix, specs):
     """ Save experiment's 'specs' as dict in json-file. """
-    assert isinstance(specs, ExperimentSpecs), f"specs must have type ExperimentSpecs, but is {type(specs)}."
+    assert isinstance(specs, ExperimentSpecs), f"'specs' has invalid type {type(specs)}."
 
     file_name = generate_specs_file_name(file_prefix)
     json_path = os.path.join(results_path, file_name)
@@ -75,8 +75,7 @@ def save_nets(results_path, file_prefix, net_list):
 
 def save_experiment_histories(results_path, file_prefix, histories):
     """ Save all np.arrays from 'histories' in one npz-file. """
-    assert isinstance(histories, ExperimentHistories), \
-        f"'histories' must have type ExperimentHistories, but is {type(histories)}."
+    assert isinstance(histories, ExperimentHistories), f"'histories' has invalid type {type(histories)}."
 
     file_name = generate_experiment_histories_file_name(file_prefix)
     file_path = os.path.join(results_path, file_name)
@@ -88,8 +87,7 @@ def save_experiment_histories(results_path, file_prefix, histories):
 
 def save_experiment_histories_random_retrain(results_path, file_prefix, net_number, histories):
     """ Save all np.arrays from 'histories' in one npz-file. """
-    assert isinstance(histories, ExperimentHistories), \
-        f"'histories' must have type ExperimentHistories, but is {type(histories)}."
+    assert isinstance(histories, ExperimentHistories), f"'histories' has invalid type {type(histories)}."
 
     file_name = generate_random_experiment_histories_file_name(file_prefix, net_number)
     file_path = os.path.join(results_path, file_name)
@@ -101,8 +99,7 @@ def save_experiment_histories_random_retrain(results_path, file_prefix, net_numb
 
 def save_early_stop_history_list(results_path, file_prefix, history_list):
     """ Save each EarlyStopHistory from 'history_list' in a single pth-file. """
-    assert isinstance(history_list, EarlyStopHistoryList), \
-        f"'checkpoints' must have type EarlyStopHistoryList, but is {type(history_list)}."
+    assert isinstance(history_list, EarlyStopHistoryList), f"'checkpoints' has invalid type {type(history_list)}."
 
     for net_number, history in enumerate(history_list.histories):
         file_name = generate_early_stop_file_name(file_prefix, net_number)

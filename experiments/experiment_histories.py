@@ -1,5 +1,5 @@
 from copy import deepcopy
-from dataclasses import dataclass, astuple
+from dataclasses import astuple, dataclass
 
 import math
 import numpy as np
@@ -28,9 +28,7 @@ class ExperimentHistories:
 
     def __eq__(self, other):
         """ Check if all fields (each is np.array) are equal. """
-        assert isinstance(other,
-                          ExperimentHistories), f"other must have type ExperimentHistories, but is {type(other)}."
-
+        assert isinstance(other, ExperimentHistories), f"'other' has invalid type {type(other)}."
         self_tuple, other_tuple = astuple(self), astuple(other)
         return all(np.array_equal(self_arr, other_arr) for self_arr, other_arr in zip(self_tuple, other_tuple))
 
@@ -38,8 +36,7 @@ class ExperimentHistories:
         """ Generate a new ExperimentHistories object, which contains joined arrays for losses and accuracies.
         Add arrays from 'other' to corresponding arrays from 'self' (basically on nets-dimension).
         Levels of sparsity and all dimensions need to match. """
-        assert isinstance(other,
-                          ExperimentHistories), f"other must have type ExperimentHistories, but is {type(other)}."
+        assert isinstance(other, ExperimentHistories), f"'other' has invalid type {type(other)}."
         np.testing.assert_array_almost_equal(self.sparsity, other.sparsity)
 
         new_history = ExperimentHistories()

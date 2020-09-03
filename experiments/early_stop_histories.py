@@ -18,8 +18,7 @@ class EarlyStopHistoryList:
 
     def __eq__(self, other):
         """ Check if all histories are equal (under omission of state_dicts). """
-        assert isinstance(other, EarlyStopHistoryList), \
-            f"'other' must have type EarlyStopHistoryList, but is {type(other)}."
+        assert isinstance(other, EarlyStopHistoryList), f"'other' has invalid type {type(other)}."
         return np.array_equal(self.histories, other.histories)
 
 
@@ -38,5 +37,5 @@ class EarlyStopHistory:
     def __eq__(self, other):
         """ Check if all fields (each is np.array) are equal.
         The equality of the saved state_dicts is not part of the check! """
-        assert isinstance(other, EarlyStopHistory), f"'other' must have type EarlyStopHistory, but is {type(other)}."
+        assert isinstance(other, EarlyStopHistory), f"'other' has invalid type {type(other)}."
         return np.array_equal(self.indices, other.indices)

@@ -3,7 +3,7 @@ from enum import Enum, IntEnum
 
 
 class VerbosityLevel(IntEnum):
-    """ Enum to define the level of verbosity.
+    """ Define the level of verbosity.
     'SILENT' gives no output at all.
     'MEDIUM' gives status messages.
     'DETAILED' gives more status and progress messages. """
@@ -13,25 +13,25 @@ class VerbosityLevel(IntEnum):
 
 
 class DatasetNames(str, Enum):
-    """ Enum to define available datasets. """
+    """ Define available datasets. """
     MNIST = "MNIST"
     CIFAR10 = "CIFAR-10"
 
 
 class NetNames(str, Enum):
-    """ Enum to define available network architectures. """
+    """ Define available network architectures. """
     LENET = "Lenet"
     CONV = "Conv"
 
 
 class PruningMethodNames(str, Enum):
-    """ Enum to define available pruning methods. """
+    """ Define available pruning methods. """
     IMP_LAYER = "IMP-per-layer"
     # IMP_GLOBAL = "IMP-global"
 
 
 class ExperimentNames(str, Enum):
-    """ Enum to define available experiments. """
+    """ Define available experiments. """
     IMP = "imp"  # iterative magnitude pruning
     OSP = "osp"  # one-shot pruning
     RR = "rr"  # random retraining
@@ -43,7 +43,7 @@ class ExperimentNames(str, Enum):
 
 
 class ExperimentPresetNames(str, Enum):
-    """ Enum to define available presets for pruning-experiments. """
+    """ Define available presets for pruning-experiments. """
     LENET_MNIST = "lenet-mnist"
     CONV2_CIFAR10 = "conv2-cifar10"
     CONV4_CIFAR10 = "conv4-cifar10"

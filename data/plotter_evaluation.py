@@ -6,7 +6,6 @@ from torch import nn
 
 def find_early_stop_indices(loss_hists):
     """ Find the early-stop indices in 'loss_hists', i.e. the smallest indices with minimum loss along the last axis.
-    Usually the criterion is performed on the validation-loss.
     Suppose 'loss_hists' has shape (net_count, prune_count+1, iteration_count).
     The result has shape (net_count, prune_count+1). """
     return np.argmin(loss_hists, axis=2)
@@ -47,7 +46,7 @@ def get_means_and_y_errors(arr):
 
 
 def get_norm_for_sequential(sequential):
-    """ Generates a TwoSlopeNorm-object to normalize the weights from all layers in 'sequential'. """
+    """ Generate a TwoSlopeNorm-object to normalize the weights from all layers in 'sequential'. """
     assert isinstance(sequential, nn.Sequential)
     weight_list = [lay.weight.data for lay in sequential if (isinstance(lay, nn.Linear) or isinstance(lay, nn.Conv2d))]
     min_weight = min(weights.min().item() for weights in weight_list)
@@ -58,8 +57,8 @@ def get_norm_for_sequential(sequential):
 
 
 def get_row_and_col_num(weight_shape, num_cols):
-    """ Calculates the correct row and column numbers from convolutional 'weight_shape' and preferred number of columns.
-    Suppose 'weight_shape' is a tuple with entries [kernels, channels, height, width]. """
+    """ Calculate the correct row and column numbers from convolutional 'weight_shape' and preferred number of columns.
+    Suppose 'weight_shape' is a tuple with entries (kernels, channels, height, width). """
     num_cols = min(num_cols, weight_shape[0] * weight_shape[1])
     num_rows = ceil((weight_shape[0] * weight_shape[1]) / num_cols)
     return num_cols, num_rows
@@ -67,9 +66,7 @@ def get_row_and_col_num(weight_shape, num_cols):
 
 def get_values_at_stop_iteration(stop_indices, hists):
     """ Find the actual values from 'hists' at given 'stop_indices' as calculated by find_early_stop_indices(...).
-    Usually 'stop_indices' are found on the validation-loss and one needs accuracies at these times.
-    Suppose 'stop_indices' has shape (net_count, prune_count+1) and 'hists' has shape
-    (net_count, prune_count+1, iteration_count).
+    Suppose 'stop_indices' has shape (net_count, prune_count+1) and 'hists' (net_count, prune_count+1, iteration_count).
     The result has shape (net_count, prune_count+1, 1) and holds corresponding values from 'hists' in the last dim. """
     return np.take_along_axis(hists, np.expand_dims(stop_indices, axis=2), axis=2)
 
