@@ -32,16 +32,52 @@ def plot_kernels(conv_2d, num_cols=8):
     weight_norm = plotter_evaluation.get_norm_for_sequential(nn.Sequential(conv_2d))
     num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weights.shape, num_cols)
 
-    fig = plt.figure(figsize=(num_cols, num_rows))
+    fig = plt.figure(figsize=(num_cols + 2, num_rows), constrained_layout=True)
+    gs = fig.add_gridspec(1, 2, width_ratios=[80, 20])
+    gs_kernels = gs[0].subgridspec(num_rows, num_cols)
+    gs_legend = gs[1].subgridspec(1, 2, width_ratios=[20, 80])
     for kernel_counter, kernel in enumerate(weights[:]):
-        for channel_counter, channel in enumerate(kernel[:], 1):
-            ax = fig.add_subplot(num_rows, num_cols, kernel_counter * kernel.shape[0] + channel_counter)
+        for channel_counter, channel in enumerate(kernel[:]):
+            ax_counter = kernel_counter * kernel.shape[0] + channel_counter
+            ax = fig.add_subplot(gs_kernels[ax_counter // num_cols, ax_counter % num_cols])
             ax.imshow(channel, cmap=get_cmap(), norm=weight_norm)
-            ax.set_title(f"K{kernel_counter + 1}.{channel_counter}").set_position([.5, 0.95])
+            ax.set_title(f"K{kernel_counter + 1}.{channel_counter + 1}").set_position([.5, 0.95])
             ax.axis('off')
 
-    fig.colorbar(fig.axes[0].images[0], ax=fig.axes, fraction=0.1)
-    fig.subplots_adjust(wspace=0.1, hspace=0.1, right=0.75)
+    cax = fig.add_subplot(gs_legend[0, 0])
+    hax = fig.add_subplot(gs_legend[0, 1])
+
+    fig.colorbar(fig.axes[0].images[0], cax=cax, pad=0)
+    cax.yaxis.set_ticks_position('left')
+
+    hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='k')
+    hax.yaxis.set_visible(False)
+    hax.spines['top'].set_visible(False)
+    hax.spines['right'].set_visible(False)
+    hax.spines['left'].set_visible(False)
+
+    # fig = plt.figure(figsize=(num_cols + 2, num_rows), constrained_layout=True)
+    # gs = fig.add_gridspec(num_rows, num_cols + 2)  # add color-bar and histogram on the right
+    # for kernel_counter, kernel in enumerate(weights[:]):
+    #     for channel_counter, channel in enumerate(kernel[:]):
+    #         ax_counter = kernel_counter * kernel.shape[0] + channel_counter
+    #         ax = fig.add_subplot(gs[ax_counter // num_cols, ax_counter % num_cols])
+    #         ax.imshow(channel, cmap=get_cmap(), norm=weight_norm)
+    #         ax.set_title(f"K{kernel_counter + 1}.{channel_counter + 1}").set_position([.5, 0.95])
+    #         ax.axis('off')
+    #
+    # cax = fig.add_subplot(gs[:, -2])
+    # hax = fig.add_subplot(gs[:, -1])
+    #
+    # fig.colorbar(fig.axes[0].images[0], cax=cax, pad=0.1, aspect=0.4)
+    # cax.yaxis.set_ticks_position('left')
+    #
+    # hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='k')
+    # hax.yaxis.set_visible(False)
+    # hax.spines['top'].set_visible(False)
+    # hax.spines['right'].set_visible(False)
+    # hax.spines['left'].set_visible(False)
+
     return fig
 
 
