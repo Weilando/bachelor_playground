@@ -3,6 +3,7 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from math import ceil
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from torch import nn
 from torch.nn.utils import prune
 
@@ -33,50 +34,29 @@ def plot_kernels(conv_2d, num_cols=8):
     num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weights.shape, num_cols)
 
     fig = plt.figure(figsize=(num_cols + 2, num_rows), constrained_layout=True)
-    gs = fig.add_gridspec(1, 2, width_ratios=[80, 20])
-    gs_kernels = gs[0].subgridspec(num_rows, num_cols)
-    gs_legend = gs[1].subgridspec(1, 2, width_ratios=[20, 80])
+    gs = fig.add_gridspec(num_rows, num_cols + 1)
     for kernel_counter, kernel in enumerate(weights[:]):
         for channel_counter, channel in enumerate(kernel[:]):
             ax_counter = kernel_counter * kernel.shape[0] + channel_counter
-            ax = fig.add_subplot(gs_kernels[ax_counter // num_cols, ax_counter % num_cols])
+            ax = fig.add_subplot(gs[ax_counter // num_cols, ax_counter % num_cols])
             ax.imshow(channel, cmap=get_cmap(), norm=weight_norm)
             ax.set_title(f"K{kernel_counter + 1}.{channel_counter + 1}").set_position([.5, 0.95])
             ax.axis('off')
 
-    cax = fig.add_subplot(gs_legend[0, 0])
-    hax = fig.add_subplot(gs_legend[0, 1])
+    tmp_ax = fig.add_subplot(gs[:, -1])
+    tmp_ax.axis('off')
+    div = make_axes_locatable(tmp_ax)
+    cax = div.append_axes("right", size="25%", pad=0)
+    hax = div.append_axes("right", size="100%", pad=0)
 
-    fig.colorbar(fig.axes[0].images[0], cax=cax, pad=0)
+    fig.colorbar(fig.axes[0].images[0], cax=cax, aspect=10)
     cax.yaxis.set_ticks_position('left')
 
-    hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='k')
+    hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='gray')
     hax.yaxis.set_visible(False)
     hax.spines['top'].set_visible(False)
     hax.spines['right'].set_visible(False)
     hax.spines['left'].set_visible(False)
-
-    # fig = plt.figure(figsize=(num_cols + 2, num_rows), constrained_layout=True)
-    # gs = fig.add_gridspec(num_rows, num_cols + 2)  # add color-bar and histogram on the right
-    # for kernel_counter, kernel in enumerate(weights[:]):
-    #     for channel_counter, channel in enumerate(kernel[:]):
-    #         ax_counter = kernel_counter * kernel.shape[0] + channel_counter
-    #         ax = fig.add_subplot(gs[ax_counter // num_cols, ax_counter % num_cols])
-    #         ax.imshow(channel, cmap=get_cmap(), norm=weight_norm)
-    #         ax.set_title(f"K{kernel_counter + 1}.{channel_counter + 1}").set_position([.5, 0.95])
-    #         ax.axis('off')
-    #
-    # cax = fig.add_subplot(gs[:, -2])
-    # hax = fig.add_subplot(gs[:, -1])
-    #
-    # fig.colorbar(fig.axes[0].images[0], cax=cax, pad=0.1, aspect=0.4)
-    # cax.yaxis.set_ticks_position('left')
-    #
-    # hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='k')
-    # hax.yaxis.set_visible(False)
-    # hax.spines['top'].set_visible(False)
-    # hax.spines['right'].set_visible(False)
-    # hax.spines['left'].set_visible(False)
 
     return fig
 
