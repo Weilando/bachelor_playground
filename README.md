@@ -97,7 +97,9 @@ The module `data.plotter_layer` provides high-level functions to plot linear and
 The interactive Jupyter notebook `ExperimentEvaluation.ipynb` shows examples for these functions, too.
 
 - `plot_conv(...)` plots all Conv2D-layers from a given Sequential.
+One color-bar per layer indicates value mappings and attached histograms show the weights' density.
 - `plot_fc(...)` plots all Linear-layers from a given Sequential.
+One color-bar indicates value mappings.
 
 Rectangles with colored pixels represent weight matrices of linear layers.
 Similarly, rows of rectangles represent kernels per channel from convolutional layers.
