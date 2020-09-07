@@ -15,7 +15,7 @@ from training.logger import log_from_medium
 
 class ExperimentRandomRetrain(Experiment):
     """
-    Experiment which trains randomly reinitialized subnetworks from a previous IMP-experiment.
+    Experiment which trains randomly reinitialized subnetworks from a previous pruning experiment.
     The original nets with sparsity 100% are not retrained.
     """
 

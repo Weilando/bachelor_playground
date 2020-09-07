@@ -5,6 +5,11 @@ from experiments.experiment_pruning import ExperimentPruning
 from training.logger import log_from_medium
 
 
+def mimic_next_prune_rate(curr_prune_rate, prune_rate_specs):
+    """ Mimic the next pruning-rate from the current pruning-rate and the rate from specs. """
+    return curr_prune_rate + (1 - curr_prune_rate) * prune_rate_specs
+
+
 class ExperimentOSP(ExperimentPruning):
     """
     Experiment with one-shot pruning.
@@ -22,17 +27,14 @@ class ExperimentOSP(ExperimentPruning):
         Retrain subnetworks to evaluate accuracies. """
         for n in range(self.specs.net_count):
             curr_original_net = None
-            curr_prune_rate_conv = 0
-            curr_prune_rate_fc = 0
+            curr_prune_rate_conv, curr_prune_rate_fc = 0, 0
 
             for p in range(0, self.specs.prune_count + 1):
                 tic = time.time()
                 if p > 0:
                     log_from_medium(self.specs.verbosity, f"Prune network #{n} in round {p}. ", False)
-
-                    curr_prune_rate_conv += (1 - curr_prune_rate_conv) * self.specs.prune_rate_conv
-                    curr_prune_rate_fc += (1 - curr_prune_rate_fc) * self.specs.prune_rate_fc
-
+                    curr_prune_rate_conv = mimic_next_prune_rate(curr_prune_rate_conv, self.specs.prune_rate_conv)
+                    curr_prune_rate_fc = mimic_next_prune_rate(curr_prune_rate_fc, self.specs.prune_rate_fc)
                     self.nets[n] = curr_original_net.get_new_instance(reset_weight=False)
                     self.nets[n].prune_net(curr_prune_rate_conv, curr_prune_rate_fc, reset=True)
 
@@ -40,7 +42,6 @@ class ExperimentOSP(ExperimentPruning):
                     self.hists.sparsity[p] = self.nets[0].sparsity_report()[0]
 
                 log_from_medium(self.specs.verbosity, f"Train network #{n} (sparsity {self.hists.sparsity[p]:6.4f}).")
-
                 (self.nets[n], self.hists.train_loss[n, p], self.hists.val_loss[n, p], self.hists.val_acc[n, p],
                  self.hists.test_acc[n, p], self.stop_hists.histories[n].indices[p],
                  self.stop_hists.histories[n].state_dicts[p]) \

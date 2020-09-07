@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 import experiments.experiment_specs as experiment_specs
-from experiments.experiment_osp import ExperimentOSP
+from experiments.experiment_osp import ExperimentOSP, mimic_next_prune_rate
 from test.fake_data_loaders import generate_fake_cifar10_data_loaders, generate_fake_mnist_data_loaders
 from test.fake_experiment_specs import get_specs_conv_toy, get_specs_lenet_toy
 
@@ -21,6 +21,14 @@ class TestExperimentOSP(TestCase):
     def setUpClass(cls):
         cls.fake_mnist_data_loaders = generate_fake_mnist_data_loaders()
         cls.fake_cifar10_data_loaders = generate_fake_cifar10_data_loaders()
+
+    def test_mimic_prune_rate(self):
+        """ Should mimic a rate which produces sparsity 0.36 in one step, as 0.8*0.8=0.64. """
+        self.assertAlmostEqual(0.36, mimic_next_prune_rate(0.2, 0.2))
+
+    def test_mimic_prune_rate2(self):
+        """ Should mimic a rate which produces sparsity 0.488 in one step, as 0.8^3=0.512. """
+        self.assertAlmostEqual(0.488, mimic_next_prune_rate(0.36, 0.2))
 
     def test_perform_toy_lenet_osp_experiment(self):
         """ Should run OSP-Experiment with small Lenet and toy-dataset without errors. """

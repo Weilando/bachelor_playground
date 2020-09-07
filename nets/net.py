@@ -106,9 +106,7 @@ class Net(nn.Module):
             prune_layer(layer, prune_rate_conv, reset)
         for layer in self.fc:
             prune_layer(layer, prune_rate_fc, reset)
-
-        # prune output-layer with half of the fc pruning rate
-        prune_layer(self.out, prune_rate_fc / 2, reset)
+        prune_layer(self.out, prune_rate_fc / 2, reset)  # prune output-layer with half of prune_rate_fc
 
     def get_new_instance(self, reset_weight=True):
         """ Return a copy of this net with pruned mask.
@@ -141,13 +139,11 @@ class Net(nn.Module):
         for layer in self.conv:
             if isinstance(layer, nn.Conv2d):
                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
-
                 sparsity_list.append(curr_sparsity)
                 unpr_weight_counts += curr_unpr_weight_count
         for layer in self.fc:
             if isinstance(layer, nn.Linear):
                 curr_sparsity, curr_unpr_weight_count = self.sparsity_layer(layer)
-
                 sparsity_list.append(curr_sparsity)
                 unpr_weight_counts += curr_unpr_weight_count
 

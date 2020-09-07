@@ -15,7 +15,7 @@ os.chdir(os.path.join(current_path, 'experiments'))
 
 
 def should_override_arg_positive_int(value, debug_name):
-    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. positive integer). """
+    """ Check if the flag was set and if 'value' is a positive integer. """
     if value is not None:
         assert isinstance(value, int) and (value > 0), f"{debug_name} needs to be a positive integer, but is {value}."
         return True
@@ -23,7 +23,7 @@ def should_override_arg_positive_int(value, debug_name):
 
 
 def should_override_arg_rate(value, debug_name):
-    """ Check if the flag was set (i.e. 'value'!=None) and if 'value' is valid (i.e. float from zero to one). """
+    """ Check if the flag was set and 'value' is a float from zero to one. """
     if value is not None:
         assert isinstance(value, float) and (0 <= value <= 1), f"0.0<={value}<=1.0 is invalid for {debug_name}."
         return True
@@ -31,7 +31,7 @@ def should_override_arg_rate(value, debug_name):
 
 
 def should_override_arg_plan(plan, debug_name):
-    """ Check if the flag was set (i.e. 'plan'!=None) and if the given plan is valid (i.e. list). """
+    """ Check if the flag was set and if 'plan' is a list. """
     if plan is not None:
         assert isinstance(plan, list), f"{debug_name} has invalid type {type(plan)}."
         return True
@@ -140,9 +140,9 @@ def setup_pruning(args):
         specs.prune_count = args.prunes
     if should_override_arg_rate(args.learn_rate, 'Learning-rate'):
         specs.learning_rate = args.learn_rate
-    if should_override_arg_rate(args.prune_rate_conv, 'Pruning-rate for convolutional layers'):
+    if should_override_arg_rate(args.prune_rate_conv, 'Pruning-rate Conv'):
         specs.prune_rate_conv = args.prune_rate_conv
-    if should_override_arg_rate(args.prune_rate_fc, 'Pruning-rate for fully-connected layers'):
+    if should_override_arg_rate(args.prune_rate_fc, 'Pruning-rate FC'):
         specs.prune_rate_fc = args.prune_rate_fc
     if should_override_arg_plan(args.plan_conv, 'Convolutional plan'):
         specs.plan_conv = args.plan_conv
@@ -166,7 +166,7 @@ def setup_pruning(args):
 
 def setup_random_retrain(args):
     """ Setup and run retraining experiment for specs from a loaded OSP- or IMP-experiment. """
-    # working directory of experiment is ./experiment, but the path is relative to the main package
+    # working directory of experiment is ./experiment, but path is relative to main package
     relative_specs_path = os.path.join('..', args.specs_path)
 
     experiment = ExperimentRandomRetrain(relative_specs_path, args.net_number, args.net_count)

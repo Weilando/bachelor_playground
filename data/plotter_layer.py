@@ -48,10 +48,10 @@ def plot_kernels(conv_2d, num_cols=8):
     tmp_ax = fig.add_subplot(gs[:, -1])
     tmp_ax.axis('off')
     div = make_axes_locatable(tmp_ax)
-    cax = div.append_axes("right", size="25%", pad=0)
-    hax = div.append_axes("right", size="75%", pad=0)
+    cax = div.append_axes("right", size="40%", pad=0)
+    hax = div.append_axes("right", size="60%", pad=0)
 
-    fig.colorbar(fig.axes[0].images[0], cax=cax, aspect=10)
+    fig.colorbar(fig.axes[0].images[0], cax=cax)
     cax.yaxis.set_ticks_position('left')
 
     hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='gray')
@@ -82,7 +82,7 @@ def plot_fc(sequential):
     linear_layers = [layer for layer in sequential if isinstance(layer, nn.Linear)]
     weight_norm = plotter_evaluation.get_norm_for_sequential(sequential)
 
-    fig, ax = plt.subplots(len(linear_layers), 1, figsize=(10, 5))
+    fig, ax = plt.subplots(len(linear_layers), 1, figsize=(14, 8))
     for plot_counter, layer in enumerate(linear_layers):
         weights = layer.weight.data.clone().numpy()
         if prune.is_pruned(layer):  # mark masked weights with NAN to highlight them later
