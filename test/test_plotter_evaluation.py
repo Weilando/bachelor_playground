@@ -3,7 +3,6 @@ from unittest import TestCase, main as unittest_main
 import numpy as np
 import torch
 from matplotlib.colors import Normalize, TwoSlopeNorm
-from torch import nn
 
 from data import plotter_evaluation
 
@@ -67,28 +66,27 @@ class TestPlotterEvaluation(TestCase):
         np.testing.assert_array_equal(expected_y_error, result_neg_y_error)
         np.testing.assert_array_equal(expected_y_error, result_pos_y_error)
 
-    def test_get_norm_for_sequence_zero_center(self):
-        """ Should find a TwoSlopeNorm-object with correct min and max of all weights from all layers in 'seq'. """
-        torch.manual_seed(123)
-        seq = nn.Sequential(nn.Linear(2, 2), nn.ReLU(), nn.Conv2d(2, 2, 2))
-
-        norm = plotter_evaluation.get_norm_for_sequential(seq)
-
-        self.assertIsInstance(norm, TwoSlopeNorm)
-        self.assertAlmostEqual(0.0, norm.vcenter)  # colormap becomes zero centered
-        self.assertAlmostEqual(-0.35119062662124634, norm.vmin)
-        self.assertAlmostEqual(0.26665955781936646, norm.vmax)
-
-    def test_get_norm_for_sequence(self):
-        """ Should find a Normalize-object with correct min and max of all weights from all layers in 'seq'. """
-        seq = nn.Sequential(nn.Linear(2, 2))
-        seq[0].weight.data = torch.eye(2)  # plot of identity matrix is not zero centered
-
-        norm = plotter_evaluation.get_norm_for_sequential(seq)
+    def test_get_norm(self):
+        """ Should find a Normalize-object with correct min and max. """
+        norm = plotter_evaluation.get_norm_for_tensor(np.eye(2))
 
         self.assertIsInstance(norm, Normalize)
-        self.assertAlmostEqual(0.0, norm.vmin)
-        self.assertAlmostEqual(1.0, norm.vmax)
+        self.assertEqual(0.0, norm.vmin)
+        self.assertEqual(1.0, norm.vmax)
+
+    def test_get_norm_zero_center(self):
+        """ Should find a TwoSlopeNorm-object with correct min and max. """
+        norm = plotter_evaluation.get_norm_for_tensor(np.array([[-3.0, -2.0], [-1.0, 4.0]]))
+
+        self.assertIsInstance(norm, TwoSlopeNorm)
+        self.assertEqual(0.0, norm.vcenter)  # colormap becomes zero centered
+        self.assertEqual(-3.0, norm.vmin)
+        self.assertEqual(4.0, norm.vmax)
+
+    def test_get_norm_for_torch_tensor_raise_assertion_error(self):
+        """ Should raise an assertion error on a torch tensor. """
+        with self.assertRaises(AssertionError):
+            plotter_evaluation.get_norm_for_tensor(torch.eye(2))
 
     def test_get_row_and_col_num(self):
         """ Should return 4 columns and 8 rows as each row holds all channels for one kernel. """

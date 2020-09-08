@@ -17,6 +17,22 @@ def get_cmap():
     return cmap
 
 
+def generate_histogram_on_ax(ax, weights):
+    """ Generate a vertical histogram from 'weights' only with visible x-axis on 'ax'. """
+    ax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='gray')
+    ax.yaxis.set_visible(False)
+    for loc in ['top', 'right', 'left']:
+        ax.spines[loc].set_visible(False)
+
+
+def generate_axes_for_colorbar_and_histogram(ax, c_size, h_size, pad):
+    """ Append axes for a combined colorbar and histogram on the right of ax with padding 'pad'. """
+    div = make_axes_locatable(ax)
+    cax = div.append_axes("right", size=c_size, pad=pad)
+    hax = div.append_axes("right", size=h_size, pad=0)
+    return cax, hax
+
+
 def plot_kernels(conv_2d, num_cols=8):
     """ Plot the weights of all kernels from 'conv_2d' as rectangles on a new figure and map values to colors.
     Create one normalized image per channel and kernel to avoid clipping and to center all values at zero.
@@ -31,7 +47,7 @@ def plot_kernels(conv_2d, num_cols=8):
         weights = weights[:last_kernel]
         warnings.warn(f"Too many kernels to plot, only plot the first {last_kernel} kernels.")
 
-    weight_norm = plotter_evaluation.get_norm_for_sequential(nn.Sequential(conv_2d))
+    weight_norm = plotter_evaluation.get_norm_for_tensor(weights)
     num_cols, num_rows = plotter_evaluation.get_row_and_col_num(weights.shape, num_cols)
 
     fig = plt.figure(figsize=(num_cols + 1, num_rows), constrained_layout=False)
@@ -44,20 +60,13 @@ def plot_kernels(conv_2d, num_cols=8):
             ax.set_title(f"K{kernel_counter + 1}.{channel_counter + 1}").set_position([.5, 0.95])
             ax.axis('off')
 
-    # append two columns for colorbar and histogram
-    tmp_ax = fig.add_subplot(gs[:, -1])
+    tmp_ax = fig.add_subplot(gs[:, -1])  # empty column to stick colorbar and histogram on
     tmp_ax.axis('off')
-    div = make_axes_locatable(tmp_ax)
-    cax = div.append_axes("right", size="40%", pad=0)
-    hax = div.append_axes("right", size="60%", pad=0)
+    cax, hax = generate_axes_for_colorbar_and_histogram(tmp_ax, "40%", "60%", 0)
 
     fig.colorbar(fig.axes[0].images[0], cax=cax)
     cax.yaxis.set_ticks_position('left')
-
-    hax.hist(weights.flatten(), orientation='horizontal', density=False, bins=30, color='gray')
-    hax.yaxis.set_visible(False)
-    for loc in ['top', 'right', 'left']:
-        hax.spines[loc].set_visible(False)
+    generate_histogram_on_ax(hax, weights)
 
     return fig
 
@@ -78,19 +87,20 @@ def plot_fc(sequential):
     """ Plot the weights of all linear layers from 'sequential' as rectangles on a figure and maps values to colors.
     Use normalization to avoid clipping and to center all values at zero. """
     assert isinstance(sequential, nn.Sequential), f"'sequential' has invalid type {type(sequential)}"
-
     linear_layers = [layer for layer in sequential if isinstance(layer, nn.Linear)]
-    weight_norm = plotter_evaluation.get_norm_for_sequential(sequential)
 
-    fig, ax = plt.subplots(len(linear_layers), 1, figsize=(14, 8))
-    for plot_counter, layer in enumerate(linear_layers):
+    fig, ax_list = plt.subplots(len(linear_layers), 1, figsize=(12, 4 * len(linear_layers)), constrained_layout=False)
+    for ax, layer in zip(ax_list, linear_layers):
         weights = layer.weight.data.clone().numpy()
+        weight_norm = plotter_evaluation.get_norm_for_tensor(weights)
         if prune.is_pruned(layer):  # mark masked weights with NAN to highlight them later
             pruning_mask = layer.weight_mask.numpy()
             weights[np.where(pruning_mask == 0)] = np.nan
-        ax[plot_counter].imshow(weights, norm=weight_norm, cmap=get_cmap())
-        ax[plot_counter].label_outer()
+        ax.imshow(weights, norm=weight_norm, cmap=get_cmap(), interpolation='none')
 
-    fig.colorbar(ax[0].images[0], ax=ax, fraction=0.1)
-    fig.subplots_adjust(wspace=0.1, hspace=0.1, right=0.8)
+        cax, hax = generate_axes_for_colorbar_and_histogram(ax, 0.2, 0.4, 0.6)
+        fig.colorbar(ax.images[0], cax=cax)
+        cax.yaxis.set_ticks_position('left')
+        generate_histogram_on_ax(hax, weights)
+
     return fig

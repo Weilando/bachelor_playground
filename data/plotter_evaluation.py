@@ -1,7 +1,6 @@
 import numpy as np
 from math import ceil
 from matplotlib import colors
-from torch import nn
 
 
 def find_early_stop_indices(loss_hists):
@@ -45,15 +44,14 @@ def get_means_and_y_errors(arr):
     return arr_mean, arr_neg_y_err, arr_pos_y_err
 
 
-def get_norm_for_sequential(sequential):
-    """ Generate a TwoSlopeNorm-object to normalize the weights from all layers in 'sequential'. """
-    assert isinstance(sequential, nn.Sequential)
-    weight_list = [lay.weight.data for lay in sequential if (isinstance(lay, nn.Linear) or isinstance(lay, nn.Conv2d))]
-    min_weight = min(weights.min().item() for weights in weight_list)
-    max_weight = max(weights.max().item() for weights in weight_list)
-    if min_weight >= 0.0 or max_weight <= 0.0:
-        return colors.Normalize(vmin=min_weight, vmax=max_weight)
-    return colors.TwoSlopeNorm(vcenter=0.0, vmin=min_weight, vmax=max_weight)
+def get_norm_for_tensor(tensor):
+    """ Generate a zero-centered TwoSlopeNorm (or Normalize-object) to normalize np array 'tensor'. """
+    assert isinstance(tensor, np.ndarray), f"'tensor' has invalid type {type(tensor)}."
+    min_val = np.nanmin(tensor)
+    max_val = np.nanmax(tensor)
+    if min_val >= 0.0 or max_val <= 0.0:
+        return colors.Normalize(vmin=min_val, vmax=max_val)
+    return colors.TwoSlopeNorm(vcenter=0.0, vmin=min_val, vmax=max_val)
 
 
 def get_row_and_col_num(weight_shape, num_cols):

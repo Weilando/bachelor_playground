@@ -3,7 +3,7 @@ import time
 from data import result_saver as rs
 from experiments.experiment import Experiment
 from nets.net import Net
-from training.logger import log_from_medium, log_detailed_only
+from training.logger import log_detailed_only, log_from_medium
 
 
 class ExperimentPruning(Experiment):
@@ -15,16 +15,12 @@ class ExperimentPruning(Experiment):
     def __init__(self, specs, result_path='../data/results'):
         super(ExperimentPruning, self).__init__(specs)
         self.result_path = result_path
-
-        # setup nets in init_nets()
-        self.nets = [Net] * self.specs.net_count
+        self.nets = []  # setup nets in init_nets()
 
     def init_nets(self):
         """ Initialize nets which are used during the experiment. """
         for n in range(self.specs.net_count):
-            # noinspection PyTypeChecker
-            self.nets[n] = Net(self.specs.net, self.specs.dataset, self.specs.plan_conv, self.specs.plan_fc)
-
+            self.nets.append(Net(self.specs.net, self.specs.dataset, self.specs.plan_conv, self.specs.plan_fc))
         log_detailed_only(self.specs.verbosity, self.nets[0])
 
     def setup_experiment(self):

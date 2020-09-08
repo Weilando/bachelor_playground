@@ -28,7 +28,7 @@ def prune_mask(layer, prune_rate):
     sorted_weight_indices = layer.weight.flatten().abs().argsort()
 
     new_mask = layer.weight_mask.clone()
-    new_mask.flatten()[sorted_weight_indices[pruned_weight_count:(pruned_weight_count+prune_amount)]] = 0.
+    new_mask.flatten()[sorted_weight_indices[pruned_weight_count:(pruned_weight_count + prune_amount)]] = 0.
     return new_mask
 
 
