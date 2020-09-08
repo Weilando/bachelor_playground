@@ -6,9 +6,11 @@ These experiments are currently available:
 - Finding winning tickets from convolutional Conv-2 and CIFAR-10 using IMP or OSP
 - Finding winning tickets from convolutional Conv-4 and CIFAR-10 using IMP or OSP
 - Finding winning tickets from convolutional Conv-6 and CIFAR-10 using IMP or OSP
+- Finding winning tickets from convolutional Tiny CNN (suitable for complete visualizations) and CIFAR-10 using IMP or OSP
 - Retraining randomly reinitialized models from a previous IMP- or OSP-experiment
 
 Lenet and Conv can be modified, but their main difference is the activation function they use (tanh for Lenet and ReLU for Conv).
+Tiny CNN is a small sized Conv architecture.
 
 I developed and tested the framework using a conda-environment with packages specified in `conda_specs.txt`.
 Use it to create a compatible environment.
@@ -34,9 +36,10 @@ For details on experiment specs have a look at `~/experiments/experiment_specs.p
 Experiment | Architecture | Dataset
 --- | --- | ---
 `lenet-mnist` | fc: 300-100-10 | MNIST
-`conv2_cifar10` | conv: 64-64-M, fc: 256-256-10 | CIFAR-10
-`conv4_cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | CIFAR-10
-`conv6_cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | CIFAR-10
+`conv2-cifar10` | conv: 64-64-M, fc: 256-256-10 | CIFAR-10
+`conv4-cifar10` | conv: 64-64-M-128-128-M, fc: 256-256-10 | CIFAR-10
+`conv6-cifar10` | conv: 64-64-M-128-128-M-256-256-M, fc: 256-256-10 | CIFAR-10
+`tiny-cifar10` | conv: 8-8-M-8-M, fc: 300-100-10 | CIFAR-10
 
 It is possible to specify other architectures by using the `--plan_conv` for convolutional layers and `--plan_fc` for fully-connected layers.
 The `plan_fc`-option takes a list of numbers (either `int` or `str`) and interprets them as output-features of linear layers.
@@ -106,6 +109,7 @@ One color-bar per layer indicates value mappings and attached histograms show th
 
 Please keep in mind that convolutional plots might scale quickly, e.g. a network with two convolutions with 64 channels each produce a plot with 64 RGB images and a plot with 64*64=4096 single-channel plots.
 `plot_conv(...)` shows at most 512 images.
+Tiny CNN is small enough to be visualized completely.
 
 ## Tests
 There are many unit and integration tests which cover correct experiment setup, execution and evaluation.

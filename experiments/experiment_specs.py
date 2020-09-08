@@ -3,13 +3,10 @@ from enum import Enum, IntEnum
 
 
 class VerbosityLevel(IntEnum):
-    """ Define the level of verbosity.
-    'SILENT' gives no output at all.
-    'MEDIUM' gives status messages.
-    'DETAILED' gives more status and progress messages. """
-    SILENT = 0
-    MEDIUM = 1
-    DETAILED = 2
+    """ Define the level of verbosity. """
+    SILENT = 0  # no output at all
+    MEDIUM = 1  # status messages
+    DETAILED = 2  # more status and progress messages
 
 
 class DatasetNames(str, Enum):
@@ -48,6 +45,7 @@ class ExperimentPresetNames(str, Enum):
     CONV2_CIFAR10 = "conv2-cifar10"
     CONV4_CIFAR10 = "conv4-cifar10"
     CONV6_CIFAR10 = "conv6-cifar10"
+    TINY_CIFAR10 = "tiny-cifar10"
 
     @staticmethod
     def get_value_list():
@@ -92,6 +90,8 @@ def get_specs(experiment_name):
         return get_specs_conv4_cifar10()
     elif experiment_name == ExperimentPresetNames.CONV6_CIFAR10:
         return get_specs_conv6_cifar10()
+    elif experiment_name == ExperimentPresetNames.TINY_CIFAR10:
+        return get_specs_tiny_cnn_cifar10()
     else:
         raise AssertionError(f"{experiment_name} is an invalid 'experiment_name'.")
 
@@ -156,4 +156,17 @@ def get_specs_conv6_cifar10():
     experiment_specs.learning_rate = 3e-4  # page 3, figure 2
     experiment_specs.prune_rate_conv = 0.15  # page 3, figure 2
     experiment_specs.prune_rate_fc = 0.2  # page 3, figure 2
+    return experiment_specs
+
+
+def get_specs_tiny_cnn_cifar10():
+    """ Experiment with Tiny CNN on CIFAR-10. """
+    experiment_specs = get_specs_conv2_cifar10()
+    experiment_specs.net_count = 1
+    experiment_specs.plan_conv = [8, 8, 'M', 8, 'M']
+    experiment_specs.plan_fc = [300, 100]
+    experiment_specs.learning_rate = 8e-4
+    experiment_specs.prune_rate_conv = 0.1
+    experiment_specs.prune_rate_fc = 0.2
+    experiment_specs.plot_step = 150
     return experiment_specs
