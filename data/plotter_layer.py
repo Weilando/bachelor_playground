@@ -1,5 +1,7 @@
+import copy
 import warnings
 
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 from math import ceil
@@ -12,7 +14,7 @@ from data import plotter_evaluation
 
 def get_cmap():
     """ Generate a diverging colormap which shows NANs in black. """
-    cmap = plt.get_cmap('bwr')
+    cmap = copy.copy(cm.get_cmap("bwr"))
     cmap.set_bad(color='black')
     return cmap
 

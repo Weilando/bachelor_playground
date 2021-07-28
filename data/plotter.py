@@ -36,7 +36,7 @@ def gen_title_on_ax(ax, plot_type: PlotType, early_stop=False):
 
 def setup_early_stop_ax(ax, force_zero, log_step=7):
     """ Invert x-axis and activate log-scale with 'log_step' steps for x-axis. """
-    ax.set_xscale('log', basex=2)
+    ax.set_xscale('log', base=2)
     ax.set_xticks([2 ** (-p) for p in range(log_step)])
     ax.set_xticklabels([2 ** (-p) for p in range(log_step)])
 
