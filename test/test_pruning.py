@@ -27,7 +27,7 @@ class TestPruning(TestCase):
         """ Prune the mask for an unpruned linear layer in one step.
         Should zero out the two weights with the lowest magnitude. """
         # initialize linear layer with 10 given weights and unpruned mask
-        initial_weights = torch.tensor([[1., -2., 3., -1.5, -3.], [-1., 2., -4., 0.5, 1.5]])
+        initial_weights = torch.tensor([[-1., -2., 3., -1.5, -3.], [2.5, 2., -4., 0.5, 1.5]])
         test_layer = nn.Linear(2, 5)
         test_layer.weight = nn.Parameter(initial_weights.clone())
         test_layer = prune.custom_from_mask(test_layer, name='weight', mask=torch.ones_like(test_layer.weight))
@@ -82,7 +82,7 @@ class TestPruning(TestCase):
 
         expected_weights = torch.tensor(
             [1.2, -0., 1.2, 4.3, -2.1, -1.1, -0., 1.2, 0., 0., 0., 1.4, 2.2, -0., 0., 0.9]).view(2, 2, 2, 2)
-        self.assertIs((test_layer.weight == expected_weights).all().item(), True)
+        self.assertIs(test_layer.weight.equal(expected_weights), True)
 
     def test_apply_init_weight_after_pruning_linear_layer(self):
         """ Generate, modify and prune an unpruned linear layer.

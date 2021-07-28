@@ -11,7 +11,7 @@ from training.trainer import TrainerAdam
 def generate_single_layer_net():
     """ Setup a neural network with one linear layer for test purposes. """
     net = nn.Linear(4, 2)
-    net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .1, .1]]))
+    net.weight = nn.Parameter(torch.tensor([[.5, .5, .1, .1], [.4, .4, .2, .2]]))
     net.bias = nn.Parameter(torch.zeros(2))
     net.criterion = nn.CrossEntropyLoss()
     return net
