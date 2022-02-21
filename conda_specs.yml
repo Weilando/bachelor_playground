@@ -1,0 +1,16 @@
+name: bachelor_playground
+
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  - jsonschema=3.2.0
+  - jupyterlab=3.0.14
+  - matplotlib=3.3.4
+  - notebook=6.4.0
+  - numpy=1.20.3
+  - python=3.8.10
+  - pytorch=1.9.0
+  - torchvision=0.10.0
